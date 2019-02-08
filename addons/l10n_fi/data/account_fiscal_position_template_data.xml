@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="aland" model="account.fiscal.position.template">
+        <field name="name">Aland</field>
+        <field name="chart_template_id" ref="fi_chart_template"/>
+        <field name="country_id" ref="base.ax"/>
+        <field name="auto_apply" eval="True"/>
+        <field name="vat_required" eval="True"/>
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="aland_fi" model="account.fiscal.position.template">
+        <field name="name">Aland (FI)</field>
+        <field name="chart_template_id" ref="fi_chart_template"/>
+        <field name="country_id" ref="base.fi"/>
+        <field name="auto_apply" eval="True"/>
+        <field name="vat_required" eval="True"/>
+        <field name="zip_from">22100</field>
+        <field name="zip_to">22950</field>
+        <field name="sequence">2</field>
+    </record>
+
+    <record id="finland" model="account.fiscal.position.template">
+        <field name="name">Finland</field>
+        <field name="chart_template_id" ref="fi_chart_template"/>
+        <field name="country_id" ref="base.fi"/>
+        <field name="auto_apply" eval="True"/>
+        <field name="vat_required" eval="True"/>
+        <field name="sequence">3</field>
+    </record>
+
+    <record id="eu" model="account.fiscal.position.template">
+        <field name="name">EU</field>
+        <field name="chart_template_id" ref="fi_chart_template"/>
+        <field name="country_group_id" ref="base.europe"/>
+        <field name="auto_apply" eval="True"/>
+        <field name="vat_required" eval="True"/>
+        <field name="sequence">4</field>
+    </record>
+
+    <record id="eu_no_vat" model="account.fiscal.position.template">
+        <field name="name">EU no VAT</field>
+        <field name="chart_template_id" ref="fi_chart_template"/>
+        <field name="country_group_id" ref="base.europe"/>
+        <field name="auto_apply" eval="True"/>
+        <field name="sequence">5</field>
+    </record>
+
+    <record id="export" model="account.fiscal.position.template">
+        <field name="name">Export</field>
+        <field name="chart_template_id" ref="fi_chart_template"/>
+        <field name="auto_apply" eval="True"/>
+        <field name="sequence">6</field>
+    </record>
+
+    <record id="construction" model="account.fiscal.position.template">
+        <field name="name">Construction services + Scrap metal</field>
+        <field name="chart_template_id" ref="fi_chart_template"/>
+        <field name="country_id" ref="base.fi"/>
+        <field name="sequence">7</field>
+    </record>
+
+    <!-- Aland fiscal position rules -->
+    <record id="aland_fiscpos_tax_1" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland"/>
+        <field name="tax_src_id" ref="sales24"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+    <record id="aland_fiscpos_tax_2" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland"/>
+        <field name="tax_src_id" ref="sales14"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+    <record id="aland_fiscpos_tax_3" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland"/>
+        <field name="tax_src_id" ref="vat10service"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+    <record id="aland_fiscpos_tax_4" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland"/>
+        <field name="tax_src_id" ref="vat24service"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+    <record id="aland_fiscpos_tax_5" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland"/>
+        <field name="tax_src_id" ref="vat14service"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+    <record id="aland_fiscpos_tax_6" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland"/>
+        <field name="tax_src_id" ref="sales10"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+
+    <!-- Aland (FI) fiscal position rules -->
+    <record id="aland_fi_fiscpos_tax_1" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland_fi"/>
+        <field name="tax_src_id" ref="sales24"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+    <record id="aland_fi_fiscpos_tax_2" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland_fi"/>
+        <field name="tax_src_id" ref="sales14"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+    <record id="aland_fi_fiscpos_tax_3" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland_fi"/>
+        <field name="tax_src_id" ref="vat10service"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+    <record id="aland_fi_fiscpos_tax_4" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland_fi"/>
+        <field name="tax_src_id" ref="vat24service"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+    <record id="aland_fi_fiscpos_tax_5" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland_fi"/>
+        <field name="tax_src_id" ref="vat14service"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+    <record id="aland_fi_fiscpos_tax_6" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="aland_fi"/>
+        <field name="tax_src_id" ref="sales10"/>
+        <field name="tax_dest_id" ref="aland0"/>
+    </record>
+
+    <!-- EU Fiscal position rules -->
+    <record id="eu_excl_fi_fiscpos_tax_1" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="sales24"/>
+        <field name="tax_dest_id" ref="vat0eugoods"/>
+    </record>
+    <record id="eu_excl_fi_fiscpos_tax_2" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="vat24service"/>
+        <field name="tax_dest_id" ref="vat0euservice"/>
+    </record>
+    <record id="eu_excl_fi_fiscpos_tax_3" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="sales14"/>
+        <field name="tax_dest_id" ref="vat0eugoods"/>
+    </record>
+    <record id="eu_excl_fi_fiscpos_tax_4" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="vat14service"/>
+        <field name="tax_dest_id" ref="vat0euservice"/>
+    </record>
+    <record id="eu_excl_fi_fiscpos_tax_5" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="sales10"/>
+        <field name="tax_dest_id" ref="vat0eugoods"/>
+    </record>
+    <record id="eu_excl_fi_fiscpos_tax_6" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="vat10service"/>
+        <field name="tax_dest_id" ref="vat0euservice"/>
+    </record>
+    <record id="eu_excl_fi_fiscpos_tax_7" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="purchase24"/>
+        <field name="tax_dest_id" ref="purchase24eugoods"/>
+    </record>
+
+    <record id="eu_excl_fi_fiscpos_tax_9" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="purchase24service"/>
+        <field name="tax_dest_id" ref="purchase24euservice"/>
+    </record>
+
+    <record id="eu_excl_fi_fiscpos_tax_11" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="purchase14"/>
+        <field name="tax_dest_id" ref="purchase14eugoods"/>
+    </record>
+    <record id="eu_excl_fi_fiscpos_tax_13" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="purchase14service"/>
+        <field name="tax_dest_id" ref="purchase14euservice"/>
+    </record>
+    <record id="eu_excl_fi_fiscpos_tax_15" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="purchase10"/>
+        <field name="tax_dest_id" ref="purchase10eugoods"/>
+    </record>
+
+    <record id="eu_excl_fi_fiscpos_tax_17" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="eu"/>
+        <field name="tax_src_id" ref="purchase10service"/>
+        <field name="tax_dest_id" ref="purchase10euservice"/>
+    </record>
+
+    <!-- Export outside of EU fiscal position rules -->
+    <record id="export_fiscpos_tax_1" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="sales24"/>
+        <field name="tax_dest_id" ref="vat0export"/>
+    </record>
+    <record id="export_fiscpos_tax_2" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="sales14"/>
+        <field name="tax_dest_id" ref="vat0export"/>
+    </record>
+    <record id="export_fiscpos_tax_3" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="sales10"/>
+        <field name="tax_dest_id" ref="vat0export"/>
+    </record>
+    <record id="export_fiscpos_tax_4" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="purchase24"/>
+        <field name="tax_dest_id" ref="purchase0"/>
+    </record>
+    <record id="export_fiscpos_tax_5" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="purchase14"/>
+        <field name="tax_dest_id" ref="purchase0"/>
+    </record>
+    <record id="export_fiscpos_tax_6" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="purchase10"/>
+        <field name="tax_dest_id" ref="purchase0"/>
+    </record>
+    <record id="export_fiscpos_tax_7" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="purchase24brutto"/>
+        <field name="tax_dest_id" ref="purchase0"/>
+    </record>
+    <record id="export_fiscpos_tax_8" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="purchase14brutto"/>
+        <field name="tax_dest_id" ref="purchase0"/>
+    </record>
+    <record id="export_fiscpos_tax_9" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="purchase10brutto"/>
+        <field name="tax_dest_id" ref="purchase0"/>
+    </record>
+    <record id="export_fiscpos_tax_10" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="purchase10service"/>
+        <field name="tax_dest_id" ref="purchase0"/>
+    </record>
+    <record id="export_fiscpos_tax_11" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="purchase14service"/>
+        <field name="tax_dest_id" ref="purchase0"/>
+    </record>
+    <record id="export_fiscpos_tax_12" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="purchase24service"/>
+        <field name="tax_dest_id" ref="purchase0"/>
+    </record>
+    <record id="export_fiscpos_tax_13" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="vat10service"/>
+        <field name="tax_dest_id" ref="vat0export"/>
+    </record>
+    <record id="export_fiscpos_tax_14" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="vat14service"/>
+        <field name="tax_dest_id" ref="vat0export"/>
+    </record>
+    <record id="export_fiscpos_tax_15" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="export"/>
+        <field name="tax_src_id" ref="vat24service"/>
+        <field name="tax_dest_id" ref="vat0export"/>
+    </record>
+    <record id="construction_fiscpos_tax_1" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="construction"/>
+        <field name="tax_src_id" ref="purchase24construct"/>
+        <field name="tax_dest_id" ref="purchase24construct_finland"/>
+    </record>
+
+    <record id="construction_fiscpos_tax_2" model="account.fiscal.position.tax.template">
+        <field name="position_id" ref="construction"/>
+        <field name="tax_src_id" ref="sales24"/>
+        <field name="tax_dest_id" ref="construct0"/>
+    </record>
+
+</odoo>
