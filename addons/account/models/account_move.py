@@ -3485,6 +3485,10 @@ class AccountMoveLine(models.Model):
 
         return result
 
+    def _valid_field_parameter(self, field, name):
+        # I can't even
+        return name == 'tracking' or super()._valid_field_parameter(field, name)
+
     def unlink(self):
         moves = self.mapped('move_id')
 
