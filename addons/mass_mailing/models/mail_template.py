@@ -8,9 +8,9 @@ class MailTemplate(models.Model):
     _inherit = "mail.template"
 
     @api.model
-    def render_post_process(self, html):
+    def _render_template_postprocess_html(self, html):
         # super will transform relative url to absolute
-        html = super(MailTemplate, self).render_post_process(html)
+        html = super(MailTemplate, self)._render_template_postprocess_html(html)
 
         # apply shortener after
         if self.env.context.get('post_convert_links'):
