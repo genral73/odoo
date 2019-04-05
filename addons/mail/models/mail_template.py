@@ -205,6 +205,71 @@ class MailTemplate(models.Model):
             results[res_id]['partner_ids'] = partner_ids
         return results
 
+    def _generate_recipients(self, results, res_ids):
+        """
+
+        Hypothesis
+          * at this point context (notably lang) shoud be ok;
+          * default recipients (generally for business oriented templates used to
+            contact customers)
+
+        # TDE NOTE: at this point context (lang) should be ok
+
+        # TDE TODO: handle tpl_partners_only in caller
+        # TDE NOTE: removed tpl_force_default_to context key, unused
+
+        :return dict: res_id: dict(
+            partner_ids=list of partner IDS or void list,
+            email_to=...
+            email_cc=...
+        )
+        """
+        self.ensure_one()
+
+        if self.use_default_to:
+            records = self.env[self.model].browse(res_ids)
+            recipients = self.env['mail.thread']._message_get_default_recipients_on_records(records)
+        else:
+            recipients = dict.fromkeys(res_ids, dict())
+            for fname in ('email_to', 'partner_to', 'email_cc'):
+                rendered = self._render_field(fname, res_ids)
+                for res_id, values in rendered.items():
+                    if fname == 'partner_to':
+                        recipients[res_id]['partner_ids'] = [
+                            int(pid) for pid in recipients[res_id]['partner_to'].split(',')
+                            if pid and int(pid)]
+                    else:
+                        recipients[res_id][fname] = values
+
+        return recipients
+
+    def _set_recipients_to_partners(self, recipients_values):
+        # TDE: whole method tmp, to check
+        self.ensure_one()
+
+        # fetch company_id if necessary to create a partner
+        records_company = None
+        if self.model and recipients_values.keys() and 'company_id' in self.env[self.model]._fields:
+            records = self.env[self.model].browse(recipients_values.keys()).read(['company_id'])
+            records_company = {rec['id']: (rec['company_id'][0] if rec['company_id'] else None) for rec in records}
+
+        for res_id, values in recipients_values.items():
+            partner_ids = values.pop('partner_ids', [])
+
+            mails = tools.email_split(values.pop('email_to', '')) + tools.email_split(values.pop('email_cc', ''))
+            if mails:
+                cid = records_company[res_id] if records_company else False
+                if cid:
+                    Partner = self.env['res.partner'].with_context(default_company_id=records_company[res_id])
+                else:
+                    Partner = self.env['res.partner']
+                for mail in mails:
+                    partner_id = Partner.find_or_create(mail)
+                    partner_ids.append(partner_id)
+
+            recipients_values[res_id]['partner_ids'] = partner_ids
+        return recipients_values
+
     def generate_email(self, res_ids, fields):
         """Generates an email from the template for given the given model based on
         records given by res_ids.
