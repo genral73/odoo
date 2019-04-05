@@ -1195,4 +1195,4 @@ class AccountReconcileModelLineTemplate(models.Model):
     ], required=True, default='percentage')
     amount_string = fields.Char(string="Amount")
     force_tax_included = fields.Boolean(string='Tax Included in Price', help='Force the tax to be managed as a price included tax.')
-    tax_ids = fields.Many2many('account.tax.template', string='Taxes', ondelete='restrict')
+    tax_ids = fields.Many2many('account.tax.template', string='Taxes')
