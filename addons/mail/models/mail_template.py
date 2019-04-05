@@ -140,14 +140,6 @@ class MailTemplate(models.Model):
                                         help="Sidebar action to make this template available on records "
                                              "of the related document model")
 
-    @api.onchange('model_id')
-    def onchange_model_id(self):
-        # TDE CLEANME: should'nt it be a stored related ?
-        if self.model_id:
-            self.model = self.model_id.model
-        else:
-            self.model = False
-
     def unlink(self):
         self.unlink_action()
         return super(MailTemplate, self).unlink()
