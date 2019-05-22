@@ -362,13 +362,6 @@
         </record>
         <menuitem action="action_res_users" id="menu_action_res_users" parent="base.menu_users" sequence="0"/>
 
-
-        <record id="action_res_users_keys_description" model="ir.actions.act_window">
-            <field name="name">API Key: description input wizard</field>
-            <field name="res_model">res.users.apikeys.description</field>
-            <field name="target">new</field>
-            <field name="view_mode">form</field>
-        </record>
         <record id="form_res_users_key_description" model="ir.ui.view">
             <field name="name">API Key: description input form</field>
             <field name="model">res.users.apikeys.description</field>
@@ -468,7 +461,7 @@
                         <field name="api_key_ids" nolabel="1" colspan="4" readonly="0">
                             <tree editable="bottom" create="false" delete="false">
                                 <field name="name"/>
-                                <button type="object" name="unlink" icon="fa-trash"/>
+                                <button type="object" name="remove" icon="fa-trash"/>
                             </tree>
                         </field>
                         <button string="Add Key" type="action" name="%(action_res_users_keys_description)d"/>
@@ -503,7 +496,7 @@
                 <tree create="false" edit="false" delete="false" editable="bottom">
                     <field name="user_id"/>
                     <field name="name"/>
-                    <button type="object" name="unlink" icon="fa-trash"/>
+                    <button type="object" name="remove" icon="fa-trash"/>
                 </tree>
             </field>
         </record>
