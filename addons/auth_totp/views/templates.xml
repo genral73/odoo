@@ -1,0 +1,32 @@
+<odoo>
+    <template id="assets_tests" inherit_id="web.assets_tests">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/auth_totp/static/tests/totp_flow.js"></script>
+        </xpath>
+    </template>
+    <template id="auth_totp_form">
+        <t t-call="web.login_layout">
+            <t t-set="disable_footer">1</t>
+            <div class="oe_login_form">
+                <p class="alert alert-danger" t-if="error" role="alert">
+                    <t t-esc="error"/>
+                </p>
+                <form method="POST" action="" class="form-inline">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="redirect" t-att-value="redirect"/>
+                    <label class="sr-only" for="totp_token">Authentication Code</label>
+                    <input name="totp_token" class="form-control mb-2" autofocus="autofocus" placeholder="Authentication Code"/>
+                    <button type="submit" class="btn btn-primary mb-2">
+                        Verify
+                    </button>
+                </form>
+                <form method="POST" action="/web/session/logout" class="form-inline">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <button type="submit" class="btn btn-link btn-sm mb-2">
+                        Cancel
+                    </button>
+                </form>
+            </div>
+        </t>
+    </template>
+</odoo>
