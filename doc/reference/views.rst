@@ -1595,6 +1595,7 @@ view architecture is:
     * mandatory ``string`` attribute
     * optional ``create``, ``edit`` and ``delete`` attributes
     * optional ``adjustment`` and ``adjust_name`` attributes
+    * optional ``action_ref`` attribute
 
       ``adjustment`` can be either ``object`` or ``action`` to indicate
       whether a cell's adjustment should be performed through a method call
@@ -1605,6 +1606,9 @@ view architecture is:
       ``grid_adjust`` context member, in the ``object`` case, the parameters
       are also provided as positional function parameters (next to an empty
       list of ids):
+
+      ``action_ref``
+        reference of action which should be opened when grid cell info. is clicked,
 
       ``row_domain``
         the domain matching the entire row of the adjusted cell
