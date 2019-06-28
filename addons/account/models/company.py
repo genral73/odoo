@@ -4,7 +4,7 @@ from datetime import timedelta, datetime, date
 import calendar
 from dateutil.relativedelta import relativedelta
 
-from odoo import fields, models, api, _
+from odoo import fields, models, api, _, SUPERUSER_ID
 from odoo.exceptions import ValidationError, UserError, RedirectWarning
 from odoo.tools.misc import DEFAULT_SERVER_DATE_FORMAT, format_date
 from odoo.tools.float_utils import float_round, float_is_zero
@@ -26,6 +26,8 @@ MONTH_SELECTION = [
     ('11', 'November'),
     ('12', 'December'),
 ]
+
+SYSCOHADA_LIST = ['BJ', 'BF', 'CM', 'CF', 'KM', 'CG', 'CI', 'GA', 'GN', 'GW', 'GQ', 'ML', 'NE', 'CD', 'SN', 'TD', 'TG']
 
 
 class ResCompany(models.Model):
@@ -240,10 +242,84 @@ class ResCompany(models.Model):
             lock_date = self.fiscalyear_lock_date or date.min
         return lock_date
 
+    def _install_localization_packages(self, from_init=False):
+        self.ensure_one()
+        country_code = self.country_id.code
+        if country_code:
+            #auto install localization module(s) if available
+            module_list = []
+            if country_code in SYSCOHADA_LIST:
+                #countries using OHADA Chart of Accounts
+                module_list.append('l10n_syscohada')
+            elif country_code == 'GB':
+                module_list.append('l10n_uk')
+            elif country_code == 'DE':
+                module_list.append('l10n_de_skr03')
+                module_list.append('l10n_de_skr04')
+            elif country_code == 'CN':
+                module_list.append('l10n_cn_small_business')
+                module_list.append('l10n_cn_standard')
+            else:
+                if self.env['ir.module.module'].search([('name', '=', 'l10n_' + country_code.lower())]):
+                    module_list.append('l10n_' + country_code.lower())
+                else:
+                    module_list.append('l10n_generic_coa')
+            if country_code == 'US':
+                module_list.append('account_plaid')
+                module_list.append('l10n_us_check_printing')
+            if country_code == 'CA':
+                module_list.append('l10n_ca_check_printing')
+            if country_code in ['US', 'AU', 'NZ', 'CA', 'CO', 'EC', 'ES', 'FR', 'IN', 'MX', 'GB']:
+                module_list.append('account_yodlee')
+            if country_code in SYSCOHADA_LIST + [
+                'AT', 'BE', 'CA', 'CO', 'DE', 'EC', 'ES', 'ET', 'FR', 'GR', 'IT', 'LU', 'MX', 'NL', 'NO',
+                'PL', 'PT', 'RO', 'SI', 'TR', 'GB', 'VE', 'VN'
+                ]:
+                module_list.append('base_vat')
+            if country_code == 'MX':
+                module_list.append('l10n_mx_edi')
+
+            # SEPA zone countries will be using SEPA
+            sepa_zone = self.env.ref('base.sepa_zone', raise_if_not_found=False)
+            if sepa_zone:
+                sepa_zone_country_codes = sepa_zone.mapped('country_ids.code')
+                if country_code in sepa_zone_country_codes:
+                    module_list.append('account_sepa')
+                    module_list.append('account_bank_statement_import_camt')
+            module_ids = self.env['ir.module.module'].search([('name', 'in', module_list), ('state', '=', 'uninstalled')])
+            #module is being installed.
+            #when module installation is in process then button_install work perfect but
+            #when creating or updating a company at that time we need call button_immediate_install because no installation
+            if(from_init):
+                module_ids.sudo().button_install()
+            else:
+                self._install_localization_module_or_load_coa(module_ids, module_list)
+
+    def _install_localization_module_or_load_coa(self, module_ids, module_list):
+        """
+            If you pass module_ids then it install(we don't need to load for company because the try_loading method is in XML in almost every localization)
+            Else module is already installed so we find COA from module_list and load for company(self)
+        """
+        self.ensure_one()
+        if module_ids and self.env.user.id != SUPERUSER_ID:
+            module_ids.sudo().with_context({'allowed_company_ids': [self.id]}).button_immediate_install()
+        else:
+            chart_template_xml_ids = self.env['ir.model.data'].search([('module', 'in', module_list), ('model', '=', 'account.chart.template')], limit=1)
+            if chart_template_xml_ids:
+                chart_template = self.env['account.chart.template'].browse(chart_template_xml_ids.res_id)
+                chart_template.with_context(install_module=chart_template_xml_ids.module).try_loading(company=self)
+
+    @api.model
+    def create(self, vals):
+        company = super().create(vals)
+        company.sudo()._install_localization_packages()
+        return company
+
     def write(self, values):
         #restrict the closing of FY if there are still unposted entries
         self._validate_fiscalyear_lock(values)
-
+        company_without_country_and_existing_accounting = self.env['res.company']
+        AccountChartTemplate = self.env['account.chart.template']
         # Reflect the change on accounts
         for company in self:
             if values.get('bank_account_code_prefix'):
@@ -257,8 +333,16 @@ class ResCompany(models.Model):
             if 'currency_id' in values and values['currency_id'] != company.currency_id.id:
                 if self.env['account.move.line'].search([('company_id', '=', company.id)]):
                     raise UserError(_('You cannot change the currency of the company since some journal items already exist'))
-
-        return super(ResCompany, self).write(values)
+            #if user create accounts manually then we not install and load localization automatically.
+            created_accounts = self.env['account.account'].search([('company_id','=',company.id)])
+            if not company.country_id and not AccountChartTemplate.existing_accounting(company) and not created_accounts:
+                company_without_country_and_existing_accounting += company
+        res = super().write(values)
+        #do it after super because country_id need to be updated.
+        if values.get('country_id'):
+            for company in company_without_country_and_existing_accounting:
+                company.sudo()._install_localization_packages()
+        return res
 
     @api.model
     def setting_init_bank_account_action(self):
