@@ -400,6 +400,13 @@
             <we-fontfamilypicker data-variable="navbar-font-number"/>
             <we-input data-customize-website="null" data-variable="header-font-size" data-unit="px" data-save-unit="rem"/>
         </we-row>
+        <we-select id="header_templates_select" string="Header Template" data-reload="/">
+            <we-button id="option_template_header_logo_menu" data-xmlid="" data-widget="auto" data-variable="header-template" data-value="corporate">Logo - Menu</we-button>
+            <we-button id="option_template_header_hamburger_logo_centered" data-xmlid="website.template_header_hamburger_logo_centered" data-widget="auto" data-variable="header-template" data-value="showcase">Hamburger - Logo</we-button>
+            <we-button id="option_template_header_logo_menu_below" data-xmlid="" data-widget="auto" data-variable="header-template" data-value="brand">Logo - Menu</we-button>
+            <we-button id="option_template_header_menu_logo_below" data-xmlid="" data-widget="auto" data-variable="header-template" data-value="pizza">Menu - Logo</we-button>
+            <we-button id="option_template_header_logo_hamburger" data-xmlid="website.template_header_logo_hamburger" data-widget="auto" data-variable="header-template" data-value="space">Logo - Hamburger</we-button>
+        </we-select>
     </div>
 
     <div data-js="topMenuTransparency"
