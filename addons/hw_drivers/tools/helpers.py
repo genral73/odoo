@@ -6,6 +6,7 @@ from pathlib import Path
 import datetime
 from OpenSSL import crypto
 import urllib3
+from importlib import util
 import io
 import json
 import logging
@@ -188,7 +189,7 @@ def load_certificate():
             subprocess.check_call(["sudo", "mount", "-o", "remount,rw", "/root_bypass_ramdisks/etc/cups"])
             subprocess.check_call(["sudo", "service", "nginx", "restart"])
 
-def download_drivers(auto=True):
+def download_iot_handlers(auto=True):
     """
     Get the drivers from the configured Odoo server
     """
@@ -196,18 +197,36 @@ def download_drivers(auto=True):
     if server:
         urllib3.disable_warnings()
         pm = urllib3.PoolManager(cert_reqs='CERT_NONE')
-        server = server + '/iot/get_drivers'
+        server = server + '/iot/get_handlers'
         try:
             resp = pm.request('POST', server, fields={'mac': get_mac_address(), 'auto': auto})
             if resp.data:
                 subprocess.check_call(["sudo", "mount", "-o", "remount,rw", "/"])
                 zip_file = zipfile.ZipFile(io.BytesIO(resp.data))
-                zip_file.extractall(get_resource_path('hw_drivers', 'drivers'))
+                zip_file.extractall(get_resource_path('hw_drivers', 'iot_handlers'))
                 subprocess.check_call(["sudo", "mount", "-o", "remount,ro", "/"])
                 subprocess.check_call(["sudo", "mount", "-o", "remount,rw", "/root_bypass_ramdisks/etc/cups"])
         except Exception as e:
             _logger.error('Could not reach configured server')
             _logger.error('A error encountered : %s ' % e)
+
+def load_iot_handlers():
+    """
+    This method loads local files: 'odoo/addons/hw_drivers/drivers' and
+    'odoo/addons/hw_drivers/interfaces'
+    And execute these python drivers and interfaces
+    """
+    helpers.download_drivers()
+    path = get_resource_path('hw_drivers', 'drivers')
+    driversList = os.listdir(path)
+    self.devices = {}
+    for driver in driversList:
+        path_file = os.path.join(path, driver)
+        spec = util.spec_from_file_location(driver, path_file)
+        if spec:
+            module = util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+    http.root = http.Root()
 
 def read_file_first_line(filename):
     path = Path.home() / filename
