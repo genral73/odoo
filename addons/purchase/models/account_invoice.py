@@ -63,11 +63,11 @@ class AccountMove(models.Model):
 
         # Compute invoice_payment_ref.
         if len(refs) == 1:
-            self.invoice_payment_ref = refs[0]
+            self.payment_reference = refs[0]
 
         self.purchase_id = False
         self._onchange_currency()
-        self.invoice_partner_bank_id = self.bank_partner_id.bank_ids and self.bank_partner_id.bank_ids[0]
+        self.partner_bank_id = self.bank_partner_id.bank_ids and self.bank_partner_id.bank_ids[0]
 
     @api.model_create_multi
     def create(self, vals_list):
