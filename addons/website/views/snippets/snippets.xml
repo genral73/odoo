@@ -389,7 +389,6 @@
          data-no-check="true"
          groups="website.group_website_designer">
         <we-checkbox string="Show Sign In" data-customize-website="portal.portal_show_sign_in" data-reload="/"/>
-        <we-checkbox string="Fixed Top Menu" data-customize-website="website.affix_top_menu" data-reload="/"/>
         <we-colorpicker string="Background Color" data-customize-website="" data-color="menu"/>
         <we-select string="Logo" data-reload="/">
             <we-button data-customize-website="">Text</we-button>
@@ -406,6 +405,13 @@
             <we-button id="option_template_header_logo_menu_below" data-xmlid="" data-widget="auto" data-variable="header-template" data-value="brand">Logo - Menu</we-button>
             <we-button id="option_template_header_menu_logo_below" data-xmlid="" data-widget="auto" data-variable="header-template" data-value="pizza">Menu - Logo</we-button>
             <we-button id="option_template_header_logo_hamburger" data-xmlid="website.template_header_logo_hamburger" data-widget="auto" data-variable="header-template" data-value="space">Logo - Hamburger</we-button>
+        </we-select>
+        <we-select id="header_visibilities_list" string="Header Visibility" data-reload="/">
+            <we-button id="option_header_visibility_standard" data-xmlid="website.affix_top_menu">Standard</we-button>
+            <we-button id="option_header_visibility_scroll" data-xmlid="">Scroll</we-button>
+            <we-button id="option_header_visibility_freeze" data-xmlid="website.header_visibility_freeze">Freeze</we-button>
+            <we-button id="option_header_visibility_disappears" data-xmlid="website.header_visibility_disappears">Disappears</we-button>
+            <we-button id="option_header_visibility_fade_out" data-xmlid="website.header_visibility_fade_out">Fade Out</we-button>
         </we-select>
     </div>
 
