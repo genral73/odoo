@@ -2,7 +2,24 @@
 <odoo>
     <template id="l10n_in_report_invoice_document_inherit" inherit_id="account.report_invoice_document">
 
-
+        <xpath expr="//span[@t-field='o.partner_id.vat']" position="replace">
+            <t t-if="o.company_id.country_id.code == 'IN'" class="mt16">
+                <span t-field="o.l10n_in_gstin"/>
+            </t>
+            <t t-else="">
+                <span t-field="o.partner_id.vat"/>
+            </t>
+        </xpath>
+        <xpath expr="//t[@t-set='address']" position="inside">
+            <t t-if="o.company_id.country_id.code == 'IN' and o.l10n_in_place_of_supply_id" class="mt16">
+                <t t-if="o.move_type in ('in_invoice','in_refund')">
+                    Destination of supply: <span t-esc="o.l10n_in_place_of_supply_id.name"/>
+                </t>
+                <t t-if="o.move_type in ('out_invoice','out_refund')">
+                    Place of supply: <span t-esc="o.l10n_in_place_of_supply_id.name"/>
+                </t>
+            </t>
+        </xpath>
         <xpath expr="//p[@t-if='o.narration']" position="before">
             <t t-if="o.company_id.country_id.code == 'IN'">
                 <p id="total_in_words" class="mb16">
