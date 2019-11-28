@@ -61,31 +61,20 @@ class MaintenanceEquipmentCategory(models.Model):
         for category in self:
             category.maintenance_count = mapped_data.get(category.id, 0)
 
-    @api.model
-    def create(self, vals):
-        self = self.with_context(alias_model_name='maintenance.request', alias_parent_model_name=self._name)
-        if not vals.get('alias_name'):
-            vals['alias_name'] = vals.get('name')
-        category_id = super(MaintenanceEquipmentCategory, self).create(vals)
-        category_id.alias_id.write({'alias_parent_thread_id': category_id.id, 'alias_defaults': {'category_id': category_id.id}})
-        return category_id
-
     def unlink(self):
-        MailAlias = self.env['mail.alias']
         for category in self:
             if category.equipment_ids or category.maintenance_ids:
                 raise UserError(_("You cannot delete an equipment category containing equipments or maintenance requests."))
-            MailAlias += category.alias_id
         res = super(MaintenanceEquipmentCategory, self).unlink()
-        MailAlias.unlink()
         return res
 
-    def get_alias_model_name(self, vals):
+    def _get_alias_model_name(self, vals):
         return vals.get('alias_model', 'maintenance.request')
 
-    def get_alias_values(self):
-        values = super(MaintenanceEquipmentCategory, self).get_alias_values()
+    def _get_alias_values(self):
+        values = super(MaintenanceEquipmentCategory, self)._get_alias_values()
         values['alias_defaults'] = {'category_id': self.id}
+        values['alias_parent_thread_id'] = self.id
         return values
 
 

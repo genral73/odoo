@@ -91,11 +91,11 @@ class Job(models.Model):
                 [("job_id", "=", job.id), ("stage_id", "=", job._get_first_stage().id)]
             )
 
-    def get_alias_model_name(self, vals):
+    def _get_alias_model_name(self, vals):
         return 'hr.applicant'
 
-    def get_alias_values(self):
-        values = super(Job, self).get_alias_values()
+    def _get_alias_values(self):
+        values = super(Job, self)._get_alias_values()
         values['alias_defaults'] = {
             'job_id': self.id,
             'department_id': self.department_id.id,

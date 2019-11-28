@@ -115,12 +115,12 @@ class MailTestAlias(models.Model):
         'mail.alias', 'Alias',
         delegate=True)
 
-    def get_alias_model_name(self, vals):
+    def _get_alias_model_name(self, vals):
         return vals.get('alias_model', 'mail.test')
 
-    def get_alias_values(self):
+    def _get_alias_values(self):
         self.ensure_one()
-        res = super(MailTestAlias, self).get_alias_values()
+        res = super(MailTestAlias, self)._get_alias_values()
         res['alias_force_thread_id'] = self.id
         res['alias_parent_thread_id'] = self.id
         return res

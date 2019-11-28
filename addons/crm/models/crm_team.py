@@ -104,9 +104,6 @@ class Team(models.Model):
 
     def write(self, vals):
         result = super(Team, self).write(vals)
-        if 'use_leads' in vals or 'alias_defaults' in vals:
-            for team in self:
-                team.alias_id.write(team.get_alias_values())
         if 'use_leads' in vals or 'use_opportunities' in vals:
             alias_values = self._synchronize_alias(vals)
             if alias_values:
@@ -123,12 +120,12 @@ class Team(models.Model):
     # MESSAGING
     # ------------------------------------------------------------
 
-    def get_alias_model_name(self, vals):
+    def _get_alias_model_name(self, vals):
         return 'crm.lead'
 
-    def get_alias_values(self):
+    def _get_alias_values(self):
         has_group_use_lead = self.env.user.has_group('crm.group_use_lead')
-        values = super(Team, self).get_alias_values()
+        values = super(Team, self)._get_alias_values()
         values['alias_defaults'] = defaults = ast.literal_eval(self.alias_defaults or "{}")
         defaults['type'] = 'lead' if has_group_use_lead and self.use_leads else 'opportunity'
         defaults['team_id'] = self.id

@@ -69,11 +69,11 @@ class Project(models.Model):
     _rating_satisfaction_days = False  # takes all existing ratings
     _check_company_auto = True
 
-    def get_alias_model_name(self, vals):
+    def _get_alias_model_name(self, vals):
         return vals.get('alias_model', 'project.task')
 
-    def get_alias_values(self):
-        values = super(Project, self).get_alias_values()
+    def _get_alias_values(self):
+        values = super(Project, self)._get_alias_values()
         values['alias_defaults'] = {'project_id': self.id}
         return values
 

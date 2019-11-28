@@ -30,6 +30,9 @@ class Alias(models.Model):
     _rec_name = 'alias_name'
     _order = 'alias_model_id, alias_name'
 
+    def _default_alias_domain(self):
+        return self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain")
+
     alias_name = fields.Char('Alias Name', help="The name of the email alias, e.g. 'jobs' if you want to catch emails for <jobs@example.odoo.com>")
     alias_model_id = fields.Many2one('ir.model', 'Aliased Model', required=True, ondelete="cascade",
                                      help="The model (Odoo Document Kind) to which this alias "
@@ -51,8 +54,7 @@ class Alias(models.Model):
         'Record Thread ID',
         help="Optional ID of a thread (record) to which all incoming messages will be attached, even "
              "if they did not reply to it. If set, this will disable the creation of new records completely.")
-    alias_domain = fields.Char('Alias domain', compute='_get_alias_domain',
-                               default=lambda self: self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain"))
+    alias_domain = fields.Char('Alias domain', compute='_compute_alias_domain', default=_default_alias_domain)
     alias_parent_model_id = fields.Many2one(
         'ir.model', 'Parent Model',
         help="Parent model holding the alias. The model holding the alias reference "
@@ -76,8 +78,8 @@ class Alias(models.Model):
         ('alias_unique', 'UNIQUE(alias_name)', 'Unfortunately this email alias is already used, please choose a unique one')
     ]
 
-    def _get_alias_domain(self):
-        alias_domain = self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain")
+    def _compute_alias_domain(self):
+        alias_domain = self._default_alias_domain()
         for record in self:
             record.alias_domain = alias_domain
 
@@ -214,9 +216,11 @@ class AliasMixin(models.AbstractModel):
     _inherits = {'mail.alias': 'alias_id'}
     _description = 'Email Aliases Mixin'
 
+    ALIAS_WRITEABLE_FIELDS = ['alias_name', 'alias_parent_thread_id', 'alias_force_thread_id', 'alias_defaults']
+
     alias_id = fields.Many2one('mail.alias', string='Alias', ondelete="restrict", required=True)
 
-    def get_alias_model_name(self, vals):
+    def _get_alias_model_name(self, vals):
         """ Return the model name for the alias. Incoming emails that are not
             replies to existing records will cause the creation of a new record
             of this alias model. The value may depend on ``vals``, the dict of
@@ -224,27 +228,63 @@ class AliasMixin(models.AbstractModel):
         """
         return None
 
-    def get_alias_values(self):
+    def _get_alias_values(self):
         """ Return values to create an alias, or to write on the alias after its
             creation.
         """
         return {'alias_parent_thread_id': self.id}
 
+    def _filter_alias_fields(self, vals):
+        """ Split the vals dict into two dictionnary of vals,
+            one for alias field and the other for other fields """
+        alias_field, other_field = {}, {}
+        for key in list(vals):
+            if key in self.ALIAS_WRITEABLE_FIELDS:
+                alias_field[key] = vals.get(key)
+            else:
+                other_field[key] = vals.get(key)
+        return alias_field, other_field
+
+    @api.returns(None, lambda value: value[0])
+    def copy_data(self, default=None):
+        data = super(AliasMixin, self).copy_data(default)[0]
+        for fields_not_writable in set(self.env['mail.alias']._fields.keys()) - set(self.ALIAS_WRITEABLE_FIELDS):
+            if fields_not_writable in data:
+                del data[fields_not_writable]
+        return [data]
+
     @api.model
     def create(self, vals):
-        """ Create a record with ``vals``, and create a corresponding alias. """
-        record = super(AliasMixin, self.with_context(
-            alias_model_name=self.get_alias_model_name(vals),
-            alias_parent_model_name=self._name,
-        )).create(vals)
-        record.alias_id.sudo().write(record.get_alias_values())
+        """ - Slip writable fields of mail.alias and other fields,
+            - Create a corresponding alias if none specify.
+            - Create the record with the rigth alias and other fields value
+            - Update the alias with values of _get_alias_values() and return the record """
+        alias_field, other_field = self._filter_alias_fields(vals)
+        if not other_field.get('alias_id', False):
+            alias = self.env['mail.alias'].sudo().with_context(
+                alias_model_name=self._get_alias_model_name(vals),
+                alias_parent_model_name=self._name,
+            ).create(alias_field)
+            other_field['alias_id'] = alias.id
+        record = super(AliasMixin, self).create(other_field)
+        record.alias_id.sudo().write(record._get_alias_values())
+        return record
+
+    def write(self, vals):
+        """ Split writable fields of mail.alias and other fields
+            alias fields will write with sudo and the other normally """
+        alias_field, other_field = self._filter_alias_fields(vals)
+        if alias_field and (not other_field or self.check_access_rights('write', raise_exception=False)):
+            record = super(AliasMixin, self.sudo()).write(alias_field)
+        if other_field:
+            record = super(AliasMixin, self).write(other_field)
         return record
 
     def unlink(self):
         """ Delete the given records, and cascade-delete their corresponding alias. """
         aliases = self.mapped('alias_id')
         res = super(AliasMixin, self).unlink()
-        aliases.unlink()
+        aliases.sudo().unlink()
         return res
 
     def _init_column(self, name):
@@ -256,10 +296,10 @@ class AliasMixin(models.AbstractModel):
         # both self and the alias model must be present in 'ir.model'
         IM = self.env['ir.model']
         IM._reflect_model(self)
-        IM._reflect_model(self.env[self.get_alias_model_name({})])
+        IM._reflect_model(self.env[self._get_alias_model_name({})])
 
         alias_ctx = {
-            'alias_model_name': self.get_alias_model_name({}),
+            'alias_model_name': self._get_alias_model_name({}),
             'alias_parent_model_name': self._name,
         }
         alias_model = self.env['mail.alias'].sudo().with_context(alias_ctx).browse([])
@@ -272,7 +312,7 @@ class AliasMixin(models.AbstractModel):
 
         for record in child_model.search([('alias_id', '=', False)]):
             # create the alias, and link it to the current record
-            alias = alias_model.create(record.get_alias_values())
+            alias = alias_model.create(record._get_alias_values())
             record.with_context(mail_notrack=True).alias_id = alias
             _logger.info('Mail alias created for %s %s (id %s)',
                          record._name, record.display_name, record.id)
