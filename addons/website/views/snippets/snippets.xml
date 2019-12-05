@@ -395,6 +395,7 @@
             <we-button data-customize-website="website.layout_logo_show">Image</we-button>
         </we-select>
         <we-input string="Logo Height" data-customize-website="null" data-variable="logo-height" data-unit="px" data-save-unit="rem"/>
+        <we-input string="Logo Height When Scrolling" data-depends="!option_header_visibility_scroll" data-variable="fixed-logo-height" data-unit="px" data-save-unit="rem"/>
         <we-row string="Font">
             <we-fontfamilypicker data-variable="navbar-font-number"/>
             <we-input data-customize-website="null" data-variable="header-font-size" data-unit="px" data-save-unit="rem"/>
