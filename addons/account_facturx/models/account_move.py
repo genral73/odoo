@@ -3,16 +3,12 @@
 from odoo import api, models, fields, tools, _
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, float_repr
 from odoo.tests.common import Form
-from odoo.exceptions import UserError, except_orm
+from odoo.exceptions import UserError
 
 from datetime import datetime
-from lxml import etree
-from PyPDF2 import PdfFileReader
-
-import io
-import base64
 
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
@@ -277,20 +273,6 @@ class AccountMove(models.Model):
                 # Malformed pdf
                 _logger.exception(e)
 
-    @api.model
-    def _get_xml_decoders(self):
-        ''' List of usable decoders to extract invoice from attachments.
-
-        :return: a list of triplet (xml_type, check_func, decode_func)
-            * xml_type: The format name, e.g 'UBL 2.1'
-            * check_func: A function taking an etree and a file name as parameter and returning a dict:
-                * flag: The etree is part of this format.
-                * error: Error message.
-            * decode_func: A function taking an etree as parameter and returning an invoice record.
-        '''
-        # TO BE OVERWRITTEN
-        return []
-
     def _create_invoice_from_xml(self, attachment):
         decoders = self._get_xml_decoders()
 
@@ -318,3 +300,21 @@ class AccountMove(models.Model):
     def _remove_ocr_option(self):
         if 'extract_state' in self:
             self.write({'extract_state': 'done'})
+    def _detect_facturx(self, tree, file_name):
+        return {
+            'flag': tree.tag == '{urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100}CrossIndustryInvoice',
+            'error': None,
+        }
+
+    @api.model
+    def _get_xml_decoders(self):
+        # OVERRIDE
+        res = super()._get_xml_decoders()
+        res.append(('Factur-X', self._detect_facturx, self._import_facturx_invoice))
+        return res
+
+    def _embed_edi_files_in_report(self):
+        # OVERRIDE
+        res = super()._embed_edi_files_in_report()
+        res.append(('factur-x.xml', self._export_as_facturx_xml()))
+        return res
