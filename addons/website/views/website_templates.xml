@@ -208,10 +208,22 @@
 </template>
 
 <!-- Navbar templates -->
-<template id="template_header_hamburger_logo_centered" inherit_id="website.layout" name="Template Header Hamburger Logo Centered" active="False">
+<template id="template_header_hamburger" inherit_id="website.layout" name="Template Header Logo Hamburger" active="False">
     <xpath expr="//header//nav[hasclass('navbar')]" position="attributes">
         <attribute name="class" remove="navbar-expand-md" separator=" "/>
     </xpath>
+    <xpath expr="//header//button[hasclass('navbar-toggler')]" position="replace">
+        <div class="o_navbar_toggler_container">$0</div>
+    </xpath>
+</template>
+
+<template id="template_header_navbar_text_center" inherit_id="website.layout" name="Template Header Navabar Text Center" active="False">
+    <xpath expr="//header//ul[hasclass('nav')]" position="attributes">
+        <attribute name="class" remove="text-right" add="text-center" separator=" "/>
+    </xpath>
+</template>
+
+<template id="template_header_hamburger_left" inherit_id="website.layout" name="Template Header Hamburger" active="False">
     <xpath expr="//header//a[hasclass('navbar-brand')]" position="before">
         <div class="o_navbar_toggler_container o_not_editable"></div>
     </xpath>
@@ -220,18 +232,6 @@
     </xpath>
     <xpath expr="//header//ul[hasclass('nav')]" position="attributes">
         <attribute name="class" remove="text-right" add="text-left" separator=" "/>
-    </xpath>
-</template>
-
-<template id="template_header_logo_hamburger" inherit_id="website.layout" name="Template Header Logo Hamburger" active="False">
-    <xpath expr="//header//nav[hasclass('navbar')]" position="attributes">
-        <attribute name="class" remove="navbar-expand-md" separator=" "/>
-    </xpath>
-    <xpath expr="//header//button[hasclass('navbar-toggler')]" position="replace">
-        <div class="o_navbar_toggler_container">$0</div>
-    </xpath>
-    <xpath expr="//header//ul[hasclass('nav')]" position="attributes">
-        <attribute name="class" remove="text-right" add="text-center" separator=" "/>
     </xpath>
 </template>
 
