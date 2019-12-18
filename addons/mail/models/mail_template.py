@@ -8,6 +8,7 @@ import datetime
 import dateutil.relativedelta as relativedelta
 import functools
 import logging
+import re
 
 from werkzeug import urls
 
@@ -102,6 +103,7 @@ class MailTemplate(models.Model):
                             "${object.partner_id.lang}.",
                        placeholder="${object.partner_id.lang}")
     subject = fields.Char('Subject', translate=True, help="Subject (placeholders may be used here)")
+    author_id = fields.Char('Author', help="Author of the mail", placeholder="Author of the mail")
     email_from = fields.Char('From',
                              help="Sender address (placeholders may be used here). If not set, the default "
                                   "value will be the author's email alias if configured, or email address.")
@@ -342,7 +344,7 @@ class MailTemplate(models.Model):
             if template.lang:
                 Template = Template.with_context(lang=template._context.get('lang'))
             for field in fields:
-                Template = Template.with_context(safe=field in {'subject'})
+                Template = Template.with_context(safe=field in {'subject', 'email_from'})
                 generated_field_values = Template._render_template(
                     getattr(template, field), template.model, template_res_ids,
                     post_process=(field == 'body_html'))
@@ -354,6 +356,16 @@ class MailTemplate(models.Model):
             # update values for all res_ids
             for res_id in template_res_ids:
                 values = results[res_id]
+                if 'email_from' in fields and not values.get('email_from'):
+                    if 'author_id' in fields and values.get('author_id'):
+                        if 'res.company' in values['author_id']:
+                            values['email_from'] = self.env['res.company'].browse([int(s) for s in re.findall(r'\d+', values['author_id'])]).partner_id.email_formatted
+                        elif 'res.users' in values['author_id']:
+                            values['email_from'] = self.env['res.users'].browse([int(s) for s in re.findall(r'\d+', values['author_id'])]).partner_id.email_formatted
+                        elif 'res.partner' in values['author_id']:
+                            values['email_from'] = self.env['res.partner'].browse([int(s) for s in re.findall(r'\d+', values['author_id'])]).email_formatted
+                        else:
+                            values['author_id'] = False
                 if values.get('body_html'):
                     values['body'] = tools.html_sanitize(values['body_html'])
                 # technical settings
@@ -422,7 +434,7 @@ class MailTemplate(models.Model):
         Attachment = self.env['ir.attachment']  # TDE FIXME: should remove default_type from context
 
         # create a mail_mail based on values, without attachments
-        values = self.generate_email(res_id, ['subject', 'body_html', 'email_from', 'email_to', 'partner_to', 'email_cc', 'reply_to', 'scheduled_date'])
+        values = self.generate_email(res_id, ['subject', 'body_html', 'author_id', 'email_from', 'email_to', 'partner_to', 'email_cc', 'reply_to', 'scheduled_date'])
         values['recipient_ids'] = [(4, pid) for pid in values.get('partner_ids', list())]
         values['attachment_ids'] = [(4, aid) for aid in values.get('attachment_ids', list())]
         values.update(email_values or {})
