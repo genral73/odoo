@@ -20,6 +20,7 @@ _ref_vat = {
     'al': 'ALJ91402501L',
     'ar': 'AR200-5536168-2 or 20055361682',
     'at': 'ATU12345675',
+    'au': '83 914 571 673',
     'be': 'BE0477472701',
     'bg': 'BG1234567892',
     'ch': 'CHE-123.456.788 TVA or CH TVA 123456',  # Swiss by Yannick Vaucher @ Camptocamp
@@ -165,6 +166,14 @@ class ResPartner(models.Model):
 
     __check_vat_ch_re1 = re.compile(r'(MWST|TVA|IVA)[0-9]{6}$')
     __check_vat_ch_re2 = re.compile(r'E([0-9]{9}|-[0-9]{3}\.[0-9]{3}\.[0-9]{3})(MWST|TVA|IVA)$')
+
+    def check_vat_au(self, vat):
+        """Check Australian Business Number."""
+        try:
+            from stdnum.au.abn import is_valid
+            return is_valid(vat)
+        except ImportError:
+            return True
 
     def check_vat_ch(self, vat):
         '''
