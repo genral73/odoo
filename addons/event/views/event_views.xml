@@ -62,6 +62,7 @@
                                                     <field name="interval_nbr" attrs="{'readonly':[('interval_unit', '=', 'now')]}"/>
                                                     <field name="interval_unit"/>
                                                     <field name="interval_type"/>
+                                                    <field name="trigger_stage_id" attrs="{'required': [('interval_type', '=', 'stage_update')], 'readonly':[('interval_type','!=','stage_update')]}" options="{'no_create': True}"/>
                                                 </tree>
                                             </field>
                                         </div>
@@ -269,6 +270,8 @@
                                         <field name="interval_nbr" attrs="{'readonly':[('interval_unit','=','now')]}"/>
                                         <field name="interval_unit"/>
                                         <field name="interval_type"/>
+                                        <field name="trigger_stage_id" attrs="{'required': [('interval_type', '=', 'stage_update')], 'readonly':[('interval_type','!=','stage_update')]}" options="{'no_create': True}"/>
+                                        <field name="scheduled_date" groups="base.group_no_one" string="Schedule date"/>
                                         <field name="done"/>
                                     </tree>
                                 </field>
@@ -719,6 +722,7 @@
                                     <field name="interval_unit"/>
                                 </div>
                                 <field name="interval_type"/>
+                                <field name="trigger_stage_id"/>
                                 <field name="scheduled_date"/>
                             </group>
                         </group>
