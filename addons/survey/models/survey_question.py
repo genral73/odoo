@@ -99,6 +99,14 @@ class SurveyQuestion(models.Model):
     matrix_row_ids = fields.One2many(
         'survey.question.answer', 'matrix_question_id', string='Matrix Rows', copy=True,
         help='Labels used for proposed choices: rows of matrix')
+    # -- scoreable/answerable simple answer_types: numerical_box / date / datetime
+    is_scored_question = fields.Boolean(
+        'Is a scored question', compute='_compute_is_scored_question', readonly=False, store=True, copy=True,
+        help="Include this question as part of quiz scoring. Requires an answer and answer score to be taken into account.")
+    answer_numerical_box = fields.Float('Numerical answer', help="Correct number answer for this question.")
+    answer_date = fields.Date('Date answer', help="Correct date answer for this question.")
+    answer_datetime = fields.Datetime('Datetime answer', help="Correct date and time answer for this question.")
+    answer_score = fields.Float('Score', help="Score value for a correct answer to this question.")
     # -- display & timing options
     column_nb = fields.Selection([
         ('12', '1'), ('6', '2'), ('4', '3'), ('3', '4'), ('2', '6')],
@@ -153,7 +161,12 @@ class SurveyQuestion(models.Model):
         ('validation_length', 'CHECK (validation_length_min <= validation_length_max)', 'Max length cannot be smaller than min length!'),
         ('validation_float', 'CHECK (validation_min_float_value <= validation_max_float_value)', 'Max value cannot be smaller than min value!'),
         ('validation_date', 'CHECK (validation_min_date <= validation_max_date)', 'Max date cannot be smaller than min date!'),
-        ('validation_datetime', 'CHECK (validation_min_datetime <= validation_max_datetime)','Max datetime cannot be smaller than min datetime!')
+        ('validation_datetime', 'CHECK (validation_min_datetime <= validation_max_datetime)', 'Max datetime cannot be smaller than min datetime!'),
+        ('positive_answer_score', 'CHECK (answer_score >= 0)', 'An answer score for a non-multiple choice question cannot be negative!'),
+        ('scored_datetime_have_answers', "CHECK (is_scored_question != True OR question_type != 'datetime' OR answer_datetime is not null)",
+            'All "Is a scored question = True" and "Question Type: Datetime" questions need an answer'),
+        ('scored_date_have_answers', "CHECK (is_scored_question != True OR question_type != 'date' OR answer_date is not null)",
+            'All "Is a scored question = True" and "Question Type: Date" questions need an answer')
     ]
 
     @api.onchange('validation_email')
@@ -228,6 +241,27 @@ class SurveyQuestion(models.Model):
                     or question.triggering_question_id != question.triggering_answer_id.question_id\
                     or question.triggering_answer_id is None:
                 question.triggering_answer_id = False
+
+    @api.depends('question_type', 'scoring_type', 'answer_date', 'answer_datetime')
+    def _compute_is_scored_question(self):
+        """ Computes whether a question "is scored" or not. Handles following cases:
+                - 'date'/'datetime' question types w/correct answer => True (implied without user having to activate)
+                - inconsistent Boolean=None edge case that breaks tests => False
+                - survey is not scored => False
+                - question_type isn't scoreable (note: choice questions scoring logic handled separately) => False
+            Does not handle 'numerical_box' w/correct answer since float fields default to 0 and we cannot determine
+            the difference between the default 0 and a correct answer 0.
+        """
+        for question in self:
+            if (question.question_type == 'date' and question.answer_date) or \
+               (question.question_type == 'datetime' and question.answer_datetime):
+                question.is_scored_question = True
+            if question.is_scored_question is None or \
+               question.scoring_type == 'no_scoring' or \
+               question.question_type not in ['numerical_box', 'date', 'datetime'] or \
+               (question.question_type == 'date' and not question.answer_date) or \
+               (question.question_type == 'datetime' and not question.answer_datetime):
+                question.is_scored_question = False
 
     # Validation methods
     def validate_question(self, answer, comment=None):
@@ -379,12 +413,12 @@ class SurveyQuestion(models.Model):
         return all_questions_data
 
     def _get_stats_data(self, user_input_lines):
-        if self.question_type in ['simple_choice']:
+        if self.question_type == 'simple_choice':
             return self._get_stats_data_answers(user_input_lines)
-        elif self.question_type in ['multiple_choice']:
+        elif self.question_type == 'multiple_choice':
             table_data, graph_data = self._get_stats_data_answers(user_input_lines)
             return table_data, [{'key': self.title, 'values': graph_data}]
-        elif self.question_type in ['matrix']:
+        elif self.question_type == 'matrix':
             return self._get_stats_graph_data_matrix(user_input_lines)
         return [line for line in user_input_lines], []
 
@@ -445,11 +479,17 @@ class SurveyQuestion(models.Model):
         return table_data, graph_data
 
     def _get_stats_summary_data(self, user_input_lines):
+        stats = {}
         if self.question_type in ['simple_choice', 'multiple_choice']:
-            return self._get_stats_summary_data_choice(user_input_lines)
-        if self.question_type in ['numerical_box']:
-            return self._get_stats_summary_data_numerical(user_input_lines)
-        return {}
+            stats.update(self._get_stats_summary_data_choice(user_input_lines))
+        elif self.question_type == 'numerical_box':
+            stats.update(self._get_stats_summary_data_numerical(user_input_lines))
+
+        if self.question_type in ['numerical_box', 'date', 'datetime']:
+            stats.update({
+                'right_inputs_count': len(user_input_lines.filtered(lambda line: line.answer_is_correct).mapped('user_input_id')),
+            })
+        return stats
 
     def _get_stats_summary_data_choice(self, user_input_lines):
         right_inputs, partial_inputs = self.env['survey.user_input'], self.env['survey.user_input']
@@ -465,8 +505,8 @@ class SurveyQuestion(models.Model):
             right_inputs = user_input_lines.filtered(lambda line: line.answer_is_correct).mapped('user_input_id')
         return {
             'right_answers': right_answers,
-            'right_inputs': right_inputs,
-            'partial_inputs': partial_inputs,
+            'right_inputs_count': len(right_inputs),
+            'partial_inputs_count': len(partial_inputs),
         }
 
     def _get_stats_summary_data_numerical(self, user_input_lines):
@@ -478,7 +518,6 @@ class SurveyQuestion(models.Model):
             'numerical_average': round(lines_sum / (len(all_values) or 1), 2),
             'numerical_common_lines': collections.Counter(all_values).most_common(5),
         }
-
 
 class SurveyQuestionAnswer(models.Model):
     """ A preconfigured answer for a question. This model stores values used
