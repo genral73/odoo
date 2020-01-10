@@ -98,7 +98,10 @@ class EventMailScheduler(models.Model):
     scheduled_date = fields.Datetime('Scheduled Sent Mail', compute='_compute_scheduled_date', store=True)
     mail_registration_ids = fields.One2many('event.mail.registration', 'scheduler_id')
     mail_sent = fields.Boolean('Mail Sent on Event', copy=False)
-    done = fields.Boolean('Sent', compute='_compute_done', store=True)
+    done = fields.Boolean('Sent', compute='_compute_done', store=True, copy=False)
+    # UX fields
+    state = fields.Selection([('running', 'Running'), ('scheduled', 'Scheduled'), ('sent', 'Sent')], compute='_compute_state')
+    sent_to_message = fields.Char('Sent to message', readonly=True, copy=False)
 
     @api.depends('interval_type')
     def _compute_trigger_stage_id(self):
@@ -153,11 +156,15 @@ class EventMailScheduler(models.Model):
                     mail.write({'mail_registration_ids': lines})
                 # execute scheduler on registrations
                 mail.mail_registration_ids.filtered(lambda reg: reg.scheduled_date and reg.scheduled_date <= now).execute()
+                mail.sent_to_message = _('%i Attendees') % len(mail.mail_registration_ids.filtered(lambda reg: reg.mail_sent))
             else:
                 # Do not send emails if the mailing was scheduled before the event but the event is over
                 if not mail.mail_sent and (mail.interval_type != 'before_event' or mail.event_id.date_end > now) and mail.notification_type == 'mail':
                     mail.event_id.mail_attendees(mail.template_id.id)
                     mail.write({'mail_sent': True})
+
+                mail.sent_to_message = _('%i Attendees') % len(mail.event_id.registration_ids.filtered(lambda reg: reg.state != 'cancel'))
+
         return True
 
     @api.model

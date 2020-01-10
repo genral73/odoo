@@ -41,4 +41,7 @@ Key Features
     ],
     'installable': True,
     'auto_install': False,
+    'qweb': [
+        'static/src/xml/icon_selection_widget.xml',
+    ],
 }
