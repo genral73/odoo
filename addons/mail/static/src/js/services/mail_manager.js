@@ -680,6 +680,7 @@ var MailManager =  AbstractService.extend({
      * @returns {Promise<Object[]>} resolved with previews of mail failures
      */
     _getMailFailurePreviews: function () {
+        // TODO SEB this method should be removed before merging the current PR
         // items = list of objects:
         //  item = {
         //      unreadCounter: {integer},
@@ -799,6 +800,7 @@ var MailManager =  AbstractService.extend({
      * @param {string|undefined} [filter]
      */
     _getSystrayMailFailurePreviews: function (filter) {
+        // TODO SEB this method should be removed before merging the current PR
         // mail failure previews
         if (filter === 'mailbox_inbox' || !filter) {
             return this._getMailFailurePreviews();
@@ -1269,6 +1271,7 @@ var MailManager =  AbstractService.extend({
      */
     _updateMailFailuresFromServer: function (data) {
         var self = this;
+        // TODO SEB this method should be removed before merging the current PR
         this._mailFailures = _.map(data.mail_failures, function (mailFailureData) {
             return new MailFailure(self, mailFailureData);
         });

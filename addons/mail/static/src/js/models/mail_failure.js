@@ -28,6 +28,7 @@ var MailFailure = Class.extend(Mixins.EventDispatcherMixin, ServicesMixin, {
         Mixins.EventDispatcherMixin.init.call(this, arguments);
         this.setParent(parent);
 
+        // TODO SEB this whole file should be removed before merging the current PR
         this._documentID = data.res_id;
         this._documentModel = data.model;
         this._failureType = data.failure_type || 'mail';

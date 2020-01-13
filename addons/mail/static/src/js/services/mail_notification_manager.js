@@ -298,6 +298,7 @@ MailManager.include({
      *   failure (e.g. 'exception').
      */
     _handlePartnerMailFailureNotification: function (datas) {
+        // TODO SEB this method be removed before merging the current PR
         var self = this;
         _.each(datas.elements, function (data) {
             var isNewFailure = _.some(data.notifications, function (notif) {
