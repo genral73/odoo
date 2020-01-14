@@ -77,10 +77,10 @@ QUnit.module('GroupByMenu', {
             {fieldName: {sortable: true, string: 'Super Date', type: 'date'}}
         );
         await testUtils.dom.click(groupByMenu.$('button:first'));
-        var selector = groupByMenu.$('select.o_group_selector');
+        var selector = groupByMenu.$('select.o_group_by_selector');
         assert.ok(!selector.is(":visible"), 'should be invisible');
         await testUtils.dom.click(groupByMenu.$('.o_add_custom_group'));
-        selector = groupByMenu.$('select.o_group_selector');
+        selector = groupByMenu.$('select.o_group_by_selector');
         assert.ok(selector.is(":visible"), 'should be visible');
 
         groupByMenu.destroy();
@@ -115,7 +115,7 @@ QUnit.module('GroupByMenu', {
         await testUtils.dom.click(groupByMenu.$('.o_add_custom_group'));
         assert.strictEqual(groupByMenu.$('select').val(), 'fieldName',
             'the select value should be "fieldName"');
-        await testUtils.dom.click(groupByMenu.$('button.o_apply_group'));
+        await testUtils.dom.click(groupByMenu.$('button.o_apply_group_by'));
         assert.containsOnce(groupByMenu, '.o_menu_item > .dropdown-item.selected', 'there should be a groupby selected');
         groupByMenu.destroy();
     });
@@ -163,7 +163,7 @@ QUnit.module('GroupByMenu', {
         assert.strictEqual(groupByMenu.$('select').val(), 'fieldName',
             'the select value should be "fieldName"');
         // create new groupBy of type date
-        await testUtils.dom.click(groupByMenu.$('button.o_apply_group'));
+        await testUtils.dom.click(groupByMenu.$('button.o_apply_group_by'));
         assert.strictEqual(groupByMenu.$('.o_menu_item > .dropdown-item.selected').length, 1,
             'there should be a groupby selected');
         assert.strictEqual(groupByMenu.$('.o_menu_item .o_submenu_switcher').length, 1,
@@ -189,10 +189,10 @@ QUnit.module('GroupByMenu', {
         // open Add Custom Group submenu
         await testUtils.dom.click(groupByMenu.$('.o_add_custom_group'))
 
-        assert.containsOnce(groupByMenu, '.o_group_selector option',
+        assert.containsOnce(groupByMenu, '.o_group_by_selector option',
             'groupby menu should have only one option');
         // custom group by should not have 'ID' field
-        assert.containsNone(groupByMenu, '.o_group_selector option[value="id"]',
+        assert.containsNone(groupByMenu, '.o_group_by_selector option[value="id"]',
             'id field should not be in custom group by');
 
         groupByMenu.destroy();

@@ -32,7 +32,7 @@ var ThemePreviewKanbanView = KanbanView.extend({
     _createControlPanel: function (parent) {
         return this._super.apply(this, arguments).then(controlPanel => {
             var websiteLink = '<a class="btn btn-secondary ml-3" href="/"><i class="fa fa-close"></i></a>';
-            controlPanel.$('div.o_cp_searchview').after(websiteLink);
+            controlPanel.$('div.o_cp_top').after(websiteLink);
             return controlPanel;
         });
     },

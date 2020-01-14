@@ -48,12 +48,11 @@ QUnit.module('Views', {
                 initialDate: initialDate,
             },
         }).then(function (calendar) {
-
-            assert.notOk(calendar.$buttons.find('.o_calendar_button_prev').is(':visible'),
+            assert.containsNone(calendar.$buttons, '.o_calendar_button_prev',
                 "prev button should be hidden");
-            assert.notOk(calendar.$buttons.find('.o_calendar_button_next').is(':visible'),
+            assert.containsNone(calendar.$buttons, '.o_calendar_button_next',
                 "next button should be hidden");
-            assert.ok($('.o_control_panel .o_cp_pager .o_calendar_button_today').is(':visible'),
+            assert.isVisible($('.o_control_panel .o_cp_right button.o_cp_today_button'),
                 "today button should be visible in the pager area (bottom right corner)");
 
             calendar.destroy();

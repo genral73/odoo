@@ -54,6 +54,7 @@ var ListController = BasicController.extend({
         this.selectedRecords = params.selectedRecords || [];
         this.multipleRecordsSavingPromise = null;
         this.fieldChangedPrevented = false;
+        this.selectAll = false;
         Object.defineProperty(this, 'mode', {
             get: () => this.renderer.isEditable() ? 'edit' : 'readonly',
             set: () => {},
@@ -77,8 +78,8 @@ var ListController = BasicController.extend({
      */
     getActiveDomain: function () {
         var self = this;
-        if (this.$('thead .o_list_record_selector input').prop('checked')) {
-            var searchQuery = this._controlPanel ? this._controlPanel.searchQuery : {};
+        if (this.selectAll) {
+            var searchQuery = this._controlPanelModel ? this._controlPanelModel.getQuery() : {};
             var record = self.model.get(self.handle, {raw: true});
             return record.getDomain().concat(searchQuery.domain || []);
         }
@@ -124,23 +125,24 @@ var ListController = BasicController.extend({
      * induce the leaving of the current row.
      *
      * @override
-     * @param {jQuery} $node
      */
     renderButtons: function ($node) {
-        if (!this.noLeaf && this.hasButtons) {
-            this.$buttons = $(qweb.render(this.buttons_template, {widget: this}));
-            this.$buttons.on('click', '.o_list_button_add', this._onCreateRecord.bind(this));
-
-            this._assignCreateKeyboardBehavior(this.$buttons.find('.o_list_button_add'));
-            this.$buttons.find('.o_list_button_add').tooltip({
-                delay: {show: 200, hide: 0},
-                title: function () {
-                    return qweb.render('CreateButton.tooltip');
-                },
-                trigger: 'manual',
-            });
-            this.$buttons.on('mousedown', '.o_list_button_discard', this._onDiscardMousedown.bind(this));
-            this.$buttons.on('click', '.o_list_button_discard', this._onDiscard.bind(this));
+        if (this.noLeaf || !this.hasButtons) {
+            return;
+        }
+        this.$buttons = $(qweb.render(this.buttons_template, {widget: this}));
+        this.$buttons.on('click', '.o_list_button_add', this._onCreateRecord.bind(this));
+        this._assignCreateKeyboardBehavior(this.$buttons.find('.o_list_button_add'));
+        this.$buttons.find('.o_list_button_add').tooltip({
+            delay: {show: 200, hide: 0},
+            title: function () {
+                return qweb.render('CreateButton.tooltip');
+            },
+            trigger: 'manual',
+        });
+        this.$buttons.on('mousedown', '.o_list_button_discard', this._onDiscardMousedown.bind(this));
+        this.$buttons.on('click', '.o_list_button_discard', this._onDiscard.bind(this));
+        if ($node) {
             this.$buttons.appendTo($node);
         }
     },
@@ -164,6 +166,25 @@ var ListController = BasicController.extend({
         params.selectedRecords = this.selectedRecords;
         return this._super.apply(this, arguments);
     },
+    /**
+     * This helper simply makes sure that the control panel buttons matches the
+     * current mode.
+     *
+     * @override
+     * @param {string} mode either 'readonly' or 'edit'
+     */
+    updateButtons: function (mode) {
+        if (!this.$buttons) {
+            return;
+        }
+        this.$buttons.toggleClass('o-editing', mode === 'edit');
+        const state = this.model.get(this.handle, {raw: true});
+        if (state.count) {
+            this.$('.o_list_export_xlsx').show();
+        } else {
+            this.$('.o_list_export_xlsx').hide();
+        }
+    },
 
     //--------------------------------------------------------------------------
     // Private
@@ -183,7 +204,7 @@ var ListController = BasicController.extend({
         if ((recordID || this.handle) !== this.handle) {
             var state = this.model.get(this.handle);
             this.renderer.removeLine(state, recordID);
-            this._updatePager();
+            this._updatePagerProps(state);
         }
     },
     /**
@@ -207,7 +228,10 @@ var ListController = BasicController.extend({
             self.renderer.updateState(state, {keepWidths: true})
                 .then(function () {
                     self.renderer.editRecord(recordID);
-                }).then(self._updatePager.bind(self));
+                })
+                .then(() => {
+                    self._updatePagerProps(state);
+                });
         }).then(this._enableButtons.bind(this)).guardedCatch(this._enableButtons.bind(this));
     },
     /**
@@ -292,7 +316,7 @@ var ListController = BasicController.extend({
         }
         var self = this;
         return this._super(recordID).then(function () {
-            self._updateButtons('readonly');
+            self.updateButtons('readonly');
         });
     },
     /**
@@ -312,10 +336,9 @@ var ListController = BasicController.extend({
      * @override
      * @private
      */
-    _getPagerProps: function () {
-        const state = this.model.get(this.handle, { raw: true });
+    _getPagerProps: function (state) {
         if (!state.count) {
-            return {};
+            return null;
         }
         return this._super(...arguments);
     },
@@ -323,12 +346,11 @@ var ListController = BasicController.extend({
      * @override
      * @private
      */
-    _getSidebarProps: function () {
+    _getSidebarProps: function (state) {
         if (!this.hasSidebar || !this.selectedRecords.length) {
             return null;
         }
         const props = this._super(...arguments);
-        const record = this.model.get(this.handle);
         const otherActionItems = [{
             description: _t("Export"),
             callback: () => this._onExportData(),
@@ -355,8 +377,8 @@ var ListController = BasicController.extend({
         return Object.assign(props, {
             items: Object.assign({}, this.toolbarActions, { other: otherActionItems }),
             context: this.model.get(this.handle, { raw: true }).getContext(),
-            domain: record.getDomain(),
-            selectAll: !!this.$('thead .o_list_record_selector input').prop('checked')
+            domain: state.getDomain(),
+            selectAll: this.selectAll,
         });
     },
     /**
@@ -387,7 +409,7 @@ var ListController = BasicController.extend({
             const saveRecords = () => {
                 this.model.saveRecords(this.handle, recordId, validRecordIds, fieldName)
                     .then(async () => {
-                        this._updateButtons('readonly');
+                        this.updateButtons('readonly');
                         const state = this.model.get(this.handle);
                         // We need to check the current multi-editable state here
                         // in case the selection is changed. If there are changes
@@ -462,7 +484,7 @@ var ListController = BasicController.extend({
      */
     _setMode: function (mode, recordID) {
         if ((recordID || this.handle) !== this.handle) {
-            this._updateButtons(mode);
+            this.updateButtons(mode);
             return this.renderer.setRowMode(recordID, mode);
         } else {
             return this._super.apply(this, arguments);
@@ -496,29 +518,8 @@ var ListController = BasicController.extend({
      */
     _update: async function () {
         await this._super(...arguments);
-        this._updateActionProps({
-            pager: this._getPagerProps(),
-            sidebar: this._getSidebarProps(),
-        });
         this._toggleCreateButton();
-        this._updateButtons('readonly');
-    },
-    /**
-     * This helper simply makes sure that the control panel buttons matches the
-     * current mode.
-     *
-     * @param {string} mode either 'readonly' or 'edit'
-     */
-    _updateButtons: function (mode) {
-        if (this.$buttons) {
-            this.$buttons.toggleClass('o-editing', mode === 'edit');
-            const state = this.model.get(this.handle, {raw: true});
-            if (state.count) {
-                this.$('.o_list_export_xlsx').show();
-            } else {
-                this.$('.o_list_export_xlsx').hide();
-            }
-        }
+        this.updateButtons('readonly');
     },
 
     //--------------------------------------------------------------------------
@@ -720,9 +721,8 @@ var ListController = BasicController.extend({
      */
     _onSelectionChanged: function (ev) {
         this.selectedRecords = ev.data.selection;
-        this._updateActionProps({
-            sidebar: this._getSidebarProps(),
-        });
+        this.selectAll = ev.data.allChecked;
+        this._updateControlPanel();
     },
     /**
      * If the record is set as dirty while in multiple record edition,
@@ -757,12 +757,12 @@ var ListController = BasicController.extend({
      */
     _onToggleColumnOrder: function (ev) {
         ev.stopPropagation();
-        var data = this.model.get(this.handle);
-        if (!data.groupedBy) {
-            this._updatePagerProps({ currentMinimum: 1 });
+        var state = this.model.get(this.handle);
+        if (!state.groupedBy) {
+            this._updatePagerProps(state, { currentMinimum: 1 });
         }
         var self = this;
-        this.model.setSort(data.id, ev.data.name).then(function () {
+        this.model.setSort(state.id, ev.data.name).then(function () {
             self.update({});
         });
     },

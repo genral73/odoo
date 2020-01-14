@@ -100,10 +100,7 @@ var FormController = BasicController.extend({
             viewType: 'form',
         });
         this.handle = handle;
-        this._updateActionProps({
-            pager: this._getPagerProps(),
-            sidebar: this._getSidebarProps(),
-        });
+        this._updateControlPanel();
         return this._setMode('edit');
     },
     /**
@@ -142,35 +139,34 @@ var FormController = BasicController.extend({
      * have to use them instead of the standard buttons.
      *
      * @override method from AbstractController
-     * @param {jQueryElement} $node
+     * @param {jQuery} [$node]
      */
     renderButtons: function ($node) {
-        var $footer = this.footerToButtons ? this.renderer.$('footer') : null;
+        var $footer = this.footerToButtons ? this.renderer.$el && this.renderer.$('footer') : null;
         var mustRenderFooterButtons = $footer && $footer.length;
-        if (!this.defaultButtons && !mustRenderFooterButtons) {
-            return;
+        if ((this.defaultButtons && !this.$buttons) || mustRenderFooterButtons) {
+            this.$buttons = $('<div/>');
+            if (mustRenderFooterButtons) {
+                this.$buttons.append($footer);
+            } else {
+                this.$buttons.append(qweb.render("FormView.buttons", {widget: this}));
+                this.$buttons.on('click', '.o_form_button_edit', this._onEdit.bind(this));
+                this.$buttons.on('click', '.o_form_button_create', this._onCreate.bind(this));
+                this.$buttons.on('click', '.o_form_button_save', this._onSave.bind(this));
+                this.$buttons.on('click', '.o_form_button_cancel', this._onDiscard.bind(this));
+                this._assignSaveCancelKeyboardBehavior(this.$buttons.find('.o_form_buttons_edit'));
+                this.$buttons.find('.o_form_buttons_edit').tooltip({
+                    delay: {show: 200, hide:0},
+                    title: function(){
+                        return qweb.render('SaveCancelButton.tooltip');
+                    },
+                    trigger: 'manual',
+                });
+            }
         }
-        this.$buttons = $('<div/>');
-        if (mustRenderFooterButtons) {
-            this.$buttons.append($footer);
-
-        } else {
-            this.$buttons.append(qweb.render("FormView.buttons", {widget: this}));
-            this.$buttons.on('click', '.o_form_button_edit', this._onEdit.bind(this));
-            this.$buttons.on('click', '.o_form_button_create', this._onCreate.bind(this));
-            this.$buttons.on('click', '.o_form_button_save', this._onSave.bind(this));
-            this.$buttons.on('click', '.o_form_button_cancel', this._onDiscard.bind(this));
-            this._assignSaveCancelKeyboardBehavior(this.$buttons.find('.o_form_buttons_edit'));
-            this.$buttons.find('.o_form_buttons_edit').tooltip({
-                delay: {show: 200, hide:0},
-                title: function(){
-                    return qweb.render('SaveCancelButton.tooltip');
-                },
-                trigger: 'manual',
-            });
-            this._updateButtons();
+        if (this.$buttons && $node) {
+            this.$buttons.appendTo($node);
         }
-        this.$buttons.appendTo($node);
     },
     /**
      * The form view has to prevent a click on the pager if the form is dirty
@@ -180,21 +176,21 @@ var FormController = BasicController.extend({
      * @param {Object} options
      * @returns {Promise}
      */
-    _getPagerProps(options={}) {
+    _getPagerProps: function () {
         // Only display the pager if we are not on a new record.
         if (this.model.isNew(this.handle)) {
-            return {};
+            return null;
         }
-        return this._super(Object.assign(options, {
+        return Object.assign(this._super(...arguments), {
             validate: this.canBeDiscarded.bind(this),
-        }));
+        });
     },
     /**
      * @override
      * @private
      **/
     _getSidebarProps: function () {
-        if (!this.hasSidebar) {
+        if (!this.hasSidebar || this.mode === 'edit') {
             return null;
         }
         const props = this._super(...arguments);
@@ -242,10 +238,7 @@ var FormController = BasicController.extend({
     saveRecord: async function () {
         const changedFields = await this._super(...arguments);
         // the title could have been changed
-        this._updateActionProps({
-            sidebar: this._getSidebarProps(),
-            title: this.getTitle(),
-        });
+        this._updateControlPanel();
 
         if (_t.database.multi_lang && changedFields.length) {
             // need to make sure changed fields that should be translated
@@ -278,6 +271,25 @@ var FormController = BasicController.extend({
         }
         params = _.extend({viewType: 'form', mode: this.mode}, params);
         return this._super(params, options);
+    },
+    /**
+     * @override
+     */
+    updateButtons: function () {
+        if (!this.$buttons) {
+            return;
+        }
+        if (this.footerToButtons) {
+            var $footer = this.renderer.$el && this.renderer.$('footer');
+            if ($footer && $footer.length) {
+                this.$buttons.empty().append($footer);
+            }
+        }
+        var edit_mode = (this.mode === 'edit');
+        this.$buttons.find('.o_form_buttons_edit')
+            .toggleClass('o_hidden', !edit_mode);
+        this.$buttons.find('.o_form_buttons_view')
+            .toggleClass('o_hidden', edit_mode);
     },
 
     //--------------------------------------------------------------------------
@@ -447,36 +459,10 @@ var FormController = BasicController.extend({
      *
      * @override
      * @private
-     * @param {Object} state
-     * @returns {Promise}
      */
     _update: async function () {
         await this._super(...arguments);
-        const title = this.getTitle();
-        this._updateButtons();
-        this._updateActionProps({
-            sidebar: this._getSidebarProps(),
-            title: title,
-        });
         this.autofocus();
-    },
-    /**
-     * @private
-     */
-    _updateButtons: function () {
-        if (this.$buttons) {
-            if (this.footerToButtons) {
-                var $footer = this.renderer.$('footer');
-                if ($footer.length) {
-                    this.$buttons.empty().append($footer);
-                }
-            }
-            var edit_mode = (this.mode === 'edit');
-            this.$buttons.find('.o_form_buttons_edit')
-                         .toggleClass('o_hidden', !edit_mode);
-            this.$buttons.find('.o_form_buttons_view')
-                         .toggleClass('o_hidden', edit_mode);
-        }
     },
 
     //--------------------------------------------------------------------------
@@ -576,9 +562,7 @@ var FormController = BasicController.extend({
     _onDuplicateRecord: async function () {
         const handle = await this.model.duplicateRecord(this.handle);
         this.handle = handle;
-        this._updateActionProps({
-            sidebar: this._getSidebarProps(),
-        });
+        this._updateControlPanel();
         this._setMode('edit');
     },
     /**

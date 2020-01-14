@@ -10,7 +10,6 @@ odoo.define('web.test_utils_fields', function (require) {
  * testUtils file.
  */
 
-var concurrency = require('web.concurrency');
 var domUtils = require('web.test_utils_dom');
 
 //------------------------------------------------------------------------------
@@ -103,8 +102,7 @@ function clickM2OHighlightedItem(fieldName, selector) {
     var m2oSelector = `${selector || ''} .o_field_many2one[name=${fieldName}] input`;
     var $dropdown = $(m2oSelector).autocomplete('widget');
     // clicking on an li (no matter which one), will select the focussed one
-    $dropdown.find('li:first()').click();
-    return concurrency.delay(0);
+    return domUtils.click($dropdown[0].querySelector('li'));
 }
 
 /**
@@ -124,12 +122,10 @@ function clickM2OItem(fieldName, searchText) {
     var $dropdown = $(m2oSelector).autocomplete('widget');
     var $target = $dropdown.find(`li:contains(${searchText})`).first();
     if ($target.length !== 1 || !$target.is(':visible')) {
-        throw new Error('Menu item should be unique and visible');
+        throw new Error('Menu item should be visible');
     }
-    $target.mouseenter();
-    $target.click();
-
-    return concurrency.delay(0);
+    $target.mouseenter(); // This is NOT a mouseenter event. See jquery.js:5516 for more headaches.
+    return domUtils.click($target);
 }
 
 /**
@@ -143,31 +139,30 @@ function clickM2OItem(fieldName, searchText) {
  *    testUtils.fields.many2one.searchAndClickM2OItem('partner_id', {search: 'George'});
  *
  * @param {string} fieldName
- * @param {[Object]} options
- * @param {[string]} options.selector
- * @param {[string]} options.search
- * @param {[string]} options.item
+ * @param {[Object]} [options = {}]
+ * @param {[string]} [options.selector]
+ * @param {[string]} [options.search]
+ * @param {[string]} [options.item]
  * @returns {Promise}
  */
-function searchAndClickM2OItem(fieldName, options) {
-    options = options || {};
-
-    return clickOpenM2ODropdown(fieldName, options.selector).then(function (input) {
-        var def;
-        if (options.search) {
-            input.value = options.search;
-            input.dispatchEvent(new Event('input'));
-            def = concurrency.delay(0);
-        }
-        return Promise.resolve(def).then(function () {
-            if (options.item) {
-                return clickM2OItem(fieldName, options.item);
-            } else {
-                return clickM2OHighlightedItem(fieldName, options.selector);
-            }
-        });
-    });
+async function searchAndClickM2OItem(fieldName, options = {}) {
+    const input = await clickOpenM2ODropdown(fieldName, options.selector);
+    if (options.search) {
+        await editInput(input, options.search);
+    }
+    if (options.item) {
+        return clickM2OItem(fieldName, options.item);
+    } else {
+        return clickM2OHighlightedItem(fieldName, options.selector);
+    }
 }
+
+const ARROW_KEYS_MAPPING = {
+    up: 'ArrowUp',
+    down: 'ArrowDown',
+    left: 'ArrowLeft',
+    right: 'ArrowRight',
+};
 
 /**
  * Helper to trigger a key event on an element.
@@ -181,7 +176,15 @@ function searchAndClickM2OItem(fieldName, options) {
  */
 function triggerKey(type, $el, keyCode) {
     type = 'key' + type;
+    const params = {};
     if (typeof keyCode === 'string') {
+        // Key (new API)
+        if (keyCode in ARROW_KEYS_MAPPING) {
+            params.key = ARROW_KEYS_MAPPING[keyCode];
+        } else {
+            params.key = keyCode[0].toUpperCase() + keyCode.slice(1).toLowerCase();
+        }
+        // KeyCode/which (jQuery)
         if (keyCode.length > 1) {
             keyCode = keyCode.toUpperCase();
             keyCode = $.ui.keyCode[keyCode];
@@ -189,8 +192,9 @@ function triggerKey(type, $el, keyCode) {
             keyCode = keyCode.charCodeAt(0);
         }
     }
-    $el.trigger({type: type, which: keyCode, keyCode: keyCode});
-    return concurrency.delay(0);
+    params.keyCode = keyCode;
+    params.which = keyCode;
+    return domUtils.triggerEvent($el, type, params);
 }
 
 /**

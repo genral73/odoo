@@ -56,8 +56,8 @@ function _checkClass(w, className, shouldHaveClass, msg) {
  */
 function _checkVisible(w, shouldBeVisible, msg) {
     if (w instanceof jQuery && w.length !== 1) {
-        const assertion = shouldHaveClass ? 'hasClass' : 'doesNotHaveClass';
-        QUnit.assert.ok(false, `Assertion '${assertion} ${className}' targets ${w.length} elements instead of 1`);
+        const assertion = shouldBeVisible ? 'isVisible' : 'isNotVisible';
+        QUnit.assert.ok(false, `Assertion '${assertion}' targets ${w.length} elements instead of 1`);
     }
 
     const el = w instanceof Widget || w instanceof owl.Component ? w.el :
@@ -236,5 +236,4 @@ QUnit.assert.hasAttrValue = hasAttrValue;
 
 QUnit.assert.isVisible = isVisible;
 QUnit.assert.isNotVisible = isNotVisible;
-
 });

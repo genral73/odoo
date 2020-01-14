@@ -1,6 +1,7 @@
 odoo.define("web.DomainSelector", function (require) {
 "use strict";
 
+var config = require("web.config");
 var core = require("web.core");
 var datepicker = require("web.datepicker");
 var Domain = require("web.Domain");
@@ -74,7 +75,7 @@ var DomainNode = Widget.extend({
         this.options = _.extend({
             readonly: true,
             operators: null,
-            debugMode: false,
+            debugMode: config.isDebug(),
         }, options || {});
 
         this.readonly = this.options.readonly;
@@ -194,7 +195,7 @@ var DomainTree = DomainNode.extend({
         this._postRender();
         return Promise.all([
             this._super.apply(this, arguments),
-            this._renderChildrenTo(this.$childrenContainer)
+            this._renderChildren()
         ]);
     },
 
@@ -371,19 +372,17 @@ var DomainTree = DomainNode.extend({
      * synchronous.
      *
      * @private
-     * @param {jQuery} $to - the jQuery node to which the children must be added
      * @returns {Promise}
      */
-    _renderChildrenTo: function ($to) {
-        var $div = $("<div/>");
-        return Promise.all(_.map(this.children, (function (child) {
-            return child.appendTo($div);
-        }).bind(this))).then((function () {
-            _.each(this.children, function (child) {
-                child.$el.appendTo($to); // Forced to do it this way so that the
-                                            // children are not misordered
-            });
-        }).bind(this));
+    _renderChildren: async function () {
+        await Promise.all(this.children.map(
+            child => child.appendTo(document.createDocumentFragment())
+        ));
+        this.children.forEach(child => {
+            if (!child.isDestroyed()) {
+                this.$childrenContainer.append(child.el);
+            }
+        });
     },
     /**
      * @param {string} domain
@@ -488,16 +487,18 @@ var DomainSelector = DomainTree.extend({
      * does nothing.
      *
      * @param {string} domain
+     * @param {Object} [options={}]
+     * @param {Object} [options.force] will redraw the el even if the domain is invalid
      * @returns {Promise} resolved when the rerendering is finished
      */
-    setDomain: function (domain, force = false) {
-        if (domain === Domain.prototype.arrayToString(this.getDomain())) {
+    setDomain: async function (domain, options = {}) {
+        if (domain === Domain.prototype.arrayToString(this.getDomain()) && !this.invalidDomain) {
             return Promise.resolve();
         }
         var parsedDomain = this._parseDomain(domain);
         if (parsedDomain) {
             return this._redraw(parsedDomain);
-        } else if (force) {
+        } else if (options.force) {
             this.el.innerHTML = _t("This domain is not supported.");
         }
     },
@@ -550,14 +551,14 @@ var DomainSelector = DomainTree.extend({
      * @returns {Promise}
      */
     _redraw: function (domain) {
-        var oldChildren = this.children.slice();
-        this._initialize(domain || this.getDomain());
-        return this._renderChildrenTo($("<div/>")).then((function () {
-            _.each(oldChildren, function (child) { child.destroy(); });
-            this.renderElement();
-            this._postRender();
-            _.each(this.children, (function (child) { child.$el.appendTo(this.$childrenContainer); }).bind(this));
-        }).bind(this));
+        if (!domain) {
+            domain = this.getDomain();
+        }
+        this.children.forEach(child => child.destroy());
+        this._initialize(domain);
+        this.renderElement();
+        this._postRender();
+        return this._renderChildren();
     },
 
     //--------------------------------------------------------------------------
@@ -604,6 +605,8 @@ var DomainSelector = DomainTree.extend({
         if (!e.data.alreadyRedrawn) {
             this._redraw();
         }
+        // Enriches the data with the current domain.
+        e.data.domain = Domain.prototype.arrayToString(this.getDomain());
     },
 });
 

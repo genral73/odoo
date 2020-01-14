@@ -38,8 +38,8 @@ var ActivityController = BasicController.extend({
      *
      * @override
      */
-    renderPager: function () {
-        return Promise.resolve();
+    _getPagerProps: function () {
+        return {};
     },
 
     //--------------------------------------------------------------------------

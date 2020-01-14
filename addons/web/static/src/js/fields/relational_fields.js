@@ -17,7 +17,8 @@ var AbstractField = require('web.AbstractField');
 var basicFields = require('web.basic_fields');
 var concurrency = require('web.concurrency');
 // var ControlPanelRenderer = require('web.ControlPanelRenderer');
-var ControlPanelX2Many = require('web.ControlPanelX2Many');
+const ControlPanelX2Many = require('web.ControlPanelX2Many');
+const ControlPanelWrapper = require('web.ControlPanelWrapper');
 var core = require('web.core');
 var data = require('web.data');
 var Dialog = require('web.Dialog');
@@ -27,7 +28,7 @@ const Domain = require('web.Domain');
 var KanbanRecord = require('web.KanbanRecord');
 var KanbanRenderer = require('web.KanbanRenderer');
 var ListRenderer = require('web.ListRenderer');
-var Pager = require('web.Pager');
+const { WidgetAdapterMixin } = require('web.OwlCompatibility');
 
 var _t = core._t;
 var _lt = core._lt;
@@ -963,7 +964,7 @@ var KanbanFieldMany2One = AbstractField.extend({
 // X2Many widgets
 //------------------------------------------------------------------------------
 
-var FieldX2Many = AbstractField.extend({
+var FieldX2Many = AbstractField.extend(WidgetAdapterMixin, {
     tagName: 'div',
     custom_events: _.extend({}, AbstractField.prototype.custom_events, {
         add_record: '_onAddRecord',
@@ -980,8 +981,6 @@ var FieldX2Many = AbstractField.extend({
         navigation_move: '_onNavigationMove',
         save_optional_fields: '_onSaveOrLoadOptionalFields',
         load_optional_fields: '_onSaveOrLoadOptionalFields',
-    }),
-    events: _.extend({}, AbstractField.prototype.events, {
         pager_changed: '_onPagerChanged',
     }),
 
@@ -1009,6 +1008,22 @@ var FieldX2Many = AbstractField.extend({
         this.isMany2Many = this.field.type === 'many2many' || this.attrs.widget === 'many2many';
         this.activeActions = {};
         this.recordParams = {fieldName: this.name, viewType: this.viewType};
+        // The limit is fixed so it cannot be changed by adding/removing lines in
+        // the widget. It will only change through a hard reload or when manually
+        // changing the pager (see _onPagerChanged).
+        this.pagerState = {
+            currentMinimum: this.value.offset + 1,
+            limit: this.value.limit,
+            hiddenInSinglePage: true,
+            size: this.value.count,
+            validate: () => {
+                // TODO: we should have some common method in the basic renderer...
+                return this.view.arch.tag === 'tree' ?
+                    this.renderer.unselectRow() :
+                    Promise.resolve();
+            },
+            withAccessKey: false,
+        };
         var arch = this.view && this.view.arch;
         if (arch) {
             this.activeActions.create = arch.attrs.create ?
@@ -1023,12 +1038,26 @@ var FieldX2Many = AbstractField.extend({
         if (this.attrs.columnInvisibleFields) {
             this._processColumnInvisibleFields();
         }
+        window.top.x2m = this;
     },
     /**
      * @override
      */
-    start: function () {
-        return this._renderControlPanel().then(this._super.bind(this));
+    start: async function () {
+        const _super = this._super.bind(this);
+        if (this.view) {
+            this._renderButtons();
+            this._controlPanelWrapper = new ControlPanelWrapper(this, ControlPanelX2Many, {
+                cp_content: { $buttons: this.$buttons },
+                pager: this.pagerState,
+            });
+            await this._controlPanelWrapper.mount(this.el, { position: 'first-child' });
+        }
+        return _super(...arguments);
+    },
+    destroy: function () {
+        WidgetAdapterMixin.destroy.call(this);
+        this._super();
     },
     /**
      * For the list renderer to properly work, it must know if it is in the DOM,
@@ -1036,11 +1065,9 @@ var FieldX2Many = AbstractField.extend({
      */
     on_attach_callback: function () {
         this.isInDOM = true;
+        WidgetAdapterMixin.on_attach_callback.call(this);
         if (this.renderer) {
             this.renderer.on_attach_callback();
-        }
-        if (this._controlPanel) {
-            this._controlPanel.mount(this.el, { position: 'first-child' });
         }
     },
     /**
@@ -1048,8 +1075,9 @@ var FieldX2Many = AbstractField.extend({
      */
     on_detach_callback: function () {
         this.isInDOM = false;
-        if (this._controlPanel) {
-            this._controlPanel.unmount();
+        WidgetAdapterMixin.on_detach_callback.call(this);
+        if (this.renderer) {
+            this.renderer.on_detach_callback();
         }
     },
 
@@ -1125,7 +1153,10 @@ var FieldX2Many = AbstractField.extend({
             }
         }
         return this._super.apply(this, arguments).then(() => {
-            this._updateControlPanel();
+            if (this.view) {
+                this._renderButtons();
+                this._updateControlPanel();
+            }
         });
     },
 
@@ -1189,22 +1220,6 @@ var FieldX2Many = AbstractField.extend({
                 column_invisible: domains,
              }).column_invisible;
         });
-    },
-    _getPagerProps: function () {
-        const { offset, limit, count } = this.value;
-        return {
-            currentMinimum: offset + 1,
-            limit: limit,
-            hiddenInSinglePage: true,
-            size: count,
-            validate: () => {
-                // TODO: we should have some common method in the basic renderer...
-                return this.view.arch.tag === 'tree' ?
-                    this.renderer.unselectRow() :
-                    Promise.resolve();
-            },
-            withAccessKey: false,
-        };
     },
     /**
      * Returns qweb context to render buttons.
@@ -1275,9 +1290,7 @@ var FieldX2Many = AbstractField.extend({
                 columnInvisibleFields: this.currentColInvisibleFields,
                 keepWidths: true,
             }).then(() => {
-                this._controlPanel.updateProps({
-                    pager: this._getPagerProps(),
-                });
+                this._updateControlPanel({ size: this.value.count });
             });
         }
         var arch = this.view.arch;
@@ -1330,24 +1343,6 @@ var FieldX2Many = AbstractField.extend({
         }
     },
     /**
-     * Instanciates a control panel with the appropriate buttons and a pager.
-     * Prepends the control panel's $el to this widget's $el.
-     *
-     * @private
-     * @returns {Promise}
-     */
-    _renderControlPanel: function () {
-        if (!this.view) {
-            return Promise.resolve();
-        }
-        this._renderButtons();
-        this._controlPanel = new ControlPanelX2Many(null, {
-            buttons: () => this.$buttons ? [...this.$buttons] : [],
-            pager: this._getPagerProps(),
-        });
-        return this._controlPanel.mount(document.createDocumentFragment());
-    },
-    /**
      * Renders the buttons and sets this.$buttons.
      *
      * @private
@@ -1374,29 +1369,26 @@ var FieldX2Many = AbstractField.extend({
      *                     rejected if the line could not be saved and the user
      *                     did not agree to discard.
      */
-    _saveLine: async function (recordID) {
-        return new Promise((resolve, reject) => {
-            var fieldNames = this.renderer.canBeSaved(recordID);
+    _saveLine: function (recordID) {
+        var self = this;
+        return new Promise(function (resolve, reject) {
+            var fieldNames = self.renderer.canBeSaved(recordID);
             if (fieldNames.length) {
-                this.trigger_up('discard_changes', {
+                self.trigger_up('discard_changes', {
                     recordID: recordID,
                     onSuccess: resolve,
                     onFailure: reject,
                 });
             } else {
-                this.renderer.setRowMode(recordID, 'readonly').then(resolve);
+                self.renderer.setRowMode(recordID, 'readonly').then(resolve);
             }
-        }).then(() => {
-            this._controlPanel.updateProps({
-                pager: {
-                    size: this.value.count
-                },
-            });
-            var newEval = this._evalColumnInvisibleFields();
-            if (!_.isEqual(this.currentColInvisibleFields, newEval)) {
-                this.currentColInvisibleFields = newEval;
-                this.renderer.updateState(this.value, {
-                    columnInvisibleFields: this.currentColInvisibleFields,
+        }).then(async function () {
+            self._updateControlPanel({ size: self.value.count });
+            var newEval = self._evalColumnInvisibleFields();
+            if (!_.isEqual(self.currentColInvisibleFields, newEval)) {
+                self.currentColInvisibleFields = newEval;
+                self.renderer.updateState(self.value, {
+                    columnInvisibleFields: self.currentColInvisibleFields,
                 });
             }
         });
@@ -1404,18 +1396,17 @@ var FieldX2Many = AbstractField.extend({
     /**
      * Re-renders buttons and updates the control panel. This method is called
      * when the widget is reset, as the available buttons might have changed.
+     * The only mutable element in X2Many fields will be the pager.
      *
      * @private
      */
-    _updateControlPanel: function () {
-        if (this._controlPanel) {
-            this._renderButtons();
-            const params = {
-                cp_content: {
-                    $buttons: this.$buttons,
-                }
+    _updateControlPanel: function (pagerState) {
+        if (this._controlPanelWrapper) {
+            const newProps = {
+                cp_content: { $buttons: this.$buttons },
+                pager: Object.assign(this.pagerState, pagerState),
             };
-            this._controlPanel.updateContents(params, { clear: false });
+            return this._controlPanelWrapper.update(newProps);
         }
     },
     /**
@@ -1572,17 +1563,27 @@ var FieldX2Many = AbstractField.extend({
         // to implement
     },
     /**
+     * We re-render the pager immediately with the new event values to allow
+     * it to request another pager change while another one is still ongoing.
+     * @see field_manager_mixin for concurrency handling.
+     *
      * @private
-     * @param {OwlEvent} ev
+     * @param {OdooEvent} ev
      */
     _onPagerChanged: function (ev) {
         ev.stopPropagation();
+        this._updateControlPanel({
+            limit: ev.data.limit,
+            currentMinimum: ev.data.currentMinimum,
+        });
         this.trigger_up('load', {
             id: this.value.id,
-            limit: ev.detail.limit,
-            offset: ev.detail.currentMinimum - 1,
+            limit: ev.data.limit,
+            offset: ev.data.currentMinimum - 1,
             on_success: value => {
                 this.value = value;
+                this.pagerState.limit = value.limit;
+                this.pagerState.count = value.count;
                 this._render();
             },
         });
@@ -1803,9 +1804,7 @@ var FieldOne2Many = FieldX2Many.extend({
                         // have 3 records, and we click on add, we will see the
                         // 4 records on the same page, but we do not want a
                         // pager.
-                        this._controlPanel.updateProps({
-                            pager: { size: self.value.count - 1},
-                        });
+                        self._updateControlPanel({ size: self.value.count - 1 });
                     }
                     var newID = self.value.data[index].id;
                     self.renderer.editRecord(newID);
@@ -1845,7 +1844,7 @@ var FieldOne2Many = FieldX2Many.extend({
      */
     _renderButtons: function () {
         if (this.activeActions.create) {
-            this._super.apply(this, arguments);
+            return this._super(...arguments);
         }
     },
     /**

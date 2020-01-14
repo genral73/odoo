@@ -1,35 +1,42 @@
-odoo.define('web.FilterMenuGenerator', function (require) {
+odoo.define('web.FilterGeneratorMenu', function (require) {
     "use strict";
 
-    const { DatePicker, DateTimePicker } = require('web.datepicker_owl');
+    const { DatePicker, DateTimePicker } = require('web.DatePickerOwl');
     const Domain = require('web.Domain');
     const DropdownMenuItem = require('web.DropdownMenuItem');
     const { FIELD_OPERATORS, FIELD_TYPES } = require('web.controlPanelParameters');
-    const { parse } = require('web.field_utils');
+    const field_utils = require('web.field_utils');
 
-    const { useDispatch, useState } = owl.hooks;
+    const { useState } = owl.hooks;
 
-    class FilterMenuGenerator extends DropdownMenuItem {
+    class FilterGeneratorMenu extends DropdownMenuItem {
         constructor() {
             super(...arguments);
 
-            this.dispatch = useDispatch(this.env.controlPanelStore);
+            this.state = useState({
+                conditions: [],
+                open: false,
+            });
+
+            // Format, filter and sort the fields props
             this.fields = Object.keys(this.props.fields).reduce(
                 (fields, fieldName) => {
                     const field = Object.assign({}, this.props.fields[fieldName], {
                         name: fieldName,
                     });
-                    if (!field.deprecated && field.searchable) {
+                    if (
+                        !field.deprecated &&
+                        field.searchable &&
+                        FIELD_TYPES[field.type] &&
+                        fieldName !== 'id'
+                    ) {
                         fields.push(field);
                     }
                     return fields;
                 },
-                []
+                [{ string: 'ID', type: 'id', name: 'id' }]
             ).sort(({ string: a }, { string: b }) => a > b ? 1 : a < b ? -1 : 0);
-            this.state = useState({
-                conditions: [],
-                open: false,
-            });
+
             // Add default empty condition
             this._addDefaultCondition();
 
@@ -58,16 +65,42 @@ odoo.define('web.FilterMenuGenerator', function (require) {
          * Populates the conditions list with a default condition having as properties:
          * - the first available field
          * - the first available operator
-         * - an empty value
+         * - an null or empty array value
          * @private
          */
         _addDefaultCondition() {
             const condition = {
                 field: 0,
                 operator: 0,
-                value: null,
             };
+            this._setDefaultValue(condition);
             this.state.conditions.push(condition);
+        }
+
+        _setDefaultValue(condition) {
+            const fieldType = this.fields[condition.field].type;
+            const genericType = FIELD_TYPES[fieldType];
+            const operator = FIELD_OPERATORS[genericType][condition.operator];
+            switch (genericType) {
+                case 'char':
+                    condition.value = "";
+                    break;
+                case 'number':
+                    condition.value = 0;
+                    break;
+                case 'date':
+                    condition.value = [moment()];
+                    if (operator.symbol === 'between') {
+                        condition.value.push(moment());
+                    }
+                    break;
+                case 'datetime':
+                    condition.value = [moment('00:00:00', 'hh:mm:ss')];
+                    if (operator.symbol === 'between') {
+                        condition.value.push(moment('23:59:59', 'hh:mm:ss'));
+                    }
+                    break;
+            }
         }
 
         /**
@@ -80,7 +113,7 @@ odoo.define('web.FilterMenuGenerator', function (require) {
         }
 
         /**
-         * Returns a sequence of numbers which length is equal to the given size.
+         * Returns a sequence of numbers whose length is equal to the given size.
          * @private
          * @param {number} size
          * @returns {number[]}
@@ -102,49 +135,43 @@ odoo.define('web.FilterMenuGenerator', function (require) {
                 const field = this.fields[condition.field];
                 const type = this.FIELD_TYPES[field.type];
                 const operator = this.OPERATORS[type][condition.operator];
-                const preDescription = [];
-                const preDomain = [];
-                let values;
+                const descriptionArray = [field.string, operator.description];
+                const domainArray = [];
+                let domainValue;
                 // Field type specifics
                 if (this._hasValue(operator)) {
-                    values = [operator.value];
-                } else if (['date', 'datetime'].includes(field.type)) {
-                    values = condition.value.map(val =>
-                        val._isAMomentObject ? val.locale('en').format(
-                            field.type === 'date' ?
-                                'YYYY-MM-DD' :
-                                'YYYY-MM-DD HH:mm:ss'
-                        ) : val
+                    domainValue = [operator.value];
+                    // No description to push here
+                } else if (['date', 'datetime'].includes(type)) {
+                    domainValue = condition.value.map(
+                        val => field_utils.parse[type](val, { type }, { timezone: true })
                     );
+                    const dateValue = condition.value.map(
+                        val => field_utils.format[type](val, { type }, { timezone: false })
+                    );
+                    descriptionArray.push(`"${dateValue.join(" " + this.env._t("and") + " ")}"`);
                 } else {
-                    values = [condition.value];
+                    domainValue = [condition.value];
+                    descriptionArray.push(`"${condition.value}"`);
                 }
                 // Operator specifics
                 if (operator.symbol === 'between') {
-                    preDomain.push(
-                        [field.name, '>=', values[0]],
-                        [field.name, '<=', values[1]]
+                    domainArray.push(
+                        [field.name, '>=', domainValue[0]],
+                        [field.name, '<=', domainValue[1]]
                     );
                 } else {
-                    preDomain.push([field.name, operator.symbol, values[0]]);
-                }
-                preDescription.push(field.string, operator.text);
-                if (!this._hasValue(operator)) {
-                    let value = values.join(` ${this.env._t("and")} `);
-                    if (this.FIELD_TYPES[field.type] === 'char') {
-                        value = `"${value}"`;
-                    }
-                    preDescription.push(value);
+                    domainArray.push([field.name, operator.symbol, domainValue[0]]);
                 }
                 const preFilter = {
-                    description: preDescription.join(" "),
-                    domain: Domain.prototype.arrayToString(preDomain),
+                    description: descriptionArray.join(" "),
+                    domain: Domain.prototype.arrayToString(domainArray),
                     type: 'filter',
                 };
                 return preFilter;
             });
 
-            this.trigger('create-new-filters', preFilters);
+            this.trigger('create-new-filters', { preFilters });
 
             // Reset state
             this.state.open = false;
@@ -159,7 +186,7 @@ odoo.define('web.FilterMenuGenerator', function (require) {
          * @param {OwlEvent} ev
          */
         _onDateChanged(condition, valueIndex, ev) {
-            condition.value[valueIndex] = ev.detail;
+            condition.value[valueIndex] = ev.detail.value;
         }
 
         /**
@@ -167,12 +194,12 @@ odoo.define('web.FilterMenuGenerator', function (require) {
          * @param {Object} condition
          * @param {Event} ev
          */
-        _onFieldSelected(condition, ev) {
+        _onFieldSelect(condition, ev) {
             Object.assign(condition, {
                 field: ev.target.selectedIndex,
                 operator: 0,
-                value: [],
             });
+            this._setDefaultValue(condition);
         }
 
         /**
@@ -180,8 +207,9 @@ odoo.define('web.FilterMenuGenerator', function (require) {
          * @param {Object} condition
          * @param {Event} ev
          */
-        _onOperatorSelected(condition, ev) {
-            condition.operator = ev.target.selectedIndex;
+        _onOperatorSelect(condition, ev) {
+            condition.operator =  ev.target.selectedIndex;
+            this._setDefaultValue(condition);
         }
 
         /**
@@ -199,11 +227,12 @@ odoo.define('web.FilterMenuGenerator', function (require) {
          */
         _onValueInput(condition, ev) {
             const type = this.fields[condition.field].type;
-            if (['float', 'integer'].includes(type)) {
+            if (['float', 'integer', 'id'].includes(type)) {
                 const previousValue = condition.value;
-                const defaultValue = type === 'float' ? '0.0' : '0';
+                const defaultValue = type === 'float' ? 0.0 : 0;
+                const parser = field_utils.parse[type === 'float' ? 'float' : 'integer'];
                 try {
-                    const parsed = parse[type](ev.target.value || defaultValue);
+                    const parsed = parser(ev.target.value || defaultValue);
                     // Force parsed value in the input.
                     ev.target.value = condition.value = (parsed || defaultValue);
                 } catch (err) {
@@ -216,11 +245,11 @@ odoo.define('web.FilterMenuGenerator', function (require) {
         }
     }
 
-    FilterMenuGenerator.components = { DatePicker, DateTimePicker };
-    FilterMenuGenerator.props = {
+    FilterGeneratorMenu.components = { DatePicker, DateTimePicker };
+    FilterGeneratorMenu.props = {
         fields: Object,
     };
-    FilterMenuGenerator.template = 'FilterMenuGenerator';
+    FilterGeneratorMenu.template = 'FilterGeneratorMenu';
 
-    return FilterMenuGenerator;
+    return FilterGeneratorMenu;
 });

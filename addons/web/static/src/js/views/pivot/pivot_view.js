@@ -141,7 +141,7 @@ odoo.define('web.PivotView', function (require) {
          */
         getRenderer(parent, state) {
             state = Object.assign(state || {}, this.rendererParams);
-            return new RendererWrapper(null, this.config.Renderer, state);
+            return new RendererWrapper(parent, this.config.Renderer, state);
         },
     });
 

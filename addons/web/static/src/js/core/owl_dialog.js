@@ -31,6 +31,8 @@ odoo.define('web.OwlDialog', function () {
          *      should be rendered.
          * @param {string} [props.size='large'] 'extra-large', 'large', 'medium'
          *      or 'small'.
+         * @param {string} [props.stopClicks=true] whether the dialog should stop
+         *      the clicks propagation outside of itself.
          * @param {string} [props.subtitle='']
          * @param {string} [props.title='Odoo']
          * @param {boolean} [props.technical=true] If set to false, the modal will have
@@ -71,7 +73,7 @@ odoo.define('web.OwlDialog', function () {
             this._removeTooltips();
         }
 
-        async willUnmount() {
+        willUnmount() {
             this.env.bus.off('close_dialogs', this, this._close);
 
             this._removeTooltips();
@@ -133,7 +135,7 @@ odoo.define('web.OwlDialog', function () {
          * @private
          * @param {MouseEvent} ev
          */
-        _onDialogClick(ev) {
+        _onDialogMousedown(ev) {
             if (this.props.stopClicks) {
                 ev.stopPropagation();
             }
@@ -245,7 +247,7 @@ odoo.define('web.OwlDialog', function () {
         renderFooter: true,
         renderHeader: true,
         size: 'large',
-        stopClicks: false,
+        stopClicks: true,
         technical: true,
         title: "Odoo",
     };

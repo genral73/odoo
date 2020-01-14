@@ -1,7 +1,8 @@
 odoo.define('web.ControlPanel', function (require) {
     "use strict";
 
-    const ControlPanelStore = require('web.ControlPanelStore');
+    const { useBaseModel } = require('web.base_model');
+    const ControlPanelModel = require('web.ControlPanelModel');
     const FavoriteMenu = require('web.FavoriteMenu');
     const FilterMenu = require('web.FilterMenu');
     const GroupByMenu = require('web.GroupByMenu');
@@ -11,7 +12,7 @@ odoo.define('web.ControlPanel', function (require) {
     const TimeRangeMenu = require('web.TimeRangeMenu');
 
     const { Component, hooks } = owl;
-    const { useDispatch, useRef, useState, useSubEnv, useStore, useGetters } = hooks;
+    const { useRef, useState, useSubEnv } = hooks;
 
     /**
      * Control panel
@@ -24,60 +25,27 @@ odoo.define('web.ControlPanel', function (require) {
             super(...arguments);
 
             useSubEnv({
-                controlPanelStore: this.props.controlPanelStore,
+                action: this.props.action,
+                controlPanelModel: this.props.controlPanelModel,
             });
 
-            this.state = useState(this.initialState);
-            this.storeState = {};
-            this._connectToStore(this.env.controlPanelStore);
+            this.state = useState(this._getInitialState());
+            if (this.env.controlPanelModel) {
+                useBaseModel(state => state, { baseModel: this.env.controlPanelModel });
+            }
 
             // Reference hooks
             this.contentRefs = {
                 buttons: useRef('buttons'),
+                pager: useRef('pager'),
                 searchView: useRef('searchView'),
                 searchViewButtons: useRef('searchViewButtons'),
             };
-            if (this.constructor.name === 'ControlPanel') window.top.cp = this; // TODO: REMOVE
-        }
-
-        mounted() {
-            this._appendCPContent();
-        }
-
-        patched() {
-            this._appendCPContent();
         }
 
         async willUpdateProps(nextProps) {
-            console.log("CP: update", nextProps);
-        }
-
-        //--------------------------------------------------------------------------
-        // Getters
-        //--------------------------------------------------------------------------
-
-        /**
-         * @returns {Object}
-         */
-        get initialState() {
-            return {
-                displayDropdowns: true,
-                openedMenu: null,
-            };
-        }
-
-        //--------------------------------------------------------------------------
-        // Public
-        //--------------------------------------------------------------------------
-
-        async updateProps(newProps = {}) {
-            if (!Object.keys(newProps).length) {
-                return;
-            }
-            await this.willUpdateProps(newProps);
-            Object.assign(this.props, newProps);
-            if (this.__owl__.isMounted) {
-                this.render(true);
+            if ('action' in nextProps) {
+                this.env.action = nextProps.action;
             }
         }
 
@@ -86,60 +54,40 @@ odoo.define('web.ControlPanel', function (require) {
         //--------------------------------------------------------------------------
 
         /**
-         * @todo this is a compatibility adapter and it must be removed as soon
-         * as renderers no longer instantiate manually their buttons, their searchView
-         * and their searchViewButtons.
          * @private
+         * @returns {Object}
          */
-        _appendCPContent() {
-            for (const key in this.storeState.cp_content) {
-                const content = this.storeState.cp_content[key]();
-                if (this.contentRefs[key].el && content && content.length) {
-                    this.contentRefs[key].el.innerHTML = "";
-                    this.contentRefs[key].el.append(...content);
-                }
-            }
-        }
-
-        /**
-         * Overriden when no store is used (@see ControlPanelX2Many for example).
-         * @private
-         * @param {ControlPanelStore} store
-         */
-        _connectToStore(store) {
-            this.storeState = useStore(state => state, { store });
-            this.query = useStore(state => state.query, { store,
-                onUpdate: () => this.trigger('search', store.getQuery()),
-            });
-            this.dispatch = useDispatch(store);
-            this.getters = useGetters(store);
-        }
-
-        //--------------------------------------------------------------------------
-        // Handlers
-        //--------------------------------------------------------------------------
-
-        _onUpdateQuery() {
-            console.log('Query updated', ...arguments);
+        _getInitialState() {
+            return {
+                displayDropdowns: true,
+                openedMenu: null,
+            };
         }
     }
 
-    ControlPanel.components = { Pager, SearchBar, Sidebar, FilterMenu, TimeRangeMenu, GroupByMenu, FavoriteMenu };
+    ControlPanel.components = {
+        SearchBar,
+        Sidebar, Pager,
+        FilterMenu, GroupByMenu, TimeRangeMenu, FavoriteMenu,
+    };
     ControlPanel.defaultProps = {
         breadcrumbs: [],
+        searchMenuTypes: [],
         views: [],
         withBreadcrumbs: true,
         withSearchBar: true,
     };
+    // todo review default props and props
     ControlPanel.props = {
         action: Object,
         breadcrumbs: Array,
-        controlPanelStore: ControlPanelStore,
+        controlPanelModel: ControlPanelModel,
         fields: Object,
-        modelName: String,
+        pager: { validate: p => typeof p === 'object' || p === null, optional: 1 },
         searchMenuTypes: Array,
+        sidebar: { validate: s => typeof s === 'object' || s === null, optional: 1 },
         title: { type: String, optional: 1 },
-        viewType: String,
+        viewType: { type: String, optional: 1 },
         views: Array,
         withBreadcrumbs: Boolean,
         withSearchBar: Boolean,
@@ -148,3 +96,4 @@ odoo.define('web.ControlPanel', function (require) {
 
     return ControlPanel;
 });
+

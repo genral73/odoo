@@ -1,68 +1,47 @@
 odoo.define('web.SearchFacet', function (require) {
 "use strict";
 
-const Tooltip = require('web.Tooltip');
+const FACET_ICONS = {
+    filter: 'fa-filter',
+    groupBy: 'fa-bars',
+    favorite: 'fa-star',
+    timeRange: 'fa-calendar',
+};
 
-const { Component, hooks } = owl;
-const { useDispatch, useState } = hooks;
-
+const { Component } = owl;
 class SearchFacet extends Component {
-    constructor() {
-        super(...arguments);
-
-        this.state = useState({ displayTooltip: false });
-        this._isComposing = false;
-    }
 
     //--------------------------------------------------------------------------
     // Getters
     //--------------------------------------------------------------------------
 
-    get domains() {
-        switch (this.props.group.type) {
-            case 'filter':
-            case 'favorite':
-                // todo avoid duplicates
-                return this.props.filters.map(filter => filter.domain);
-            case 'groupBy':
-                return [this.props.filters[0].fieldName];
-        }
-    }
-
     /**
      * @returns {string}
      */
     get icon() {
-        switch (this.props.group.type) {
-            case 'filter':
-                return 'fa-filter';
-            case 'groupBy':
-                return 'fa-bars';
-            case 'favorite':
-                return 'fa-star';
-            case 'timeRange':
-                return 'fa-calendar';
-        }
+        return FACET_ICONS[this.props.group.type];
     }
 
     /**
      * @returns {string}
      */
     get separator() {
-        switch (this.props.group.type) {
-            case 'field':
-            case 'filter':
-                return this.env._t('or');
-            case 'groupBy':
-                return '>';
-        }
+        return this.props.group.type === 'groupBy' ? '>' : this.env._t("or");
     }
 
     /**
      * @returns {string[]}
      */
     get values() {
-        return Object.values(this.props.filters).map(this._getFilterDescription.bind(this));
+        const filters = Object.values(this.props.filters);
+        if (this.props.group.type === 'field') {
+            return filters.reduce(
+                (filters, filter) => [...filters, ...filter.autoCompleteValues.map(acv => acv.label)],
+                []
+            );
+        } else {
+            return filters.map(filter => this._getFilterDescription(filter));
+        }
     }
 
     //--------------------------------------------------------------------------
@@ -76,9 +55,6 @@ class SearchFacet extends Component {
      * @returns {string}
      */
     _getFilterDescription(filter) {
-        if (filter.type === 'field') {
-            return filter.autoCompleteValues.map(f => f.label).join(this.env._t(" or "));
-        }
         if (filter.type === 'timeRange') {
             let description = `${filter.fieldDescription}: ${filter.rangeDescription}`;
             if (filter.comparisonRangeDescription) {
@@ -139,9 +115,6 @@ class SearchFacet extends Component {
      * @param {KeyboardEvent} ev
      */
     _onKeydown(ev) {
-        if (this._isComposing) {
-            return;
-        }
         switch (ev.key) {
             case 'ArrowLeft':
                 this.trigger('navigation-move', { direction: 'left' });
@@ -156,9 +129,7 @@ class SearchFacet extends Component {
     }
 }
 
-SearchFacet.components = { Tooltip };
 SearchFacet.props = {
-    // todo specify formats
     filters: Object,
     group: Object,
     tooltipPosition: { type: String, optional: 1 },

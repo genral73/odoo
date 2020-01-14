@@ -1,16 +1,21 @@
 odoo.define('web.GraphController', function (require) {
 "use strict";
+
 /*---------------------------------------------------------
  * Odoo Graph view
  *---------------------------------------------------------*/
 
-var core = require('web.core');
-var AbstractController = require('web.AbstractController');
-var GroupByMenuMixin = require('web.GroupByMenuMixin');
+const AbstractController = require('web.AbstractController');
+const { ComponentWrapper } = require('web.OwlCompatibility');
+const DropdownMenu = require('web.DropdownMenu');
+const { DEFAULT_INTERVAL, INTERVAL_OPTIONS } = require('web.controlPanelParameters');
+const { qweb } = require('web.core');
 
-var qweb = core.qweb;
+var GraphController = AbstractController.extend({
+    custom_events: _.extend({}, AbstractController.prototype.custom_events, {
+        item_selected: '_onItemSelected',
+    }),
 
-var GraphController = AbstractController.extend(GroupByMenuMixin,{
     /**
      * @override
      * @param {Widget} parent
@@ -84,85 +89,37 @@ var GraphController = AbstractController.extend(GroupByMenuMixin,{
      * nothing
      */
     renderButtons: function ($node) {
+        var context = {
+            measures: _.sortBy(_.pairs(_.omit(this.measures, '__count__')), function (x) { return x[1].string.toLowerCase(); }),
+        };
+        this.$buttons = $(qweb.render('GraphView.buttons', context));
+        this.$measureList = this.$buttons.find('.o_graph_measures_list');
+        this.$buttons.find('button').tooltip();
+        this.$buttons.click(this._onButtonClick.bind(this));
         if ($node) {
-            var context = {
-                measures: _.sortBy(_.pairs(_.omit(this.measures, '__count__')), function (x) { return x[1].string.toLowerCase(); }),
-            };
-            this.$buttons = $(qweb.render('GraphView.buttons', context));
-            this.$measureList = this.$buttons.find('.o_graph_measures_list');
-            this.$buttons.find('button').tooltip();
-            this.$buttons.click(this._onButtonClick.bind(this));
-            this._updateButtons();
-            this.$buttons.appendTo($node);
             if (this.isEmbedded) {
-                const node = $node[0];
-                this._addGroupByMenu(node, this.groupableFields).then(function(){
-                    const groupByButton = node.querySelector('.o_dropdown_toggler_btn');
+                const self = this;
+                const activeGroupBys = this.model.get().groupBy;
+                this.groupByMenuWrapper = new ComponentWrapper(this, DropdownMenu, {
+                    title: "Group By",
+                    items: this._getGroupBys(activeGroupBys),
+                });
+                this.groupByMenuWrapper.mount(this.$buttons[0]).then(() => {
+                    const groupByButton = self.$buttons[0].querySelector('.o_dropdown_toggler_btn');
                     groupByButton.classList.remove('o_dropdown_toggler_btn', 'btn-secondary');
                     groupByButton.classList.add('btn-outline-secondary');
                 });
             }
-
+            this.$buttons.appendTo($node);
         }
     },
-
-    //--------------------------------------------------------------------------
-    // Private
-    //--------------------------------------------------------------------------
-
     /**
+     * Makes sure that the buttons in the control panel matches the current
+     * state (so, correct active buttons and stuff like that).
+     *
      * @override
-     * @private
-     * @param {string[]} groupBy
      */
-    _setGroupby: function (groupBy) {
-        this.update({ groupBy });
-    },
-    /**
-     * @todo remove this and directly calls update. Update should be overridden
-     * and modified to call _updateButtons
-     *
-     * @private
-     * @param {'pie'|'line'|'bar'} mode
-     */
-    _setMode: function (mode) {
-        this.update({mode: mode});
-        this._updateButtons();
-    },
-    /**
-     * @todo same as _setMode
-     *
-     * @param {string} measure should be a valid (and aggregatable) field name
-     */
-    _setMeasure: function (measure) {
-        var self = this;
-        this.update({measure: measure}).then(function () {
-            self._updateButtons();
-        });
-    },
-    /**
-     * @private
-     *
-     * @param {boolean} stacked
-     */
-    _toggleStackMode: function (stacked) {
-        this.update({stacked: stacked});
-        this._updateButtons();
-    },
-    /**
-     * override
-     *
-     * @private
-     */
-    _update: function () {
-        this._updateButtons();
-        return this._super.apply(this, arguments);
-    },
-    /**
-     * makes sure that the buttons in the control panel matches the current
-     * state (so, correct active buttons and stuff like that)
-     */
-    _updateButtons: function () {
+    updateButtons: function () {
         if (!this.$buttons) {
             return;
         }
@@ -183,6 +140,60 @@ var GraphController = AbstractController.extend(GroupByMenuMixin,{
     },
 
     //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * Returns the items used by the Group By menu in embedded mode.
+     *
+     * @private
+     * @param {string[]} activeGroupBys
+     * @returns {Object[]}
+     */
+    _getGroupBys(activeGroupBys) {
+        const normalizedGroupBys = this._normalizeActiveGroupBys(activeGroupBys);
+        const groupBys = Object.keys(this.groupableFields).map(fieldName => {
+            const field = this.groupableFields[fieldName];
+            const groupByActivity = normalizedGroupBys.filter(gb => gb.fieldName === fieldName);
+            const groupBy = {
+                id: fieldName,
+                isActive: Boolean(groupByActivity.length),
+                description: field.string,
+            };
+            if (['date', 'datetime'].includes(field.type)) {
+                groupBy.hasOptions = true;
+                const activeOptionIds = groupByActivity.map(gb => gb.interval);
+                groupBy.options = Object.values(INTERVAL_OPTIONS).map(o => {
+                    return Object.assign({}, o, { isActive: activeOptionIds.includes(o.optionId) });
+                });
+            }
+            return groupBy;
+        }).sort((gb1, gb2) => {
+            return gb1.description.localeCompare(gb2.description);
+        })
+        return groupBys;
+    },
+
+    /**
+     * This method puts the active groupBys in a convenient form.
+     *
+     * @private
+     * @param {string[]} activeGroupBys
+     * @returns {Object[]} normalizedGroupBys
+     */
+    _normalizeActiveGroupBys(activeGroupBys) {
+        return activeGroupBys.map(groupBy => {
+            const fieldName = groupBy.split(':')[0];
+            const field = this.groupableFields[fieldName];
+            const normalizedGroupBy = { fieldName };
+            if (['date', 'datetime'].includes(field.type)) {
+                normalizedGroupBy.interval = groupBy.split(':')[1] || DEFAULT_INTERVAL;
+            }
+            return normalizedGroupBy;
+        });
+    },
+
+    //--------------------------------------------------------------------------
     // Handlers
     //--------------------------------------------------------------------------
 
@@ -197,16 +208,50 @@ var GraphController = AbstractController.extend(GroupByMenuMixin,{
         var field;
         if ($target.hasClass('o_graph_button')) {
             if (_.contains(['bar','line', 'pie'], $target.data('mode'))) {
-                this._setMode($target.data('mode'));
+                this.update({ mode: $target.data('mode') });
             } else if ($target.data('mode') === 'stack') {
-                this._toggleStackMode(!$target.data('stacked'));
+                this.update({ stacked: !$target.data('stacked') });
             }
         } else if ($target.parents('.o_graph_measures_list').length) {
             ev.preventDefault();
-            ev.stopPropagation();
             field = $target.data('field');
-            this._setMeasure(field);
+            this.update({ measure: field });
         }
+    },
+
+    /**
+     * @private
+     * @param {OdooEvent} ev
+     */
+    _onItemSelected(ev) {
+        if (!this.isEmbedded) {
+            return;
+        }
+        const fieldName = ev.data.item.id;
+        const optionId = ev.data.option && ev.data.option.id;
+        const activeGroupBys = this.model.get().groupBy;
+        if (optionId) {
+            const normalizedGroupBys = this._normalizeActiveGroupBys(activeGroupBys);
+            const index = normalizedGroupBys.findIndex(ngb =>
+                ngb.fieldName === fieldName && ngb.interval === optionId);
+            if (index === -1) {
+                activeGroupBys.push(fieldName + ':' + optionId);
+            } else {
+                activeGroupBys.splice(index, 1);
+            }
+        } else {
+            const groupByFieldNames = activeGroupBys.map(gb => gb.split(':')[0]);
+            const indexOfGroupby = groupByFieldNames.indexOf(fieldName);
+            if (indexOfGroupby === -1) {
+                activeGroupBys.push(fieldName);
+            } else {
+                activeGroupBys.splice(indexOfGroupby, 1);
+            }
+        }
+        this.update({ groupBy: activeGroupBys });
+        this.groupByMenuWrapper.update({
+            items: this._getGroupBys(activeGroupBys),
+        });
     },
 });
 

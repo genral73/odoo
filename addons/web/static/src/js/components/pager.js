@@ -6,13 +6,16 @@ odoo.define('web.Pager', function (require) {
     const { Component, hooks } = owl;
     const { useState } = hooks;
 
+    /**
+     * Pager
+     *
+     * The pager goes from 1 to size (included).
+     * The current value is currentMinimum if limit === 1 or
+     * the interval [currentMinimum, currentMinimum + limit[ if limit > 1
+     */
     class Pager extends Component {
         /**
-         * The pager goes from 1 to size (included).
-         * The current value is currentMinimum if limit === 1
-         *          or the interval [currentMinimum, currentMinimum + limit[ if limit > 1
-         *
-         * @param {Object} [props] the parent widget
+         * @param {Object} [props]
          * @param {int} [props.size] the total number of elements
          * @param {int} [props.currentMinimum] the first element of the current_page
          * @param {int} [props.limit] the number of elements per page
@@ -21,19 +24,24 @@ odoo.define('web.Pager', function (require) {
          *   if only one page
          * @param {function} [props.validate] callback returning a Promise to
          *   validate changes
-         * @param {boolean} [props.withAccessKey]
+         * @param {boolean} [props.withAccessKey] can be disabled, for example,
+         *   for x2m widgets
          */
         constructor() {
             super(...arguments);
 
-            this.state = useState({ editing: false });
+            this.state = useState({
+                editing: false,
+            });
+            this.isUpdating = false;
 
-            const focusOnMounted = useFocusOnUpdate();
-            focusOnMounted();
+            this.focusOnUpdate = useFocusOnUpdate();
+            this.focusOnUpdate();
         }
 
         async willUpdateProps() {
             this.state.editing = false;
+            this.isUpdating = false;
         }
 
         //--------------------------------------------------------------------------
@@ -63,39 +71,19 @@ odoo.define('web.Pager', function (require) {
         }
 
         //--------------------------------------------------------------------------
-        // Public
-        //--------------------------------------------------------------------------
-
-        async updateProps(newProps = {}) {
-            if (!Object.keys(newProps).length) {
-                return;
-            }
-            await this.willUpdateProps(newProps);
-            Object.assign(this.props, newProps);
-            // deepCopy(this.props, newProps);
-            // Object.assign(this.props, newProps);
-            if (this.__owl__.isMounted) {
-                this.render(true);
-            }
-        }
-
-        //--------------------------------------------------------------------------
         // Private
         //--------------------------------------------------------------------------
 
         /**
          * Private function that updates the pager's state according to a pager action
          *
-         * @param {int} [direction] the action (previous or next) on the pager
+         * @param {number} [direction] the action (previous or next) on the pager
          */
         async _changeSelection(direction) {
             try {
                 await this.props.validate();
             } catch (err) {
-                if (err instanceof Error) {
-                    throw err;
-                }
-                return false;
+                return;
             }
             const { limit, size } = this.props;
 
@@ -110,37 +98,36 @@ odoo.define('web.Pager', function (require) {
             }
 
             // The re-rendering of the pager must be done before the trigger of
-            // event 'pager_changed' as the rendering may enable the pager
+            // event 'pager-changed' as the rendering may enable the pager
             // (and a common use is to disable the pager when this event is
             // triggered, and to re-enable it when the data have been reloaded)
-            this.trigger('pager_changed', { limit, currentMinimum });
+            this.trigger('pager-changed', { limit, currentMinimum });
         }
 
         /**
          * Private function that saves the state from the content of the input
-         *
-         * @param {string} value the jQuery element containing the new state
+         * @param {string} value the new raw pager value
          */
-        async _save(value) {
+        async _saveValue(value) {
             try {
                 await this.props.validate();
             } catch (err) {
-                if (err instanceof Error) {
-                    throw err;
-                }
-                return false;
+                return;
             }
-            const [min, max] = value.split(/[-\s,;]+/);
+            const [min, max] = value.trim().split(/\s*[\-\s,;]\s*/);
 
             let currentMinimum = Math.max(Math.min(parseInt(min, 10), this.props.size), 1);
             let maximum = max ? Math.max(Math.min(parseInt(max, 10), this.props.size), 1) : min;
 
-            if (isNaN(currentMinimum) || isNaN(maximum) || maximum < currentMinimum) {
-                return false;
+            if (
+                !isNaN(currentMinimum) &&
+                !isNaN(maximum) &&
+                currentMinimum <= maximum
+            ) {
+                const limit = Math.max(maximum - currentMinimum) + 1;
+                this.isUpdating = true;
+                this.trigger('pager-changed', { limit, currentMinimum });
             }
-            const limit = Math.max(maximum - currentMinimum) + 1;
-            this.trigger('pager_changed', { limit, currentMinimum });
-            return true;
         }
 
         //--------------------------------------------------------------------------
@@ -151,50 +138,55 @@ odoo.define('web.Pager', function (require) {
          * @private
          */
         async _onEdit() {
-            if (!this.state.editing && !this.props.disabled && this.props.editable) {
+            if (
+                !this.state.editing && // not already editing
+                this.props.editable && // editable
+                !this.isUpdating // not performing any 'pager-changed'
+            ) {
                 this.state.editing = true;
+                this.focusOnUpdate();
             }
         }
 
         /**
          * @private
+         * @param {InputEvent} ev
          */
         _onValueChange(ev) {
-            const canBeSaved = this._save(ev.currentTarget.value);
-            if (!canBeSaved) {
+            this._saveValue(ev.currentTarget.value);
+            if (!this.isUpdating) {
                 ev.preventDefault();
             }
         }
 
         /**
          * @private
+         * @param {KeyboardEvent} ev
          */
         _onValueKeydown(ev) {
-            switch (ev.key.toUpperCase()) {
-                case 'ESCAPE':
+            switch (ev.key) {
+                case 'Enter':
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    this._saveValue(ev.currentTarget.value);
+                    break;
+                case 'Escape':
                     ev.preventDefault();
                     ev.stopPropagation();
                     this.state.editing = false;
-                    break;
-                case 'ENTER':
-                    ev.preventDefault();
-                    ev.stopPropagation();
-                    this._save(ev.currentTarget.value);
                     break;
             }
         }
     }
 
     Pager.defaultProps = {
-        disabled: false,
         editable: true,
-        hiddenInSinglePage: false, // displayed even if there is a single page
-        validate: () => Promise.resolve(),
-        withAccessKey: true,  // can be disabled, for example, for x2m widgets
+        hiddenInSinglePage: false,
+        validate: async () => { },
+        withAccessKey: true,
     };
     Pager.props = {
         currentMinimum: { type: Number, optional: 1 },
-        disabled: Boolean,
         editable: Boolean,
         hiddenInSinglePage: Boolean,
         limit: { validate: l => !isNaN(l), optional: 1 },
@@ -202,7 +194,7 @@ odoo.define('web.Pager', function (require) {
         size: { type: Number, optional: 1 },
         validate: Function,
         withAccessKey: Boolean,
-    }
+    };
     Pager.template = 'Pager';
 
     return Pager;

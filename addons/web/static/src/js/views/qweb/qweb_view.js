@@ -98,9 +98,14 @@ var Controller = AbstractController.extend({
         this._$buttons = $('<nav>').on('click', '[type="action"]', this.proxy('_onActionClicked'));
     },
 
+    /**
+     * @override
+     */
     renderButtons: function ($node) {
         this._super($node);
-        $node.append(this._$buttons);
+        if ($node) {
+            $node.append(this._$buttons);
+        }
     },
     _update: function () {
         var self = this;

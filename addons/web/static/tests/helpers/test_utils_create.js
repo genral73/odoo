@@ -13,8 +13,7 @@ odoo.define('web.test_utils_create', function (require) {
     const ActionManager = require('web.ActionManager');
     const concurrency = require('web.concurrency');
     const config = require('web.config');
-    const ControlPanel = require('web.ControlPanel');
-    const ControlPanelStore = require('web.ControlPanelStore');
+    const customHooks = require('web.custom_hooks');
     const DebugManager = require('web.DebugManager.Backend');
     const dom = require('web.dom');
     const testUtilsMock = require('web.test_utils_mock');
@@ -51,12 +50,15 @@ odoo.define('web.test_utils_create', function (require) {
                 return this._super(...arguments);
             },
         });
-        testUtilsMock.addMockEnvironment(widget, Object.assign({ debounce: false }, params));
+        const mockServer = testUtilsMock.addMockEnvironment(widget, Object.assign({ debounce: false }, params));
         await widget.prependTo(target);
         widget.el.classList.add('o_web_client');
         if (config.device.isMobile) {
             widget.el.classList.add('o_touch_device');
         }
+
+        params.server = mockServer;
+        owl.Component.env = testUtilsMock.getMockedOwlEnv(params);
 
         const userContext = params.context && params.context.user_context || {};
         const actionManager = new ActionManager(widget, userContext);
@@ -107,98 +109,60 @@ odoo.define('web.test_utils_create', function (require) {
     }
 
     /**
-     * Create a controlPanel from various parameters.
-     *
-     * It returns an instance of the parent of the ControlPanel
-     *
-     * @param {Object} [params={}]
-     * @param {Object} [params.action={}]
-     * @param {Object} [params.context={}]
-     * @param {string} [params.domain=[]]
-     * @param {integer} [params.fieldDebounce=0] the debounce value to use for the
-     *   duration of the test.
-     * @param {Object} params.intercepts an object with event names as key, and
-     *   callback as value.  Each key,value will be used to intercept the event.
-     *   Note that this is particularly useful if you want to intercept events going
-     *   up in the init process of the view, because there are no other way to do it
-     *   after this method returns
-     * @param {string} [params.modelName]
-     * @param {string[]} [params.searchMenuTypes = ['filter', 'groupBy', 'favorite']]
-     *   determines search menus displayed.
-     * @param {string} [params.template] the QWeb template to render
-     * @param {Object} [params.viewInfo={arch: '<controlpanel/>', fields: {}}]
-         a controlpanel (or search) fieldsview
-     * @param {string} [params.viewInfo.arch]
-     * @param {boolean} [params.context.no_breadcrumbs=false] if set to true,
-     *   breadcrumbs won't be rendered
-     * @param {boolean} [params.withBreadcrumbs=true] if set to false,
-     *   breadcrumbs won't be rendered
-     * @param {boolean} [params.withSearchBar=true] if set to false, no default
-     *   search bar will be rendered
-     *
-     * @returns {ControlPanel} the instance of the control panel
+     * Create a simple component environment.
+     * @param {class} constructor
+     * @param {Object} [params = {}]
+     * @param {string} [params.arch]
+     * @param {boolean} [params.debug]
+     * @param {Object} [params.env]
+     * @param {Object} [params.handlers]
+     * @param {Object} [params.props]
+     * @param {Object} [params.state]
+     * @returns {Component} instance of `constructor`, or of `Parent` if the
+     *      given `arch` instantiates multiple components.
      */
-    async function setUpControlPanelEnvironment(params = {}) {
-        const target = prepareTarget(params.debug);
-
-        const widget = new Widget();
-        // add mock environment: mock server, session, fieldviewget, ...
-        const mockServer = testUtilsMock.addMockEnvironment(widget, params);
-        if (!params.viewInfo) {
-            try {
-                params.viewInfo = testUtilsMock.fieldsViewGet(mockServer, params);
-            } catch (err) {
-                // if an error occurs we keep params.viewInfo undefined.
-                // It will be set to { arch: '<ControlPanel/>', fields: {} } in
-                // ControlPanel init function.
-            }
+    async function createComponent(constructor, params = {}) {
+        if (!constructor) {
+            throw new Error(`Missing argument "constructor".`);
         }
-
-        const controlPanelStoreProps = {
-            actionDomain: "[]",
-            actionContext: params.context || {},
-            env: ControlPanel.env,
-            modelName: params.model,
-            viewInfo: params.viewInfo,
-        };
-        const controlPanelStore = new ControlPanelStore(controlPanelStoreProps);
-
-        class WebClient extends owl.Component {
+        if (!(constructor.prototype instanceof owl.Component)) {
+            throw new Error(`Argument "constructor" must be an Owl Component.`);
+        }
+        const env = Object.assign(testUtilsMock.getMockedOwlEnv(params), params.env);
+        owl.Component.env = env;
+        class Parent extends owl.Component {
             constructor() {
                 super(...arguments);
-                this.controlPanelProps = Object.assign({
-                    controlPanelStore: controlPanelStore,
-                    fields: params.viewInfo.fields,
-                    searchMenuTypes: params.searchMenuTypes,
-                    viewInfo: params.viewInfo,
-                }, params.viewOptions);
-
-                this.controlPanel = owl.hooks.useRef('control-panel');
-
-                for (const intercept in params.intercepts || {}) {
-                    controlPanelStore.on(intercept, this, params.intercepts[intercept]);
+                this.Component = constructor;
+                this.state = owl.useState(params.props || {});
+                for (const handler in params.handlers || {}) {
+                    customHooks.useListener(handler, params.handlers[handler]);
                 }
             }
         }
-
-        // reproduce the DOM environment of a view control panel
-        WebClient.components = { ControlPanel };
-        WebClient.template = owl.tags.xml`
-            <div class="o_web_client">
-                <div class="o_action_manger">
-                    <div class="o_action_manger">
-                        <ControlPanel
-                            t-ref="control-panel"
-                            t-props="controlPanelProps"
-                        />
-                    </div>
-                </div>
-            </div>`;
-
-        const webClient = new WebClient();
-        await webClient.mount(target, { position: 'first-child' });
-
-        return webClient;
+        let arch;
+        if (params.arch) {
+            arch = params.arch;
+            Parent.components = { [constructor.name]: constructor };
+        } else {
+            arch = '<t t-component="Component" t-props="state"/>';
+        }
+        Parent.template = owl.tags.xml`${arch}`;
+        const parent = new Parent();
+        await parent.mount(prepareTarget(params.debug), { position: 'first-child' });
+        const children = Object.values(parent.__owl__.children);
+        if (children.length === 1) {
+            const child = children[0];
+            const originalDestroy = child.destroy;
+            Object.assign(child.state, params.state);
+            child.destroy = function () {
+                child.destroy = originalDestroy;
+                parent.destroy();
+            };
+            return child;
+        } else {
+            return parent;
+        }
     }
 
     /**
@@ -290,6 +254,7 @@ odoo.define('web.test_utils_create', function (require) {
      * @param {any[]} [params.domain] the initial domain for the view
      * @param {Object} [params.context] the initial context for the view
      * @param {string[]} [params.groupBy] the initial groupBy for the view
+     * @param {Object[]} [params.favoriteFilters] the favorite filters one would like to have at initialization
      * @param {integer} [params.fieldDebounce=0] the debounce value to use for the
      *   duration of the test.
      * @param {AbstractView} params.View the class that will be instantiated
@@ -304,6 +269,7 @@ odoo.define('web.test_utils_create', function (require) {
      * @returns {AbstractController} the instance of the view
      */
     async function createView(params) {
+
         const target = prepareTarget(params.debug);
         const widget = new Widget();
         // reproduce the DOM environment of views
@@ -320,10 +286,21 @@ odoo.define('web.test_utils_create', function (require) {
         const mockServer = testUtilsMock.addMockEnvironment(widget, params);
         const viewInfo = testUtilsMock.fieldsViewGet(mockServer, params);
 
+        params.server = mockServer;
+        const env = Object.assign(testUtilsMock.getMockedOwlEnv(params));
+        owl.Component.env = env;
+
         // create the view
         const View = params.View;
+        const modelName = params.model || 'foo';
+        const defaultAction = {
+            res_model: modelName,
+            context: {},
+            viewType: viewInfo.type,
+        };
         const viewOptions = Object.assign({
-            modelName: params.model || 'foo',
+            action: Object.assign(defaultAction, params.action),
+            modelName: modelName,
             ids: 'res_id' in params ? [params.res_id] : undefined,
             currentId: 'res_id' in params ? params.res_id : undefined,
             domain: params.domain || [],
@@ -346,16 +323,14 @@ odoo.define('web.test_utils_create', function (require) {
         let view;
         if (viewInfo.type === 'controlpanel' || viewInfo.type === 'search') {
             // TODO: probably needs to create an helper just for that
-            view = new params.View({
-                viewInfo: viewInfo,
-                modelName: params.model || 'foo',
-            });
+            view = new params.View({ viewInfo, modelName });
         } else {
-            viewOptions.controlPanelFieldsView = testUtilsMock.fieldsViewGet(mockServer, {
+            viewOptions.controlPanelFieldsView = Object.assign(testUtilsMock.fieldsViewGet(mockServer, {
                 arch: params.archs && params.archs[params.model + ',false,search'] || '<search/>',
                 fields: viewInfo.fields,
                 model: params.model,
-            });
+            }), { favoriteFilters: params.favoriteFilters });
+
             view = new params.View(viewInfo, viewOptions);
         }
 
@@ -413,7 +388,7 @@ odoo.define('web.test_utils_create', function (require) {
     return {
         createActionManager,
         createCalendarView,
-        setUpControlPanelEnvironment,
+        createComponent,
         createDebugManager,
         createModel,
         createParent,

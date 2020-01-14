@@ -9,11 +9,12 @@ var mailUtils = require('mail.utils');
 
 var AbstractStorageService = require('web.AbstractStorageService');
 var Class = require('web.Class');
-var ControlPanelView = require('web.ControlPanelView');
 var RamStorage = require('web.RamStorage');
+const makeTestEnvironment = require('web.test_env');
 var testUtils = require('web.test_utils');
 var Widget = require('web.Widget');
 
+const { prepareTarget, nextTick } = testUtils;
 /**
  * Test Utils
  *
@@ -37,8 +38,11 @@ async function createDiscuss(params) {
         'mail.message,false,search': '<search/>',
     };
     testUtils.mock.addMockEnvironment(parent, params);
+
+    const env = params.env || {};
+    owl.Component.env = makeTestEnvironment(env);
+
     var discuss = new Discuss(parent, params);
-    var selector = params.debug ? 'body' : '#qunit-fixture';
 
     // override 'destroy' of discuss so that it calls 'destroy' on the parent
     // instead, which is the parent of discuss and the mockServer.
@@ -49,7 +53,10 @@ async function createDiscuss(params) {
         parent.destroy();
     };
 
-    return discuss.appendTo($(selector)).then(function () {
+    return discuss.appendTo(prepareTarget(params.debug)).then(async function () {
+        // discuss update the controlPanel after having mounted it in start
+        // todo: (dam) discuss with AKU
+        await nextTick();
         return discuss;
     });
 }

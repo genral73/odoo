@@ -1,20 +1,27 @@
+odoo.define('web.SidebarRegistry', function (require) {
+    "use strict";
+
+    const Registry = require('web.Registry');
+
+    return new Registry();
+});
+
 odoo.define('web.Sidebar', function (require) {
     "use strict";
 
     const Context = require('web.Context');
     const DropdownMenu = require('web.DropdownMenu');
     const pyUtils = require('web.py_utils');
+    const SidebarRegistry = require('web.SidebarRegistry');
+    const { useListener } = require('web.custom_hooks');
 
-    const { Component, hooks } = owl;
-    const { useStore } = hooks;
+    const { Component } = owl;
 
     class Sidebar extends Component {
+
         constructor() {
             super(...arguments);
-
-            this.sidebarProps = useStore(state => state.sidebar, {
-                store: this.env.controlPanelStore,
-            });
+            useListener('item-selected', this._onItemSelected);
         }
 
         mounted() {
@@ -33,34 +40,35 @@ odoo.define('web.Sidebar', function (require) {
          * @returns {Object[]}
          */
         get actionItems() {
-            const actionActions = this.sidebarProps.items.action || [];
-            const relateActions = this.sidebarProps.items.relate || [];
-            const callbackActions = this.sidebarProps.items.other || [];
-
-            const formattedActions = [...actionActions, ...relateActions].map(action => {
-                return {
-                    action: action,
-                    description: action.name,
-                };
-            });
-            const actionItems = callbackActions.concat(formattedActions);
-            console.log({ actionItems });
-            return actionItems;
+            // Callback based actions
+            const callbackActions = (this.props.items.other || []).map(
+                action => Object.assign({ key: `action-${action.description}` }, action)
+            );
+            // Action based actions
+            const actionActions = this.props.items.action || [];
+            const relateActions = this.props.items.relate || [];
+            const formattedActions = [...actionActions, ...relateActions].map(
+                action => ({ action, description: action.name, key: action.id })
+            );
+            // Sidebar action registry components
+            const registryActions = SidebarRegistry.values().map(
+                ({ Component, getProps }, index) => ({
+                    key: `registry-action-${index}`,
+                    Component,
+                    props: getProps.call(this),
+                })
+            );
+            return [...callbackActions, ...formattedActions, ...registryActions];
         }
 
         /**
          * @returns {Object[]}
          */
         get printItems() {
-            const printActions = this.sidebarProps.items.print || [];
-
-            const printItems = printActions.map(action => {
-                return {
-                    action: action,
-                    description: action.name,
-                };
-            });
-            console.log({ printItems });
+            const printActions = this.props.items.print || [];
+            const printItems = printActions.map(
+                action => ({ action, description: action.name })
+            );
             return printItems;
         }
 
@@ -90,16 +98,16 @@ odoo.define('web.Sidebar', function (require) {
          */
         async _executeAction(action) {
             const activeIdsContext = {
-                active_id: this.sidebarProps.activeIds[0],
-                active_ids: this.sidebarProps.activeIds,
-                select_all: !!this.sidebarProps.selectAll,
-                active_model: this.props.modelName,
+                active_id: this.props.activeIds[0],
+                active_ids: this.props.activeIds,
+                active_model: this.env.action.res_model,
+                select_all: this.props.selectAll,
             };
-            if (this.sidebarProps.domain) {
-                activeIdsContext.active_domain = this.sidebarProps.domain;
+            if (this.props.domain) {
+                activeIdsContext.active_domain = this.props.domain;
             }
 
-            const context = pyUtils.eval('context', new Context(this.sidebarProps.context, activeIdsContext));
+            const context = pyUtils.eval('context', new Context(this.props.context, activeIdsContext));
             const result = await this.rpc({
                 route: '/web/action/load',
                 params: {
@@ -111,7 +119,12 @@ odoo.define('web.Sidebar', function (require) {
                 .set_eval_context(context);
             result.flags = result.flags || {};
             result.flags.new_window = true;
-            this.trigger('do_action', { action: result });
+            this.trigger('do_action', {
+                action: result,
+                options: {
+                    on_close: () => this.trigger('reload'),
+                },
+            });
         }
 
         /**
@@ -119,6 +132,7 @@ odoo.define('web.Sidebar', function (require) {
          * @param {OwlEvent} ev
          */
         _onItemSelected(ev) {
+            ev.stopPropagation();
             const { item } = ev.detail;
             if (item.callback) {
                 item.callback([item]);
@@ -133,7 +147,19 @@ odoo.define('web.Sidebar', function (require) {
 
     Sidebar.components = { DropdownMenu };
     Sidebar.props = {
-        modelName: String,
+        activeIds: { type: Array, element: Number },
+        context: Object,
+        domain: { type: Array, optional: 1 },
+        items: {
+            type: Object,
+            shape: {
+                action: { type: Array, optional: 1 },
+                print: { type: Array, optional: 1 },
+                other: { type: Array, optional: 1 },
+            },
+        },
+        selectAll: { type: Boolean, optional: 1 },
+        viewType: String,
     };
     Sidebar.template = 'Sidebar';
 

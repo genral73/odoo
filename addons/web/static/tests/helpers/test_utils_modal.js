@@ -10,8 +10,8 @@ odoo.define('web.test_utils_modal', function (require) {
  * testUtils file.
  */
 
-var core = require('web.core');
-var concurrency = require('web.concurrency');
+const core = require('web.core');
+const domUtils = require('web.test_utils_dom');
 
 /**
  * Click on a button in the footer of a modal (which contains a given string).
@@ -20,13 +20,12 @@ var concurrency = require('web.concurrency');
  * @param {string} text (in english: this method will perform the translation)
  */
 function clickButton(text) {
-    var selector = `.modal-footer button:contains(${core._t(text)})`;
-    var $button = $(selector);
+    const selector = `.modal-footer button:contains(${core._t(text)})`;
+    const $button = $(selector);
     if ($button.length !== 1) {
         throw new Error(`Found ${$button.length} button(s) containing '${text}'`);
     }
-    $button.click();
-    return concurrency.delay(0);
+    return domUtils.click($button);
 }
 
 return {

@@ -26,13 +26,12 @@ odoo.define('web.AbstractView', function (require) {
 var AbstractModel = require('web.AbstractModel');
 var AbstractRenderer = require('web.AbstractRenderer');
 var AbstractController = require('web.AbstractController');
-const ControlPanel = require('web.ControlPanel');
-const ControlPanelStore = require('web.ControlPanelStore');
+const ControlPanelModel = require('web.ControlPanelModel');
 var mvc = require('web.mvc');
 var SearchPanel = require('web.SearchPanel');
 var viewUtils = require('web.viewUtils');
 
-const { Store, Component } = owl;
+const { Component } = owl;
 
 var Factory = mvc.Factory;
 
@@ -62,6 +61,7 @@ var AbstractView = Factory.extend({
         Renderer: AbstractRenderer,
         Controller: AbstractController,
         SearchPanel: SearchPanel,
+        ControlPanelModel: ControlPanelModel,
     }),
 
     /**
@@ -148,6 +148,8 @@ var AbstractView = Factory.extend({
             isEmbedded: isEmbedded,
             modelName: params.modelName,
             viewType: this.viewType,
+            withControlPanel: this.withControlPanel,
+            withSearchPanel: this.withSearchPanel,
         };
 
         var controllerState = params.controllerState || {};
@@ -176,51 +178,56 @@ var AbstractView = Factory.extend({
             this._updateMVCParams(params.searchQuery);
         }
 
-        const controlPanelStoreEnv = Object.assign(Object.create(Component.env), {
-            action: action || {},
-            context: this.loadParams.context || {},
-            domain: this.loadParams.domain || [],
-            modelName: params.modelName,
-        });
-        // TODO: Check useless params
-        this.controlPanelStoreConfig = {
-            env: controlPanelStoreEnv,
+        if (this.withControlPanel) {
+            // todo: (dam/jum) Check useless params
+            this.controlPanelModelConfig = {
+                env: Component.env,
 
-            actionId: action.id,
-            actionContext: Object.assign({}, this.loadParams.context || {}),
-            actionDomain: this.loadParams.domain || [],
-            modelName: params.modelName,
+                actionId: action.id,
+                actionContext: Object.assign({}, this.loadParams.context || {}),
+                actionDomain: this.loadParams.domain || [],
+                modelName: params.modelName,
 
-            // control initialization
-            activateDefaultFavorite: params.activateDefaultFavorite,
-            dynamicFilters: params.dynamicFilters,
-            viewInfo: params.controlPanelFieldsView,
-            withSearchBar: params.withSearchBar,
+                // control initialization
+                activateDefaultFavorite: params.activateDefaultFavorite,
+                dynamicFilters: params.dynamicFilters,
+                viewInfo: params.controlPanelFieldsView,
+                withSearchBar: params.withSearchBar,
 
-            // used to avoid timeRanges in query
-            searchMenuTypes: params.searchMenuTypes,
+                // used to avoid timeRanges in query
+                searchMenuTypes: params.searchMenuTypes,
 
-            // avoid work to initialize
-            importedState: controllerState.cpState,
-        };
-        this.controlPanelProps = {
-            // TODO: remove action from props and access it from somewhere else...
-            action: action, // needed by favorite menu subcomponents
-            breadcrumbs: params.breadcrumbs,
-            fields: this.fields,
-            modelName: params.modelName,
-            searchMenuTypes: params.searchMenuTypes,
-            withBreadcrumbs: params.withBreadcrumbs,
-            views: action.views && action.views.filter(v => v.multiRecord === this.multi_record),
-            withSearchBar: params.withSearchBar,
-            viewType: this.viewType,
-        };
-        this.searchPanelParams = {
-            defaultNoFilter: params.searchPanelDefaultNoFilter,
-            fields: this.fields,
-            model: this.loadParams.modelName,
-            state: controllerState.spState,
-        };
+                // avoid work to initialize
+                importedState: controllerState.cpState,
+            };
+
+            const controlPanelModel = this._createControlPanelModel();
+
+            const controlPanelProps = {
+                controlPanelModel,
+                // todo: (dam/jum) remove action from props and access it from somewhere else...
+                action, // needed by favorite menu subcomponents
+                breadcrumbs: params.breadcrumbs,
+                fields: this.fields,
+                searchMenuTypes: params.searchMenuTypes,
+                withBreadcrumbs: params.withBreadcrumbs,
+                views: action.views && action.views.filter(v => v.multiRecord === this.multi_record),
+                withSearchBar: params.withSearchBar,
+                viewType: this.viewType,
+            };
+            this.controllerParams.controlPanelModel = controlPanelModel;
+            this.controllerParams.controlPanelProps = controlPanelProps;
+        }
+
+        if (this.withSearchPanel) {
+            this.searchPanelParams = {
+                arch: (params.controlPanelFieldsView || {}).arch,
+                defaultNoFilter: params.searchPanelDefaultNoFilter,
+                fields: this.fields,
+                model: this.loadParams.modelName,
+                state: controllerState.spState,
+            };
+        }
     },
 
     //--------------------------------------------------------------------------
@@ -231,37 +238,38 @@ var AbstractView = Factory.extend({
      * @override
      */
     getController: async function (parent) {
-        var self = this;
-        var cpDef = this.withControlPanel && this._createControlPanel(parent);
-        var spDef;
+        const _super = this._super.bind(this);
+        if (this.withControlPanel) {
+            // something seems wrong with updateMVCParams now. It could be done before (in init)
+            // but the grid view override groupedBy after call to super.
+            // Could we not do like in list view?
+            // todo: (dam) check this
+            const query = this.controllerParams.controlPanelModel.getQuery();
+            this._updateMVCParams(query);
+        }
+        let searchPanel = false;
         if (this.withSearchPanel) {
-            var spProto = this.config.SearchPanel.prototype;
-            var viewInfo = this.controlPanelProps.viewInfo;
-            var searchPanelParams = spProto.computeSearchPanelParams(viewInfo, this.viewType);
+            const spProto = this.config.SearchPanel.prototype;
+            const { arch, fields } = this.searchPanelParams;
+            const searchPanelParams = spProto.computeSearchPanelParams(arch, fields, this.viewType);
             if (searchPanelParams.sections) {
                 this.searchPanelParams.sections = searchPanelParams.sections;
                 this.rendererParams.withSearchPanel = true;
-                spDef = Promise.resolve(cpDef).then(this._createSearchPanel.bind(this, parent, searchPanelParams));
+                searchPanel = await this._createSearchPanel(parent, searchPanelParams);
             }
         }
-
-        var _super = this._super.bind(this);
-        return Promise.all([cpDef, spDef]).then(function ([controlPanel, searchPanel]) {
-            // get the parent of the model if it already exists, as _super will
-            // set the new controller as parent, which we don't want
-            var modelParent = self.model && self.model.getParent();
-            var prom = _super(parent);
-            prom.then(function (controller) {
-                if (searchPanel) {
-                    searchPanel.setParent(controller);
-                }
-                if (modelParent) {
-                    // if we already add a model, restore its parent
-                    self.model.setParent(modelParent);
-                }
-            });
-            return prom;
-        });
+        // get the parent of the model if it already exists, as _super will
+        // set the new controller as parent, which we don't want
+        const modelParent = this.model && this.model.getParent();
+        const controller = await _super(...arguments);
+        if (searchPanel) {
+            searchPanel.setParent(controller);
+        }
+        if (modelParent) {
+            // if we already add a model, restore its parent
+            this.model.setParent(modelParent);
+        }
+        return controller;
     },
     /**
      * Ensures that only one instance of AbstractModel is created
@@ -289,38 +297,13 @@ var AbstractView = Factory.extend({
     //--------------------------------------------------------------------------
 
     /**
-     * Instantiates and starts a ControlPanel.
-     *
-     * @private
-     * @param {Widget} parent
-     * @param {Function} [alterQuery] a function meant to alter the fetched query.
-     * @returns {Promise<ControlPanel>} resolved when the controlPanel
-     *   is ready
-     */
-    _createControlPanel: async function (parent, alterQuery) {
-        const controlPanelStore = await this._createControlPanelStore();
-
-        this.controlPanelProps.controlPanelStore = controlPanelStore;
-        const controlPanel = new ControlPanel(null, this.controlPanelProps);
-        await controlPanel.mount(document.createDocumentFragment());
-
-        this.controllerParams.controlPanelStore = controlPanelStore;
-        this.controllerParams.controlPanel = controlPanel;
-        const query = controlPanelStore.getQuery();
-        if (alterQuery) {
-            alterQuery(query);
-        }
-        this._updateMVCParams(query);
-
-        return controlPanel;
-    },
-    /**
      * Create the control panel store
      *
      * @private
      */
-    _createControlPanelStore: async function () {
-        return new ControlPanelStore(this.controlPanelStoreConfig);
+    _createControlPanelModel: function () {
+        const controlPanelModel = new this.config.ControlPanelModel(this.controlPanelModelConfig);
+        return controlPanelModel;
     },
     /**
      * @private
@@ -422,7 +405,9 @@ var AbstractView = Factory.extend({
             domain: searchQuery.domain,
             groupedBy: searchQuery.groupBy,
         });
-        this.loadParams.orderedBy = searchQuery.orderedBy ? searchQuery.orderedBy : this.loadParams.orderedBy;
+        this.loadParams.orderedBy = Array.isArray(searchQuery.orderedBy) && searchQuery.orderedBy.length ?
+                                        searchQuery.orderedBy :
+                                        this.loadParams.orderedBy;
         if (searchQuery.timeRanges) {
             this.loadParams.timeRanges = searchQuery.timeRanges;
             this.rendererParams.timeRanges = searchQuery.timeRanges;

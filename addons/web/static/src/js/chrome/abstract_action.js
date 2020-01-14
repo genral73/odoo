@@ -10,10 +10,12 @@ odoo.define('web.AbstractAction', function (require) {
 
 var ActionMixin = require('web.ActionMixin');
 var ControlPanel = require('web.ControlPanel');
-var ControlPanelStore = require('web.ControlPanelStore');
+var ControlPanelModel = require('web.ControlPanelModel');
 var Widget = require('web.Widget');
+const { WidgetAdapterMixin } = require('web.OwlCompatibility');
+const ControlPanelWrapper = require('web.ControlPanelWrapper');
 
-var AbstractAction = Widget.extend(ActionMixin, {
+var AbstractAction = Widget.extend(ActionMixin, WidgetAdapterMixin, {
     config: {
         ControlPanel: ControlPanel,
     },
@@ -34,7 +36,7 @@ var AbstractAction = Widget.extend(ActionMixin, {
      * For example, the Discuss application adds the following line in its
      * constructor::
      *
-     *      this.controlPanelParams.modelName = 'mail.message';
+     *      this.controlPanelModelConfig.modelName = 'mail.message';
      *
      * @type boolean
      */
@@ -75,24 +77,26 @@ var AbstractAction = Widget.extend(ActionMixin, {
         this._super(parent);
         this._title = action.display_name || action.name;
 
-        this.controlPanelStoreConfig = {
-            actionId: action.id,
-            actionContext: action.context,
-            env: owl.Component.env,
-            withSearchBar: this.withSearchBar,
+        if (this.hasControlPanel) {
+            this.controlPanelModelConfig = {
+                actionId: action.id,
+                actionContext: action.context || {},
+                actionDomain: action.domain || [],
+                env: owl.Component.env,
+                withSearchBar: this.withSearchBar,
+            };
+
+            this.viewId = action.search_view_id && action.search_view_id[0];
+
+            this.controlPanelProps = {
+                // todo: (dam) we should not pass action?
+                action: action,
+                fields: {},
+                breadcrumbs: options && options.breadcrumbs,
+                withSearchBar: this.withSearchBar,
+                searchMenuTypes: this.searchMenuTypes,
+            };
         }
-
-        this.controlPanelParams = {
-            // TODO we should not pass action
-            action: action,
-
-            actionId: action.id,
-            context: action.context,
-            breadcrumbs: options && options.breadcrumbs,
-            viewId: action.search_view_id && action.search_view_id[0],
-            withSearchBar: this.withSearchBar,
-            searchMenuTypes: this.searchMenuTypes,
-        };
     },
     /**
      * The willStart method is actually quite complicated if the client action
@@ -103,26 +107,19 @@ var AbstractAction = Widget.extend(ActionMixin, {
     willStart: async function () {
         const proms = [this._super(...arguments)];
         if (this.hasControlPanel) {
-            const params = this.controlPanelParams;
             if (this.loadControlPanel) {
-                const { context, modelName, viewId, searchMenuTypes } = params;
+                const { context, searchMenuTypes } = this.controlPanelProps;
+                const { modelName } = this.controlPanelModelConfig;
                 const options = { load_filters: searchMenuTypes.includes('favorite') };
-                const loadFieldViewPromise = this.loadFieldView(modelName, context || {}, viewId, 'search', options)
-                    .then(fieldsView =>
-                        params.viewInfo = {
-                            arch: fieldsView.arch,
-                            fields: fieldsView.fields,
-                            favoriteFilters: fieldsView.favoriteFilters || [],
-                        });
-                proms.push(loadFieldViewPromise);
+                const args = [modelName, context || {}, this.viewId, 'search', options];
+                const loadFieldViewPromise = this.loadFieldView(...args);
+                const {arch, fields, favoriteFilters } = await loadFieldViewPromise;
+                this.controlPanelModelConfig.viewInfo = {arch, fields, favoriteFilters };
+                this.controlPanelProps.fields = fields;
             }
-            await Promise.all(proms);
-            this.controlPanelStoreConfig.viewInfo = params.viewInfo;
-            this._controlPanelStore = new ControlPanelStore(this.controlPanelStoreConfig);
-            this.dispatch = owl.hooks.useDispatch(this._controlPanelStore);
-            params.controlPanelStore = this._controlPanelStore;
-            this._controlPanel = new this.config.ControlPanel(null, params);
-            await this._controlPanel.mount(document.createDocumentFragment());
+            this._controlPanelModel = new ControlPanelModel(this.controlPanelModelConfig);
+            this.controlPanelProps.controlPanelModel = this._controlPanelModel;
+            proms.push(this._controlPanelModel.isReady);
         }
         return Promise.all(proms);
     },
@@ -131,21 +128,51 @@ var AbstractAction = Widget.extend(ActionMixin, {
      */
     start: async function () {
         await this._super(...arguments);
-        if (this._controlPanel) {
-            await this._controlPanel.mount(this.el, { position: 'first-child' });
-        }
-        if (this._controlPanelStore) {
-            this._controlPanelStore.on('get_controller_query_params', this, this._onGetOwnedQueryParams);
+        if (this.hasControlPanel) {
+            this._controlPanelModel.on('search', this, this._onSearch);
+            this._controlPanelModel.on('get-controller-query-params', this, this._onGetOwnedQueryParams);
+
+            if ('title' in this.controlPanelProps) {
+                this._setTitle(this.controlPanelProps.title);
+            }
+            this._controlPanelWrapper = new ControlPanelWrapper(this, ControlPanel, this.controlPanelProps);
+            await this._controlPanelWrapper.mount(this.el, { position: 'first-child' });
+
         }
     },
+    /**
+     * @override
+     */
+    destroy: function() {
+        this._super.apply(this, arguments);
+        WidgetAdapterMixin.destroy.call(this);
+    },
+    /**
+     * @override
+     */
     on_attach_callback: function () {
-        if (this._controlPanel) {
-            this._controlPanel.mount(this.el, { position: 'first-child' });
-        }
-        if (this._controlPanelStore) {
-            this._controlPanelStore.on('get_controller_query_params', this, this._onGetOwnedQueryParams);
+        WidgetAdapterMixin.on_attach_callback.call(this);
+        if (this.withControlPanel) {
+            this._controlPanelModel.on('search', this, this._onSearch);
+            this._controlPanelModel.on('get-controller-query-params', this, this._onGetOwnedQueryParams);
         }
     },
+    /**
+     * @override
+     */
+    on_detach_callback: function () {
+        WidgetAdapterMixin.on_detach_callback.call(this);
+        if (this.withControlPanel) {
+            this._controlPanelModel.off('search', this);
+            this._controlPanelModel.off('get-controller-query-params', this);
+        }
+    },
+
+    /**
+     * @private
+     * @param {Object} [searchQuery]
+     */
+    _onSearch: function () {},
 });
 
 return AbstractAction;

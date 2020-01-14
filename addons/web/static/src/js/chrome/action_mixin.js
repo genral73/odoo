@@ -35,21 +35,9 @@ var ActionMixin = {
     contentTemplate: null,
 
     /**
-     * If an action wants to use a control panel, it will be created and
-     * registered in this _controlPanel key (the widget).  The way this control
-     * panel is created is up to the implementation (so, view controllers or
-     * client actions may have different needs).
-     *
-     * Note that most of the time, this key should be set by the framework, not
-     * by the code of the client action.
-     */
-    _controlPanel: null,
-
-    /**
      * String containing the title of the client action (which may be needed to
      * display in the breadcrumbs zone of the control panel).
      *
-     * @see _updateActionProps
      */
     _title: '',
 
@@ -63,14 +51,7 @@ var ActionMixin = {
             this.$('.o_content').append(content);
         }
     },
-    /**
-     * Called each time the action is attached into the DOM.
-     */
-    on_attach_callback: function () { },
-    /**
-     * Called each time the action is detached from the DOM.
-     */
-    on_detach_callback: function () { },
+
     /**
      * Called by the action manager when action is restored (typically, when the
      * user clicks on the action in the breadcrumb)
@@ -151,14 +132,48 @@ var ActionMixin = {
     giveFocus: function () {
     },
     /**
-     * Renders the buttons to append, in most cases, to the control panel (in
-     * the bottom left corner). When the action is rendered in a dialog, those
-     * buttons might be moved to the dialog's footer.
+     * Method used to assign a jQuery element to `this.$buttons`.
      *
-     * @param {jQuery Node} $node
+     * @param {jQuery} [$node]
      */
-    renderButtons: function ($node) {
+    renderButtons: function ($node) { },
+    /**
+     * Method used to update the widget buttons state.
+     */
+    updateButtons: function () { },
+
+    /**
+     * The parameter newProps is used to update the props of
+     * the controlPanelWrapper before render it. The key 'cp_content'
+     * is not a prop of the control panel itself. One should if possible use
+     * the slot mechanism.
+     *
+     * @param {Object} [newProps={}]
+     * @returns {Promise}
+     */
+    updateControlPanel: async function (newProps = {}) {
+        if (!this.withControlPanel && !this.hasControlPanel) {
+            return;
+        }
+        const props = Object.assign({}, newProps); // Work with a clean new object
+        if ('title' in props) {
+            this._setTitle(props.title);
+            this.controlPanelProps.title = this.getTitle();
+            delete props.title;
+        }
+        if ('cp_content' in props) {
+            // cp_content has been updated: refresh it.
+            this.controlPanelProps.cp_content = Object.assign({},
+                this.controlPanelProps.cp_content,
+                props.cp_content,
+            );
+            delete props.cp_content;
+        }
+        // Update props state
+        Object.assign(this.controlPanelProps, props);
+        return this._controlPanelWrapper.update(this.controlPanelProps);
     },
+
     // TODO: add hooks methods:
     // - onRestoreHook (on_reverse_breadcrumbs)
 
@@ -179,17 +194,13 @@ var ActionMixin = {
         const state = this.getOwnedQueryParams();
         callback(state || {});
     },
+
     /**
      * @private
-     * @param {Object} newProps
+     * @param {string} title
      */
-    _updateActionProps: function (newProps) {
-        if ('title' in newProps) {
-            this._title = newProps.title;
-        }
-        if (this.dispatch) {
-            return this.dispatch('updateActionProps', newProps);
-        }
+    _setTitle(title) {
+        this._title = title;
     },
 };
 

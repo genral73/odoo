@@ -15,6 +15,7 @@ var widgetRegistry = require('web.widget_registry');
 var makeTestPromise = testUtils.makeTestPromise;
 var nextTick = testUtils.nextTick;
 var createView = testUtils.createView;
+const { getHelpers: getCPHelpers } = testUtils.controlPanel;
 
 QUnit.module('Views', {
     before: function () {
@@ -345,10 +346,12 @@ QUnit.module('Views', {
                     '</t></templates></kanban>',
             groupBy: ['bar'],
         });
-        await kanban.renderPager();
+        // Update will retreive current pager information and update it.
+        // It should not allow it to be displayed.
+        await kanban.update({});
 
-        assert.isNotVisible(kanban.pager.$el,
-                        "pager should be hidden in grouped kanban");
+        assert.containsNone(kanban, '.o_pager');
+
         kanban.destroy();
     });
 
@@ -368,10 +371,10 @@ QUnit.module('Views', {
                 return this._super.apply(this, arguments);
             },
         });
+        const cpHelpers = getCPHelpers(kanban.el);
 
-        assert.isVisible(kanban.pager.$el,
-                        "pager should be visible in ungrouped kanban");
-        assert.strictEqual(kanban.pager.state.size, 4, "pager's size should be 4");
+        assert.containsOnce(kanban, '.o_pager');
+        assert.strictEqual(cpHelpers.getPagerSize(), "4", "pager's size should be 4");
         kanban.destroy();
     });
 
@@ -394,9 +397,10 @@ QUnit.module('Views', {
                 limit: 2,
             },
         });
+        const cpHelpers = getCPHelpers(kanban.el);
 
-        assert.strictEqual(kanban.pager.state.limit, 2, "pager's limit should be 2");
-        assert.strictEqual(kanban.pager.state.size, 4, "pager's size should be 4");
+        assert.strictEqual(cpHelpers.getPagerValue(), "1-2", "pager's limit should be 2");
+        assert.strictEqual(cpHelpers.getPagerSize(), "4", "pager's size should be 4");
         kanban.destroy();
     });
 
@@ -420,9 +424,10 @@ QUnit.module('Views', {
                 limit: 2,
             },
         });
+        const cpHelpers = getCPHelpers(kanban.el);
 
-        assert.strictEqual(kanban.pager.state.limit, 3, "pager's limit should be 3");
-        assert.strictEqual(kanban.pager.state.size, 4, "pager's size should be 4");
+        assert.strictEqual(cpHelpers.getPagerValue(), "1-3", "pager's limit should be 3");
+        assert.strictEqual(cpHelpers.getPagerSize(), "4", "pager's size should be 4");
         kanban.destroy();
     });
 
@@ -577,7 +582,7 @@ QUnit.module('Views', {
             },
         });
 
-        assert.containsOnce(kanban, '.o_cp_controller', 'should have one control panel');
+        assert.containsOnce(kanban, '.o_control_panel', 'should have one control panel');
         assert.containsOnce(kanban, '.o_kanban_group:first .o_kanban_record',
             "first column should contain one record");
 
@@ -589,7 +594,7 @@ QUnit.module('Views', {
             "should have a quick create element in the first column");
         assert.strictEqual($quickCreate.find('.o_form_view.o_xxs_form_view').length, 1,
             "should have rendered an XXS form view");
-        assert.containsOnce(kanban, '.o_cp_controller', 'should not have instantiated an extra control panel');
+        assert.containsOnce(kanban, '.o_control_panel', 'should not have instantiated an extra control panel');
         assert.strictEqual($quickCreate.find('input').length, 2,
             "should have two inputs");
         assert.strictEqual($quickCreate.find('.o_field_widget').length, 3,

@@ -400,6 +400,11 @@ const eventTypes = {
     dragleave: { constructor: DragEvent, processParameters: onlyBubble },
     dragover: { constructor: DragEvent, processParameters: onlyBubble },
     drop: { constructor: DragEvent, processParameters: onlyBubble },
+
+    input: { constructor: InputEvent, processParameters: onlyBubble },
+
+    compositionstart: { constructor: CompositionEvent, processParameters: onlyBubble },
+    compositionend: { constructor: CompositionEvent, processParameters: onlyBubble },
 };
 
 /**

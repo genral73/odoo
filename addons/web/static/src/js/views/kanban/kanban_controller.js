@@ -58,21 +58,35 @@ var KanbanController = BasicController.extend({
     //--------------------------------------------------------------------------
 
     /**
-     * @param {jQueryElement} $node
-     * @returns {Promise}
+     * @param {jQuery} [$node]
      */
     renderButtons: function ($node) {
-        if (this.hasButtons && this.is_action_enabled('create')) {
-            this.$buttons = $(qweb.render(this.buttons_template, {
-                btnClass: 'btn-primary',
-                widget: this,
-            }));
-            this.$buttons.on('click', 'button.o-kanban-button-new', this._onButtonNew.bind(this));
-            this.$buttons.on('keydown', this._onButtonsKeyDown.bind(this));
-            this._updateButtons();
-            return Promise.resolve(this.$buttons.appendTo($node));
+        if (!this.hasButtons || !this.is_action_enabled('create')) {
+            return;
         }
-        return Promise.resolve();
+        this.$buttons = $(qweb.render(this.buttons_template, {
+            btnClass: 'btn-primary',
+            widget: this,
+        }));
+        this.$buttons.on('click', 'button.o-kanban-button-new', this._onButtonNew.bind(this));
+        this.$buttons.on('keydown', this._onButtonsKeyDown.bind(this));
+        if ($node) {
+            this.$buttons.appendTo($node);
+        }
+    },
+    /**
+     * In grouped mode, set 'Create' button as btn-secondary if there is no column
+     * (except if we can't create new columns)
+     *
+     * @override
+     */
+    updateButtons: function () {
+        if (!this.$buttons) {
+            return;
+        }
+        var state = this.model.get(this.handle, {raw: true});
+        var createHidden = this.is_action_enabled('group_create') && state.isGroupedByM2ONoColumn;
+        this.$buttons.find('.o-kanban-button-new').toggleClass('o_hidden', createHidden);
     },
 
     //--------------------------------------------------------------------------
@@ -100,10 +114,9 @@ var KanbanController = BasicController.extend({
      * @override
      * @private
      */
-    _getPagerProps: function () {
-        const state = this.model.get(this.handle, {raw: true});
+    _getPagerProps: function (state) {
         if (!(state.count && !state.groupedBy.length)) {
-            return {};
+            return null;
         }
         return this._super(...arguments);
     },
@@ -190,30 +203,6 @@ var KanbanController = BasicController.extend({
         var self = this;
         return this.model.resequence(this.modelName, ids, column_id);
     },
-    /**
-     * Overrides to update the control panel buttons when the state is updated.
-     *
-     * @override
-     * @private
-     */
-    _update: function () {
-        this._updateButtons();
-        return this._super.apply(this, arguments);
-    },
-    /**
-     * In grouped mode, set 'Create' button as btn-secondary if there is no column
-     * (except if we can't create new columns)
-     *
-     * @private
-     * @override from abstract controller
-     */
-    _updateButtons: function () {
-        if (this.$buttons) {
-            var state = this.model.get(this.handle, {raw: true});
-            var createHidden = this.is_action_enabled('group_create') && state.isGroupedByM2ONoColumn;
-            this.$buttons.find('.o-kanban-button-new').toggleClass('o_hidden', createHidden);
-        }
-    },
 
     //--------------------------------------------------------------------------
     // Handlers
@@ -237,7 +226,6 @@ var KanbanController = BasicController.extend({
             }).then(function () {
                 return self.update({}, {reload: false});
             }).then(function () {
-                self._updateButtons();
                 self.renderer.quickCreateToggleFold();
                 self.renderer.trigger_up("quick_create_column_created");
             });

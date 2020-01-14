@@ -1,7 +1,6 @@
 odoo.define('web.graph_view_tests', function (require) {
 "use strict";
 
-var concurrency = require('web.concurrency');
 var controlPanelParameters = require('web.controlPanelParameters');
 var GraphView = require('web.GraphView');
 var testUtils = require('web.test_utils');
@@ -10,15 +9,17 @@ var createActionManager = testUtils.createActionManager;
 var createView = testUtils.createView;
 var patchDate = testUtils.mock.patchDate;
 
-var INTERVAL_OPTIONS = Objec.keys(controlPanelParameters.INTERVAL_OPTIONS);
-var TIME_RANGE_OPTIONS = Object.values(controlPanelParameters.TIME_RANGE_OPTIONS).map(o => o.optionId);
-var COMPARISON_TIME_RANGE_OPTIONS = Object.values(controlPanelParameters.COMPARISON_TIME_RANGE_OPTIONS).map(o => o.optionId);
+const { INTERVAL_OPTIONS, TIME_RANGE_OPTIONS, COMPARISON_TIME_RANGE_OPTIONS } = controlPanelParameters;
+
+var INTERVAL_OPTION_IDS = Object.keys(INTERVAL_OPTIONS);
+var TIME_RANGE_OPTION_IDS = Object.keys(TIME_RANGE_OPTIONS);
+var COMPARISON_TIME_RANGE_OPTION_IDS = Object.keys(COMPARISON_TIME_RANGE_OPTIONS);
 
 var f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
 var cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
 
-var COMBINATIONS = cartesian(TIME_RANGE_OPTIONS, COMPARISON_TIME_RANGE_OPTIONS);
-var COMBINATIONS_WITH_DATE = cartesian(TIME_RANGE_OPTIONS, COMPARISON_TIME_RANGE_OPTIONS, INTERVAL_OPTIONS);
+var COMBINATIONS = cartesian(TIME_RANGE_OPTION_IDS, COMPARISON_TIME_RANGE_OPTION_IDS);
+var COMBINATIONS_WITH_DATE = cartesian(TIME_RANGE_OPTION_IDS, COMPARISON_TIME_RANGE_OPTION_IDS, INTERVAL_OPTION_IDS);
 
 QUnit.assert.checkDatasets = function (graph, keys, expectedDatasets) {
     keys = keys instanceof Array ? keys : [keys];
@@ -192,7 +193,7 @@ QUnit.module('Views', {
                         'groupby should not contain id field');
                 }
                 return this._super.apply(this, arguments);
-            }
+            },
         });
         graph.destroy();
     });
@@ -357,14 +358,11 @@ QUnit.module('Views', {
             model: "foo",
             data: this.data,
             context: {
-                timeRangeMenuData: {
-                    //Q3 2018
-                    timeRange: ['&', ["date", ">=", "2018-07-01"],["date", "<=", "2018-09-30"]],
-                    timeRangeDescription: 'This Quarter',
-                    //Q4 2018
-                    comparisonTimeRange: ['&', ["date", ">=", "2018-10-01"],["date", "<=", "2018-12-31"]],
-                    comparisonTimeRangeDescription: 'Previous Period',
-                },
+                time_ranges: {
+                    field: 'date',
+                    range: 'this_quarter',
+                    comparisonRange: 'previous_period',
+                }
             },
             arch: '<graph type="pie">' +
                         '<field name="product_id"/>' +
@@ -1012,76 +1010,63 @@ QUnit.module('Views', {
                 }
             };
 
+            const cpHelpers = testUtils.controlPanel.getHelpers(document);
+            const GROUPBY_NAMES = ['Date', 'Bar', 'Product', 'Color'];
+
             // time range menu is assumed to be closed
             this.selectTimeRanges = async function (timeRangeOption, comparisonTimeRangeOption) {
                 comparisonTimeRangeOption = comparisonTimeRangeOption || 'previous_period';
-                // open time range menu
-                await testUtils.dom.click($('.o_control_panel .o_time_range_menu_button'));
-                // select range
-                await testUtils.fields.editInput($('.o_control_panel .o_time_range_selector'), timeRangeOption);
-                // check checkbox 'Compare To'
-                if (!$('.o_control_panel .o_time_range_menu .o_comparison_checkbox').prop('checked')) {
-                    await testUtils.dom.click($('.o_control_panel .o_time_range_menu .o_comparison_checkbox'));
+                await cpHelpers.toggleTimeRangeMenu();
+                await cpHelpers.selectRange(timeRangeOption);
+                if (!document.querySelector('div.o_time_range_section input').checked) {
+                    await cpHelpers.toggleTimeRangeMenuBox();
                 }
-                // select 'Previous period' or 'Previous year' acording to comparisonTimeRangeOption
-                await testUtils.fields.editInput($('.o_control_panel .o_comparison_time_range_selector'), comparisonTimeRangeOption);
-                // Click on 'Apply' button
-                await testUtils.dom.click($('.o_control_panel .o_time_range_menu .o_apply_range'));
+                await cpHelpers.selectComparisonRange(comparisonTimeRangeOption);
+                await cpHelpers.applyTimeRange();
+                await cpHelpers.toggleTimeRangeMenu();
             };
 
             // groupby menu is assumed to be closed
             this.selectDateIntervalOption = async function (intervalOption) {
-                const self = this;
                 intervalOption = intervalOption || 'month';
+                const optionIndex = INTERVAL_OPTION_IDS.indexOf(intervalOption);
 
-                // open group by menu
-                await testUtils.dom.click($('.o_control_panel .o_dropdown span.fa-bars'));
-
+                await cpHelpers.toggleGroupByMenu()
                 let wasSelected = false;
                 if (this.keepFirst) {
-                    if ($('.o_control_panel .o_group_by_menu .o_menu_item:contains(Product) a').hasClass('selected')) {
+                    if (cpHelpers.isItemSelected(2)) {
                         wasSelected = true;
-                        await testUtils.dom.click($('.o_control_panel .o_group_by_menu .o_menu_item:contains(Product)'));
+                        await cpHelpers.toggleMenuItem(2);
                     }
                 }
-
-                // open option submenu
-                await testUtils.dom.click($('.o_control_panel .o_group_by_menu .o_menu_item:contains("Date")'));
-                // check interval option if not already selected
-                if (!$('.o_control_panel .o_group_by_menu .o_item_option[data-option_id="' + intervalOption + '"] a').hasClass('selected')) {
-                    await testUtils.dom.click($('.o_control_panel .o_group_by_menu .o_item_option[data-option_id="' + intervalOption + '"]'));
+                await cpHelpers.toggleMenuItem(0);
+                if (!cpHelpers.isOptionSelected(0, optionIndex)) {
+                    await cpHelpers.toggleMenuItemOption(0, optionIndex);
                 }
-                await INTERVAL_OPTIONS.filter(oId => oId !== intervalOption).forEach(async function(oId) {
-                    if ($('.o_control_panel .o_group_by_menu .o_item_option[data-option_id="' + oId + '"] a').hasClass('selected')) {
-                        await testUtils.dom.click($('.o_control_panel .o_group_by_menu .o_item_option[data-option_id="' + oId + '"]'));
+                for (let i = 0; i < INTERVAL_OPTION_IDS.length; i++) {
+                    const oId = INTERVAL_OPTION_IDS[i];
+                    if (oId !== intervalOption && cpHelpers.isOptionSelected(0, i)) {
+                        await cpHelpers.toggleMenuItemOption(0, i);
                     }
-                });
+                };
 
                 if (this.keepFirst) {
-                    if (wasSelected && !$('.o_control_panel .o_group_by_menu .o_menu_item:contains(Product) a').hasClass('selected')) {
-                        await testUtils.dom.click($('.o_control_panel .o_group_by_menu .o_menu_item:contains(Product)'));
+                    if (wasSelected && !cpHelpers.isItemSelected(2)) {
+                        await cpHelpers.toggleMenuItem(2);
                     }
                 }
+                await cpHelpers.toggleGroupByMenu()
 
-                // close group by menu
-                await testUtils.dom.click($('.o_control_panel .o_dropdown span.fa-bars'));
             };
 
             // groupby menu is assumed to be closed
             this.selectGroupBy = async function (groupByName) {
-                // open group by menu
-                await testUtils.dom.click($('.o_control_panel .o_dropdown span.fa-bars'));
-                // check groupBy if not already selected
-                if (!$('.o_control_panel .o_group_by_menu .o_menu_item:contains(' + groupByName + ') a').hasClass('selected')) {
-                    await testUtils.dom.click($('.o_control_panel .o_group_by_menu .o_menu_item:contains(' + groupByName + ')'));
+                await cpHelpers.toggleGroupByMenu();
+                const index = GROUPBY_NAMES.indexOf(groupByName);
+                if (!cpHelpers.isItemSelected(index)) {
+                    await cpHelpers.toggleMenuItem(index);
                 }
-                // close group by menu
-                await testUtils.dom.click($('.o_control_panel .o_dropdown span.fa-bars'));
-            };
-            // groupby menu is assumed to be closed
-            this.unselectGroupBy = async function (groupByName) {
-                // check groupBy if already selected
-
+                await cpHelpers.toggleGroupByMenu();
             };
 
             this.setConfig = async function (combination) {
@@ -1092,7 +1077,7 @@ QUnit.module('Views', {
             };
 
             this.setMode = async function (mode) {
-                await testUtils.dom.click($('.o_control_panel .o_graph_button[data-mode=' + mode + ']'));
+                await testUtils.dom.click($(`.o_control_panel .o_graph_button[data-mode="${mode}"]`));
             };
 
             // // create an action manager to test the interactions with the search view
@@ -1119,7 +1104,7 @@ QUnit.module('Views', {
                     graph: {
                         additionalMeasures: ['product_id'],
                     }
-                }
+                },
             });
         },
         afterEach: function () {

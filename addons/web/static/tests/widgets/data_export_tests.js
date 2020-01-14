@@ -1,12 +1,13 @@
 odoo.define('web.data_export_tests', function (require) {
 "use strict";
 
-var framework = require('web.framework');
-var ListView = require('web.ListView');
-var testUtils = require('web.test_utils');
-var data = require('web.data');
+const framework = require('web.framework');
+const ListView = require('web.ListView');
+const testUtils = require('web.test_utils');
+const data = require('web.data');
 
-var createView = testUtils.createView;
+const createView = testUtils.createView;
+const { getHelpers: getCPHelpers } = testUtils.controlPanel;
 
 QUnit.module('widgets', {
     beforeEach: function () {
@@ -104,9 +105,12 @@ QUnit.module('widgets', {
             },
         });
 
+        const cpHelpers = getCPHelpers(list.el);
+
         await testUtils.dom.click(list.$('thead th.o_list_record_selector input'));
-        await testUtils.dom.click(list.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(list.sidebar.$('a:contains(Export)'));
+
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem('Export');
 
         assert.strictEqual($('.modal').length, 1, "a modal dialog should be open");
         assert.strictEqual($('div.o_tree_column:contains(Activities)').length, 1,
@@ -179,10 +183,13 @@ QUnit.module('widgets', {
             },
         });
 
+        const cpHelpers = getCPHelpers(list.el);
+
         // Open the export modal
         await testUtils.dom.click(list.$('thead th.o_list_record_selector input'));
-        await testUtils.dom.click(list.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(list.sidebar.$('a:contains(Export)'));
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem('Export');
+
         assert.strictEqual($('.modal').length, 1,
             "a modal dialog should be open");
 
@@ -248,10 +255,13 @@ QUnit.module('widgets', {
                 return this._super.apply(this, arguments);
             },
         });
+
+        const cpHelpers = getCPHelpers(list.el);
+
         // Open the export modal
-        await testUtils.dom.click(list.$('thead .o_list_record_selector input'));
-        await testUtils.dom.click(list.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(list.sidebar.$('a:contains(Export)'));
+        await testUtils.dom.click(list.$('thead th.o_list_record_selector input'));
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem('Export');
 
         assert.strictEqual($('.modal .o_export_tree_item:visible').length, 2, "There should be only two items visible");
         await testUtils.dom.click($('.modal .o_export_search_input'));
@@ -333,7 +343,6 @@ QUnit.module('widgets', {
             View: ListView,
             model: 'partner',
             data: this.data,
-            debug: true,
             arch: `
                 <tree>
                     <field name="foo"/>

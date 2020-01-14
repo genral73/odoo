@@ -18,18 +18,14 @@ var _t = core._t;
 var BasicController = AbstractController.extend(FieldManagerMixin, {
     custom_events: _.extend({}, AbstractController.prototype.custom_events, FieldManagerMixin.custom_events, {
         discard_changes: '_onDiscardChanges',
+        pager_changed: '_onPagerChanged',
         reload: '_onReload',
         resequence_records: '_onResequenceRecords',
         set_dirty: '_onSetDirty',
         load_optional_fields: '_onLoadOptionalFields',
         save_optional_fields: '_onSaveOptionalFields',
-        translate: '_onTranslate',
-    }),
-    events: _.extend({}, AbstractController.prototype.events, FieldManagerMixin.events, {
-        do_action: '_onDoAction',
-        pager_changed: '_onPagerChanged',
-        reload: '_onReload',
         sidebar_data_asked: '_onSidebarDataAsked',
+        translate: '_onTranslate',
     }),
     /**
      * @override
@@ -194,8 +190,7 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
      */
     update: async function (params, options) {
         this.mode = params.mode || this.mode;
-        await this._super(...arguments);
-        return this._updateControlPanel();
+        return this._super(params, options);
     },
     /**
      * @override
@@ -463,12 +458,10 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
      * @private
      * @returns {Object}
      */
-    _getPagerProps: function () {
-        const state = this.model.get(this.handle, { raw: true });
+    _getPagerProps: function (state) {
         const isGrouped = state.groupedBy && state.groupedBy.length;
         return {
             currentMinimum: (isGrouped ? state.groupsOffset : state.offset) + 1,
-            disabled: false,
             limit: isGrouped ? state.groupsLimit : state.limit,
             size: isGrouped ? state.groupsCount : state.count,
         };
@@ -479,10 +472,10 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
      * @override
      * @private
      */
-    _getSidebarProps: function () {
+    _getSidebarProps: function (state) {
         return {
             activeIds: this.getSelectedIds(),
-            context: this.model.get(this.handle).getContext(),
+            context: state.getContext(),
         };
     },
     /**
@@ -522,10 +515,30 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
     _onDeletedRecords: function (ids) {
         this.update({});
     },
-    _onDoAction: function (ev) {
-        this.do_action(ev.detail.action, {
-            on_close: () => this._onReload()
-        });
+    /**
+     * Used to reload the controller from given pager props. Typically used by the
+     * _onPagerChanged handler, but can sometimes be called when the controller
+     * need to manually interract with the pager by giving it new props.
+     *
+     * @private
+     * @param {Object} pagerProps
+     */
+    _reloadPagerProps: async function (pagerProps) {
+        const { currentMinimum, limit } = pagerProps;
+        const state = this.model.get(this.handle, { raw: true });
+        const reloadParams = state.groupedBy && state.groupedBy.length ? {
+                groupsLimit: limit,
+                groupsOffset: currentMinimum - 1,
+            } : {
+                limit: limit,
+                offset: currentMinimum - 1,
+            };
+        this._updatePagerProps(state, { limit, currentMinimum });
+        await this.reload(reloadParams);
+        // reset the scroll position to the top on page changed only
+        if (state.limit === limit) {
+            this.trigger_up('scrollTo', { top: 0 });
+        }
     },
     /**
      * Saves the record whose ID is given, if necessary. Automatically leaves
@@ -599,13 +612,16 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
      * and notifies the component chain (by bubbling an event up)
      *
      * @private
+     * @param {Object} [newProps={}]
      */
-    _updateControlPanel: function () {
-        this.model.get(this.handle, { env: true });
-        return this._updateActionProps({
-            sidebar: this._getSidebarProps(),
-            pager: this._getPagerProps(),
+    _updateControlPanel: function (newProps = {}) {
+        const state = this.model.get(this.handle);
+        const props = Object.assign(newProps, {
+            pager: this._getPagerProps(state),
+            sidebar: this._getSidebarProps(state),
+            title: this.getTitle(),
         });
+        return this.updateControlPanel(props);
     },
 
     //--------------------------------------------------------------------------
@@ -650,26 +666,11 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
     },
     /**
      * @private
-     * @param {OwlEvent} ev
+     * @param {OdooEvent} ev
      */
-    _onPagerChanged: async function (ev) {
-        const { currentMinimum, limit } = ev.detail;
-        const pagerProps = this._getPagerProps();
-        this._updateActionProps({
-            pager: Object.assign(pagerProps, { disabled: true }),
-        });
-        const data = this.model.get(this.handle, { raw: true });
-        const reloadParams = data.groupedBy && data.groupedBy.length ?
-            { groupsLimit: limit, groupsOffset: currentMinimum - 1 } :
-            { limit: limit, offset: currentMinimum - 1 };
-        await this.reload(reloadParams);
-        // reset the scroll position to the top on page changed only
-        if (data.limit !== limit) {
-            this.trigger_up('scrollTo', { top: 0 });
-        }
-        return this._updateActionProps({
-            pager: Object.assign(pagerProps, { disabled: false, limit, currentMinimum }),
-        });
+    _onPagerChanged: function (ev) {
+        ev.stopPropagation();
+        this._reloadPagerProps(ev.data);
     },
     /**
      * When a reload event triggers up, we need to reload the full view.
@@ -687,11 +688,9 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
      * @param {Function} [ev.data.onFailure] callback executed when reload is rejected
      */
     _onReload: function (ev) {
-        if (ev) {
-            ev.stopPropagation(); // prevent other controllers from handling this request
-        }
-        var detail = (ev && (ev.data || ev.detail)) || {};
-        var handle = detail.db_id;
+        ev.stopPropagation(); // prevent other controllers from handling this request
+        var data = ev && ev.data || {};
+        var handle = data.db_id;
         var prom;
         if (handle) {
             // reload the relational field given its db_id
@@ -699,11 +698,11 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
         } else {
             // no db_id given, so reload the main record
             prom = this.reload({
-                fieldNames: detail.fieldNames,
-                keepChanges: detail.keepChanges || false,
+                fieldNames: data.fieldNames,
+                keepChanges: data.keepChanges || false,
             });
         }
-        prom.then(detail.onSuccess).guardedCatch(detail.onFailure);
+        prom.then(ev.data.onSuccess).guardedCatch(ev.data.onFailure);
     },
     /**
      * Resequence records in the given order.
@@ -725,7 +724,7 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
                     field: ev.data.handleField,
                 };
                 await this.model.resequence(this.modelName, resIDs, this.handle, options);
-                await this._updateControlPanel();
+                this._updateControlPanel();
                 state = this.model.get(this.handle);
                 return this.renderer.updateState(state, { noRender: true });
             },
@@ -780,7 +779,8 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
      * @param {OwlEvent} ev
      */
     _onSidebarDataAsked: function (ev) {
-        const sidebarProps = this._getSidebarProps();
+        const state = this.model.get(this.handle);
+        const sidebarProps = this._getSidebarProps(state);
         ev.detail.callback(sidebarProps);
     },
     /**

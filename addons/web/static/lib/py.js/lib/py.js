@@ -466,7 +466,7 @@ var py = {};
 
             if (n in out) {
                 throw new Error(
-                    "TypeError: function got multiple values " + 
+                    "TypeError: function got multiple values " +
                     "for keyword argument '" + kwarg + "'");
             }
             if (/^\*\*\w/.test(n)) {
@@ -509,7 +509,7 @@ var py = {};
             // Set default value
             out[n] = spec[1];
         }
-        
+
         return out;
     };
 

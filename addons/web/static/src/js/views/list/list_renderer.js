@@ -2,6 +2,7 @@ odoo.define('web.ListRenderer', function (require) {
 "use strict";
 
 var BasicRenderer = require('web.BasicRenderer');
+const { ComponentWrapper } = require('web.OwlCompatibility');
 var config = require('web.config');
 var core = require('web.core');
 var dom = require('web.dom');
@@ -83,6 +84,7 @@ var ListRenderer = BasicRenderer.extend({
     //--------------------------------------------------------------------------
     // Public
     //--------------------------------------------------------------------------
+
     /**
      * Order to focus to be given to the content of the current view
      * @override
@@ -680,20 +682,18 @@ var ListRenderer = BasicRenderer.extend({
      * @returns {Pager}
      */
     _renderGroupPager: function (group, target) {
-        const pager = new Pager(null, {
+        const pager = new ComponentWrapper(this, Pager, {
             currentMinimum: group.offset + 1,
             limit: group.limit,
             size: group.count,
         });
-
-        // register the pager so that it can be destroyed on next rendering
+        const pagerMounting = pager.mount(target).then(() => {
+            pager.el.addEventListener('pager-changed', ev => this._onPagerChanged(ev, pager, group));
+            // Prevent pager clicks to toggle the group
+            pager.el.addEventListener('click', ev => ev.stopPropagation());
+        });
+        this.defs.push(pagerMounting);
         this.pagers.push(pager);
-
-        const mountingPromise = pager.mount(target);
-        target.addEventListener('pager_changed', ev => this._onPagerChanged(ev, pager, group));
-        this.defs.push(mountingPromise);
-
-        return pager;
     },
     /**
      * Render all groups in the view.  We assume that the view is in grouped
@@ -955,17 +955,22 @@ var ListRenderer = BasicRenderer.extend({
             $table.append(this._renderBody());
             $table.append(this._renderFooter());
         }
+        const tableWrapper = Object.assign(document.createElement('div'), {
+            className: 'table-responsive',
+        });
+        tableWrapper.appendChild($table[0]);
         delete this.defs;
 
         var prom = Promise.all(defs).then(() => {
             // destroy the previously instantiated pagers, if any
             oldPagers.forEach(pager => pager.destroy());
-            this.pagers.forEach(pager => pager.__callMounted());
 
-            self.$el.html($('<div>', {
-                class: 'table-responsive',
-                html: $table
-            }));
+            // Append the table to the main element
+            self.el.innerHTML = "";
+            dom.append(self.el, tableWrapper, {
+                callbacks: [{ widget: this }],
+                in_DOM: document.body.contains(self.el),
+            });
 
             if (self.optionalColumns.length) {
                 self.$el.addClass('o_list_optional_columns');
@@ -1031,7 +1036,7 @@ var ListRenderer = BasicRenderer.extend({
             }
         });
         this.$('thead .o_list_record_selector input').prop('checked', allChecked);
-        this.trigger_up('selection_changed', { selection: this.selection });
+        this.trigger_up('selection_changed', { allChecked, selection: this.selection });
         this._updateFooter();
     },
 
@@ -1203,7 +1208,7 @@ var ListRenderer = BasicRenderer.extend({
      */
     _onPagerChanged: async function (ev, pager, group) {
         ev.stopPropagation();
-        await pager.updateProps({ disabled: true });
+        pager.update({ disabled: true });
         this.trigger_up('load', {
             id: group.id,
             limit: ev.detail.limit,
@@ -1212,7 +1217,7 @@ var ListRenderer = BasicRenderer.extend({
                 Object.assign(group, reloadedGroup);
                 this._renderView();
             },
-            on_fail: () => pager.updateProps({ disabled: false }),
+            on_fail: () => pager.update({ disabled: false }),
         });
     },
     /**

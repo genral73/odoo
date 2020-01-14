@@ -2310,18 +2310,18 @@ do that, several steps should be done.
             ...
             start: function () {
                 this._renderButtons();
-                this._updateControlPanel();
+                this.updateControlPanel();
                 ...
             },
             do_show: function () {
                  ...
-                 this._updateControlPanel();
+                 this.updateControlPanel();
             },
             _renderButtons: function () {
                 this.$buttons = $(QWeb.render('SomeTemplate.Buttons'));
                 this.$buttons.on('click', ...);
             },
-            _updateControlPanel: function () {
+            updateControlPanel: function () {
                 this.update_control_panel({
                     cp_content: {
                        $buttons: this.$buttons,

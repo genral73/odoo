@@ -115,7 +115,7 @@ QUnit.module('ActionManager', {
     });
 
     QUnit.test('view switcher button should be displayed in dropdown on mobile screens', async function (assert) {
-        assert.expect(3);
+        assert.expect(7);
 
         var actionManager = await createActionManager({
             actions: this.actions,
@@ -125,9 +125,16 @@ QUnit.module('ActionManager', {
 
         await actionManager.doAction(1);
 
-        assert.containsOnce(actionManager.$('.o_control_panel'), '.o_cp_switch_buttons button[data-toggle="dropdown"]');
-        assert.hasClass(actionManager.$('.o_cp_switch_buttons .o_cp_switch_kanban'), 'active');
-        assert.hasClass(actionManager.$('.o_cp_switch_buttons .o_switch_view_button_icon'), 'fa-th-large');
+        assert.containsOnce(actionManager.el.querySelector('.o_control_panel'), '.o_cp_switch_buttons > button');
+        assert.containsNone(actionManager.el.querySelector('.o_control_panel'), '.o_cp_switch_buttons .o_switch_view.o_kanban');
+        assert.containsNone(actionManager.el.querySelector('.o_control_panel'), '.o_cp_switch_buttons button.o_switch_view');
+
+        assert.hasClass(actionManager.el.querySelector('.o_control_panel .o_cp_switch_buttons > button > span'), 'fa-th-large');
+        await testUtils.dom.click(actionManager.el.querySelector('.o_control_panel .o_cp_switch_buttons > button'));
+
+        assert.hasClass(actionManager.el.querySelector('.o_cp_switch_buttons button.o_switch_view.o_kanban'), 'active');
+        assert.doesNotHaveClass(actionManager.el.querySelector('.o_cp_switch_buttons button.o_switch_view.o_list'), 'active');
+        assert.hasClass(actionManager.el.querySelector('.o_cp_switch_buttons button.o_switch_view.o_kanban'), 'fa-th-large');
 
         actionManager.destroy();
     });

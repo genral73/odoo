@@ -1,1224 +1,1511 @@
 odoo.define('web.ControlPanelModel', function (require) {
-"use strict";
-
-var controlPanelViewParameters = require('web.controlPanelViewParameters');
-var core = require('web.core');
-var Domain = require('web.Domain');
-var mvc = require('web.mvc');
-var pyUtils = require('web.py_utils');
-var searchBarAutocompleteRegistry = require('web.search_bar_autocomplete_sources_registry');
-var session = require('web.session');
-
-var _t = core._t;
-
-const DEFAULT_TIMERANGE = controlPanelViewParameters.DEFAULT_TIMERANGE;
-let TIME_RANGE_OPTIONS = controlPanelViewParameters.TIME_RANGE_OPTIONS;
-let COMPARISON_TIME_RANGE_OPTIONS = controlPanelViewParameters.COMPARISON_TIME_RANGE_OPTIONS;
-const OPTION_GENERATORS = controlPanelViewParameters.OPTION_GENERATORS;
-const YEAR_OPTIONS = controlPanelViewParameters.YEAR_OPTIONS;
-
-// Returns a predicate used to test if two arrays (of maximal length 2) have the same basic content.
-function isEqualTo (array1) {
-    if (array1.length === 1) {
-        return array2 => array2.length === 1 && array2[0] === array1[0];
-    } else {
-        return array2 => array2.length === 2 && array2[0] === array1[0] && array2[1] === array1[1];
-    }
-}
-
-var ControlPanelModel = mvc.Model.extend({
-    /**
-     * @override
-     * @param {string} [params.actionId]
-     * @param {string} [params.context={}]
-     * @param {string} [params.domain=[]]
-     * @param {string} [params.field={}]
-     * @param {string} [params.modelName]
-     */
-    init: function (parent, params) {
-        this._super.apply(this, arguments);
-
-        // Tricks to avoid losing information on filter descriptions in control panel model configuration
-        TIME_RANGE_OPTIONS = TIME_RANGE_OPTIONS.map(function (option) {
-            return _.extend({}, option, {description: option.description.toString()});
-        });
-        COMPARISON_TIME_RANGE_OPTIONS = COMPARISON_TIME_RANGE_OPTIONS.map(function (option) {
-            return _.extend({}, option, {description: option.description.toString()});
-        });
-
-
-        this.modelName = params.modelName;
-        // info on fields of model this.modelName
-        this.fields = params.fields || {};
-
-        // info on current action
-        this.actionId = params.actionId;
-        this.actionContext = params.context || {};
-        this.actionDomain = params.domain || [];
-
-        // triple determining a control panel model configuration
-        this.filters = {};
-        this.groups = {};
-        this.query = [];
-    },
-
-    //--------------------------------------------------------------------------
-    // Public
-    //--------------------------------------------------------------------------
+    "use strict";
 
     /**
-     * Activate a given filter of type 'timeRange' with a timeRangeId
-     * and optionaly a comparsionTimeRangeId
+     * DATA STRUCTURES
      *
-     * @param {string} filterId
-     * @param {string} timeRangeId
-     * @param {string} [comparisonTimeRangeId]
-     */
-    activateTimeRange: function (filterId, timeRangeId, comparisonTimeRangeId) {
-        var filter = this.filters[filterId];
-        filter.timeRangeId = timeRangeId || filter.defaultTimeRangeId;
-        filter.comparisonTimeRangeId = comparisonTimeRangeId;
-        var group = this.groups[filter.groupId];
-        var groupActive = group.activeFilterIds.length;
-        if (groupActive) {
-            group.activeFilterIds = [[filterId]];
-        } else {
-            this.toggleFilter(filterId);
-        }
-    },
-    /**
-     * Ccreate an ir_filter server side. If the operation is successful, a new
-     * filter of type 'favorite' is created and activated.
+     * 1. FILTER
+     * ---------
      *
-     * @param {Object} newFavorite
-     */
-    createNewFavorite: function (newFavorite) {
-        return this._saveQuery(_.pick(
-            newFavorite,
-            ['description', 'isDefault', 'isShared', 'type']
-        )).then(function () {
-            newFavorite.on_success();
-        });
-    },
-    /**
-     * Create new filters of type 'filter' with same new groupId and groupNumber.
-     * They are activated.
+     * A filter is an object defining a specific domain. Each filter is defined
+     * at least by :
+     * @param {number} id unique identifier, also the filter's corresponding key
+     * @param {string} description the description of the filter
+     * @param {string} type either: (filter | groupBy | timeRange | favorite)
      *
-     * @param {Object[]} newFilters
-     * @returns {string[]} filterIds, ids of the newly created filters
-     */
-    createNewFilters: function (newFilters) {
-        var self = this;
-        var filterIds = [];
-        var groupNumber = this._generateNewGroupNumber();
-        this._createGroupOfFilters(newFilters);
-        newFilters.forEach(function (filter) {
-            filter.groupNumber = groupNumber;
-            self.toggleFilter(filter.id);
-            filterIds.push(filter.id);
-        });
-        return filterIds;
-    },
-    /**
-     * Create a new groupBy with the groupId shared by all filters of type 'groupBy'
-     * but a new groupNumber
-     * It is activated.
+     *  a. Filter
      *
-     * @param {Object} newGroupBy
-     */
-    createNewGroupBy: function (newGroupBy) {
-        var id = _.uniqueId('__filter__');
-        newGroupBy.id = id;
-        newGroupBy.groupId = this._getGroupIdOfType('groupBy');
-        newGroupBy.groupNumber = this._generateNewGroupNumber();
-        this.filters[id] = newGroupBy;
-        if (_.contains(['date', 'datetime'], newGroupBy.fieldType)) {
-            this.toggleFilterWithOptions(newGroupBy.id);
-        } else {
-            this.toggleFilter(newGroupBy.id);
-        }
-    },
-    /**
-     * Ensure that the filters determined by the given filterIds are
-     * deactivated (if one or many of them are already deactivated, nothing bad happens)
+     * @param {*} domain
+     * @param {*} groupId
+     * @param {*} groupNumber
      *
-     * @param {string[]} filterIds
-     */
-    deactivateFilters: function (filterIds) {
-        var self = this;
-        filterIds.forEach(function (filterId) {
-            var filter = self.filters[filterId];
-            var group = self.groups[filter.groupId];
-            if (group.activeFilterIds.some(isEqualTo([filterId]))) {
-                self.toggleFilter(filterId);
-            }
-        });
-    },
-    /**
-     * Deactivate all filters in a given group with given id.
+     *  b. GroupBy
      *
-     * @param {string} groupId
-     */
-    deactivateGroup: function (groupId) {
-        var self = this;
-        var group = this.groups[groupId];
-        _.each(group.activeFilterIds, id => {
-            var filter = self.filters[id[0]];
-            // TODO: put this logic in toggleFilter 'field' type
-            if (filter.autoCompleteValues) {
-                filter.autoCompleteValues = [];
-            }
-            if (filter.currentOptionIds) {
-                filter.currentOptionIds.clear();
-            }
-        });
-        // TODO: use toggleFilter here
-        group.activeFilterIds = [];
-        this.query.splice(this.query.indexOf(groupId), 1);
-    },
-    /**
-     * Delete a filter of type 'favorite' with given filterId server side and in control panel model.
-     * Of course this forces the filter to be removed from the search query.
+     * @param {*} fieldName
+     * @param {*} fieldType
+     * @param {*} groupId
+     * @param {*} groupNumber
      *
-     * @param {string} filterId
-     */
-    deleteFilterEverywhere: function (filterId) {
-        var self = this;
-        var filter = this.filters[filterId];
-        var def = this.deleteFilter(filter.serverSideId).then(function () {
-            const groupOfFavorites = self.groups[filter.groupId];
-            const isActive = groupOfFavorites.activeFilterIds.some(isEqualTo([filterId]));
-            if (isActive) {
-                self.toggleFilter(filterId);
-            }
-            delete self.filters[filterId];
-        });
-        return def;
-    },
-    /**
-     * Return the state of the control panel (the filters, groups and the
-     * current query). This state can then be used in an other control panel
-     * model (with same key modelName) via the importState method.
+     *  c. TimeRange
      *
-     * @returns {Object}
-     */
-    exportState: function () {
-        return {
-            filters: this.filters,
-            groups: this.groups,
-            query: this.query,
-        };
-    },
-    /**
-     * @override
+     *  d. Favorite
      *
-     * @returns {Object}
+     * @param {*} context
+     * @param {*} domain
+     * @param {*} groupBys
+     * @param {*} groupNumber
+     * @param {*} isDefault
+     * @param {*} removable
+     * @param {*} orderedBy
+     * @param {*} serverSideId
+     * @param {*} userId
+     * @param {*} [timeRanges]
+     *
+     *
+     * 2. QUERY
+     * --------
+     *
+     * queryElements format
+     *
+     * type 'filter', 'groupBy', 'favorite' without options
+     * { groupId, filterId }
+     *
+     * type 'filter' or 'groupBy' with hasOptions to true
+     * { groupId, filterId, optionId }
+     *
+     * type 'field'
+     * { groupId, filterId, value }
+     * { groupId, filterId, value, label }
+     *
+     * type 'timeRange'
+     * { groupId, filterId, fieldName, rangeId }
+     * { groupId, filterId, fieldName, rangeId, comparisonRangeId }
+     *
      */
-    get: function () {
-        var self = this;
-        // we maintain a unique source activeFilterIds that contain information
-        // on active filters. But the renderer can have more information since
-        // it does not modifies filters activity.
-        // We thus give a different structure to renderer that may contain duplicated
-        // information.
-        // Note that filters are filters of filter type only, groupbys are groupbys,...!
-        var filterFields = [];
-        var filters = [];
-        var groupBys = [];
-        var timeRanges = [];
-        var favorites = [];
-        Object.keys(this.filters).forEach(function (filterId) {
-            var filter = _.extend({}, self.filters[filterId]);
-            if (filter.invisible) {
-                return;
-            }
-            var group = self.groups[filter.groupId];
-            filter.isActive = group.activeFilterIds.some(id => id[0] === filterId);
-            if (filter.type === 'field') {
-                filterFields.push(filter);
-            }
-            if (filter.type === 'filter') {
-                filters.push(filter);
-            }
-            if (filter.type === 'groupBy') {
-                groupBys.push(filter);
-            }
-            if (filter.type === 'favorite') {
-                favorites.push(filter);
-            }
-            if (filter.type === 'timeRange') {
-                timeRanges.push(filter);
-            }
-        });
-        var facets = this._getFacets();
-        favorites = _.sortBy(favorites, 'groupNumber');
-        return {
-            facets: facets,
-            filterFields: filterFields,
-            filters: filters,
-            groupBys: groupBys,
-            timeRanges: timeRanges,
-            favorites: favorites,
-            groups: this.groups,
-            query: _.extend([], this.query),
-            fields: this.fields,
-        };
-    },
-    /**
-     * @returns {Object} An object called search query with keys domain, groupBy,
-     *                   context, orderedBy.
-     */
-    getQuery: function () {
-        var userContext = session.user_context;
-        var context = _.extend(
-            pyUtils.eval('contexts', this._getQueryContext(), userContext),
-            this._getTimeRangeMenuData(true)
-        );
-        var domain = Domain.prototype.stringToArray(this._getDomain(), userContext);
-        // this must be done because pyUtils.eval does not know that it needs to evaluate domains within contexts
-        if (context.timeRangeMenuData) {
-            if (typeof context.timeRangeMenuData.timeRange === 'string') {
-                context.timeRangeMenuData.timeRange = pyUtils.eval('domain', context.timeRangeMenuData.timeRange);
-            }
-            if (typeof context.timeRangeMenuData.comparisonTimeRange === 'string') {
-                context.timeRangeMenuData.comparisonTimeRange = pyUtils.eval('domain', context.timeRangeMenuData.comparisonTimeRange);
-            }
-        }
-        var action_context = this.actionContext;
-        var results = pyUtils.eval_domains_and_contexts({
-            domains: [this.actionDomain].concat([domain] || []),
-            contexts: [action_context].concat(context || []),
-            eval_context: session.user_context,
-        });
-        if (results.error) {
-            throw new Error(_.str.sprintf(_t("Failed to evaluate search criterions")+": \n%s",
-                            JSON.stringify(results.error)));
-        }
 
-        var groupBys = this._getGroupBy();
-        var groupBy = groupBys.length ?
-                        groupBys :
-                        (this.actionContext.group_by || []);
-        groupBy = (typeof groupBy === 'string') ? [groupBy] : groupBy;
+    const { BaseModel } = require('web.base_model');
+    const Domain = require('web.Domain');
+    const pyUtils = require('web.py_utils');
 
-        context = _.omit(results.context, 'time_ranges');
+    const { parseArch } = require('web.viewUtils');
 
-        return {
-            context: context,
-            domain: results.domain,
-            groupBy: groupBy,
-            orderedBy: this._getOrderedBy(),
-        };
-    },
-    /**
-     * Set filters, groups, and query keys according to the given state.
-     *
-     * @param {Object} state
-     */
-    importState: function (state) {
-        this.filters = state.filters;
-        this.groups = state.groups;
-        this.query = state.query;
-    },
-    /**
-     * The load method is the place where the favorites are also loaded and
-     * the model state is first established.
-     * The computation of the active filters at initialization is accomplished
-     * here.
-     *
-     * @param {Object} params
-     * @param {boolean} [params.activateDefaultFavorite=false]
-     * @param {Array[]} [params.groups=[]]
-     * @param {Object} [params.initialState]
-     * @param {string[]} [params.searchMenuTypes=[]]
-     * @param {Object} [params.timeRanges]
-     * @param {boolean} [params.withSearchBar]
-     * @returns {Promise}
-     */
-    load: function (params) {
-        var self = this;
-        this.searchMenuTypes = params.searchMenuTypes || [];
-        this.activateDefaultFavorite = params.activateDefaultFavorite;
+    const { COMPARISON_TIME_RANGE_OPTIONS,
+        DEFAULT_INTERVAL, DEFAULT_PERIOD,
+        INTERVAL_OPTIONS, OPTION_GENERATORS,
+        TIME_RANGE_OPTIONS, YEAR_OPTIONS } = require('web.controlPanelParameters');
 
-        if (!params.withSearchBar && params.searchMenuTypes.length === 0) {
-            // The model state will remain as set in init method
-            // and the info comming from arch put in params.groups (if any)
-            // will be lost. This is not a problem because the state
-            // won't be use elsewhere.
-            return Promise.resolve();
-        }
-        if (params.initialState) {
-            this.importState(params.initialState);
-            return Promise.resolve();
-        } else {
-            var groups = params.groups || [];
-            groups.forEach(function (group) {
-                self._createGroupOfFilters(group);
+    const FAVORITE_PRIVATE_GROUP = 1;
+    const FAVORITE_SHARED_GROUP = 2;
+
+    let filterId = 0;
+    let groupId = 0;
+    let groupNumber = 0;
+
+    //-----------------------------------------------------------------------------------------------
+    // ControlPanelModel
+    //-----------------------------------------------------------------------------------------------
+
+    class ControlPanelModel extends BaseModel {
+        constructor(config) {
+            super({
+                env: config.env,
+                state: {
+                    filters: {},
+                    query: []
+                },
             });
-            if (this._getGroupIdOfType('groupBy') === undefined) {
-                this._createEmptyGroup('groupBy');
-            }
-            this._createGroupOfTimeRanges();
-            return Promise.all(self._loadSearchDefaults()).then(function () {
-                return self._loadFavorites().then(function () {
-                    if (self.query.length === 0) {
-                        self._activateDefaultFilters();
-                        self._activateDefaultTimeRanges(params.timeRanges);
-                    }
-                });
-            });
-        }
-    },
-    /**
-     * Toggle a filter with given id in a way appropriate to its type.
-     *
-     * @param {Object} params
-     * @param {string} params.filterId
-     * @param {Object} params.autoCompleteValues
-     */
-    toggleAutoCompletionFilter: function (params) {
-        var filter = this.filters[params.filterId];
-        if (filter.type === 'field') {
-            filter.autoCompleteValues = params.autoCompleteValues;
-            // the autocompletion filter is dynamic
-            filter.domain = this._getAutoCompletionFilterDomain(filter);
-            // active the filter
-            var group = this.groups[filter.groupId];
-            if (!group.activeFilterIds.some(isEqualTo([filter.id]))) {
-                group.activeFilterIds.push([filter.id]);
-                this.query.push(group.id);
-            }
-        } else {
-            if (filter.hasOptions) {
-                this.toggleFilterWithOptions(filter.id);
-            } else {
-                this.toggleFilter(filter.id);
-            }
-        }
-    },
-    /**
-     * Toggle a filter throught the modification of this.groups and potentially
-     * of this.query and this.filters.
-     *
-     * @param {string} filterId
-     */
-    toggleFilter: function (filterId) {
-        var self = this;
-        var filter = this.filters[filterId];
-        var group = this.groups[filter.groupId];
-        var index = group.activeFilterIds.findIndex(isEqualTo([filterId]));
-        var initiaLength = group.activeFilterIds.length;
-        if (index === -1) {
-            // we need to deactivate all groups when activating a favorite
-            if (filter.type === 'favorite') {
-                this.query.forEach(function (groupId) {
-                    const group = self.groups[groupId];
-                    group.activeFilterIds.forEach(id => {
-                        const filter = self.filters[id[0]];
-                        if (filter.autoCompleteValues) {
-                            filter.autoCompleteValues = [];
-                        }
-                        if (filter.currentOptionIds) {
-                            filter.currentOptionIds.clear();
-                        }
-                    })
-                    group.activeFilterIds = [];
-                });
-                this.query = [];
-            }
-            group.activeFilterIds.push([filterId]);
-            // if initiaLength is 0, the group was not active.
-            if (filter.type === 'favorite' || initiaLength === 0) {
-                this.query.push(group.id);
-            }
-        } else {
-            if (filter.type === 'field' && filter.autoCompleteValues) {
-                filter.autoCompleteValues = [];
-            }
-            group.activeFilterIds.splice(index, 1);
-            // if initiaLength is 1, the group is now inactive.
-            if (initiaLength === 1) {
-                this.query.splice(this.query.indexOf(group.id), 1);
-            }
-        }
-    },
-    /**
-     * Used to toggle a given filter(Id) that has options with a given option(Id).
-     *
-     * @param {string} filterId
-     * @param {string} [optionId]
-     */
-    toggleFilterWithOptions: function (filterId, optionId) {
-        const filter = this.filters[filterId];
-        optionId = optionId || filter.defaultOptionId;
-        const group = this.groups[filter.groupId];
 
-        const selectedYears = () => YEAR_OPTIONS.reduce(
-            (acc, y) => {
-                if (filter.currentOptionIds.has(y.optionId)) {
-                    acc.push(y.optionId);
-                }
-                return acc;
-            },
-            []
-        );
-        const defaultYearId = (optionId) => {
-            const year = filter.options.find(o => o.optionId === optionId).defaultYear;
-            return filter.options.find(o => o.setParam.year === year).optionId;
-        };
+            this._setProperties(config);
+            this._registerGetters();
 
-        if (filter.type === 'filter') {
-            const alreadyActive = group.activeFilterIds.some(isEqualTo([filterId]));
-            if (alreadyActive) {
-                if (filter.currentOptionIds.has(optionId)) {
-                    filter.currentOptionIds.delete(optionId);
-                    if (!selectedYears().length) {
-                        // This is the case where optionId was the last option of type 'year' to be there before being removed above.
-                        // Since other options of type 'month' or 'quarter' do not make sense without a year
-                        // we deactivate all options.
-                        filter.currentOptionIds.clear();
-                    }
-                    if (!filter.currentOptionIds.size) {
-                        // Here no option is selected so that the filter becomes inactive.
-                        this.toggleFilter(filterId);
-                    }
+            if (this.withSearchBar) {
+                this._registerMutations();
+                if (config.importedState) {
+                    this.importState(config.importedState);
                 } else {
-                    filter.currentOptionIds.add(optionId);
+                    this._prepareInitialState();
                 }
+            }
+
+            this.isReady = Promise.all(this.labelPromisses);
+        }
+
+        //-----------------------------------------------------------------------------------------------
+        // Mutations
+        //-----------------------------------------------------------------------------------------------
+
+        /**
+         * Activate the unique filter of type 'timeRange' with provided 'options' fieldName, rangeId,
+         * and optional comparisonRangeId.
+         *
+         * @param {string} fieldName
+         * @param {string} rangeId
+         * @param {string} [comparisonRangeId]
+         */
+        activateTimeRange(fieldName, rangeId, comparisonRangeId) {
+            const filter = Object.values(this.state.filters).find(f => f.type === 'timeRange');
+            const activityDetail = { fieldName, rangeId };
+            if (comparisonRangeId) {
+                activityDetail.comparisonRangeId = comparisonRangeId;
+            }
+            const activity = this.state.query.find(queryElem => queryElem.filterId === filter.id);
+            if (activity) {
+                Object.assign(activity, activityDetail);
+                if (!comparisonRangeId) {
+                    delete activity.comparisonRangeId;
+                }
+            } else {
+                this.state.query.push(Object.assign({ groupId: filter.groupId, filterId: filter.id }, activityDetail));
+            }
+        }
+
+        /**
+         * Remove all the items from query.
+         */
+        clearQuery() {
+            this.state.query = [];
+        }
+
+        /**
+         * Create a new filter of type 'favorite' and toggle it.
+         * It belongs to the unique group of favorites.
+         *
+         * @param {Object} preFilter
+         */
+        async createNewFavorite(preFilter) {
+            const preFavorite = await this._saveQuery(preFilter);
+            this.clearQuery();
+            const filter = Object.assign(preFavorite, {
+                groupId,
+                id: filterId,
+            });
+            this.state.filters[filterId] = filter;
+            this.state.query.push({ groupId, filterId });
+            groupId++;
+            filterId++;
+        }
+
+        /**
+         * @param {Object[]} filters
+         */
+        createNewFilters(prefilters) {
+            if (!prefilters.length) {
+                return [];
+            }
+            const newFilterIDS = [];
+            prefilters.forEach(preFilter => {
+                const filter = Object.assign(preFilter, {
+                    groupId,
+                    groupNumber,
+                    id: filterId,
+                    type: 'filter',
+                });
+                this.state.filters[filterId] = filter;
+                this.state.query.push({ groupId, filterId });
+                newFilterIDS.push(filterId);
+                filterId++;
+            });
+            groupId++;
+            groupNumber++;
+            return newFilterIDS;
+        }
+
+        /**
+         * @param {Object} field
+         */
+        createNewGroupBy(field) {
+            const groupBy = Object.values(this.state.filters).find(f => f.type === 'groupBy');
+            const filter = {
+                description: field.string || field.name,
+                fieldName: field.name,
+                fieldType: field.type,
+                groupId: groupBy ? groupBy.groupId : groupId++,
+                groupNumber,
+                id: filterId,
+                type: 'groupBy',
+            };
+            this.state.filters[filterId] = filter;
+            if (['date', 'datetime'].includes(field.type)) {
+                filter.hasOptions = true;
+                filter.defaultOptionId = DEFAULT_INTERVAL;
+                this.toggleFilterWithOptions(filterId);
             } else {
                 this.toggleFilter(filterId);
-                filter.currentOptionIds.add(optionId);
-                if (!selectedYears().length) {
-                    // Here we add 'this_year' as options if no option of type year is already selected.
-                    filter.currentOptionIds.add(defaultYearId(optionId));
-                }
             }
-        } else if (filter.type === 'groupBy') {
-            const combinationId = [filterId, optionId];
-            const initiaLength = group.activeFilterIds.length;
-            const index = group.activeFilterIds.findIndex(isEqualTo(combinationId));
-            if (index === -1) {
-                group.activeFilterIds.push(combinationId);
-                filter.currentOptionIds.add(optionId);
-                if (initiaLength === 0) {
-                    this.query.push(group.id);
-                }
+            groupNumber++;
+            filterId++;
+        }
+
+        /**
+         * Deactivate a group with provided groupId
+         *
+         * @param {number} groupId
+         */
+        deactivateGroup(groupId) {
+            this.state.query = this.state.query.filter(
+                queryElem => queryElem.groupId !== groupId
+            );
+        }
+
+        /**
+         * Delete a filter of type 'favorite' with given filterId server side and
+         * in control panel model. Of course the filter is also removed
+         * from the search query.
+         *
+         * @param {string} filterId
+         */
+        async deleteFavorite(filterId) {
+            const { serverSideId } = this.state.filters[filterId];
+            await this.env.dataManager.delete_filter(serverSideId);
+            const index = this.state.query.findIndex(queryElem => queryElem.filterId === filterId);
+            delete this.state.filters[filterId];
+            if (index >= 0) {
+                this.state.query.splice(index, 1);
+            }
+        }
+
+        /**
+         * Activate a filter of type 'field' with given 'autocompleteValues' value and label
+         * @todo
+         */
+        addAutoCompletionValues({ filterId, label, value, operator }) {
+            const activity = this.state.query.some(queryElem =>
+                queryElem.filterId === filterId &&
+                queryElem.value === value &&
+                queryElem.operator === operator
+            );
+            if (!activity) {
+                const { groupId } = this.state.filters[filterId];
+                this.state.query.push({ filterId, groupId, label, value, operator });
+            }
+        }
+
+        /**
+         * This function won't do anything: its purpose is to call the dispatch
+         * method to trigger a 'search' event + reload the components.
+         */
+        search() { }
+
+        /**
+         * Activate or deactivate a filter from the query.
+         * @param {string} filterId
+         */
+        toggleFilter(filterId) {
+            const index = this.state.query.findIndex(queryElem => queryElem.filterId === filterId);
+            if (index >= 0) {
+                this.state.query.splice(index, 1);
             } else {
-                group.activeFilterIds.splice(index, 1);
-                filter.currentOptionIds.delete(optionId);
-                if (initiaLength === 1) {
-                    this.query.splice(this.query.indexOf(group.id), 1);
+                const { groupId, type } = this.state.filters[filterId];
+                if (type === 'favorite') {
+                    this.state.query = [];
                 }
+                this.state.query.push({ groupId, filterId });
             }
         }
-    },
 
-    //--------------------------------------------------------------------------
-    // Private
-    //--------------------------------------------------------------------------
+        /**
+         * Used to toggle a given filter(Id) that has options with a given option(Id).
+         * @param {string} filterId
+         * @param {string} [optionId]
+         */
+        toggleFilterWithOptions(filterId, optionId) {
+            const filter = this.state.filters[filterId];
+            optionId = optionId || filter.defaultOptionId;
 
-    /**
-     * Activate all filters (but favorites) with key isDefault=true
-     *
-     * @private
-     */
-    _activateDefaultFilters: function () {
-        Object.values(this.filters)
-            .filter(f => f.isDefault && f.type !== 'favorite')
-            .sort((f1, f2) => (f1.defaultRank || 100) - (f2.defaultRank || 100))
-            .forEach(f => {
-                if (f.hasOptions) {
-                    this.toggleFilterWithOptions(f.id);
-                } else {
-                    this.toggleFilter(f.id);
-                }
+            const noYearSelected = (filterId) => !this.state.query.some(queryElem => {
+                return queryElem.filterId === filterId && YEAR_OPTIONS[queryElem.optionId];
             });
-    },
-    /**
-     * If defaultTimeRanges param is provided, activate the filter of type
-     * 'timeRange' it determines with the correct options.
-     *
-     * @private
-     * @param {Object} [defaultTimeRanges]
-     * @param {string} [defaultTimeRanges.field], field of type 'date' or 'datetime'
-     * @param {string} [defaultTimeRanges.range], to choose among the following:
-     *  'last_7_days', 'last_30_days', 'last_365_days', 'today', 'this_week',
-     *  'this_month', 'this_quarter', 'this_year', 'yesterday', 'last_week',
-     *  'last_month', 'last_quarter', 'last_year'
-     * @param {'previous_period'|'previous_year'} [defaultTimeRanges.comparisonRange]
-     */
-    _activateDefaultTimeRanges: function (defaultTimeRanges) {
-        if (defaultTimeRanges) {
-            var filter = _.find(this.filters, function (filter) {
-                return filter.type === 'timeRange' && filter.fieldName === defaultTimeRanges.field;
-            });
-            if (filter) {
-                this.activateTimeRange(
-                    filter.id,
-                    defaultTimeRanges.range,
-                    defaultTimeRanges.comparisonRange
-                );
-            }
-        }
-    },
-    /**
-     * Create a new filter of type 'favorite' and toggle it.
-     * It belongs to the unique group of favorites.
-     *
-     * @private
-     * @param {Object} favorite
-     */
-    _addNewFavorite: function (favorite) {
-        var id = _.uniqueId('__filter__');
-        favorite.id = id;
-        favorite.groupId = this._getGroupIdOfType('favorite');
-        this.filters[id] = favorite;
-        this.toggleFilter(favorite.id);
-    },
-    /**
-     * Computes the string representation of the current domain associated to a date filter
-     * starting from its currentOptionIds.
-     *
-     * @param {Object} filter
-     * @returns {string}
-     */
-    _computeDateFilterDomain: function (filter) {
-        const domains = [];
-        const p = _.partition([...filter.currentOptionIds], optionId =>
-            OPTION_GENERATORS.find(o => o.optionId === optionId).groupId === 1);
-        const yearIds = p[1];
-        const otherOptionIds = p[0];
-        // the following case corresponds to years selected only
-        if (otherOptionIds.length === 0) {
-            yearIds.forEach(yearId => {
-                const d = filter.basicDomains[yearId];
-                domains.push(d.domain);
-            });
-        } else {
-            otherOptionIds.forEach(optionId => {
-                yearIds.forEach(yearId => {
-                    const d = filter.basicDomains[yearId + '__' + optionId];
-                    domains.push(d.domain);
-                });
-            });
-        }
-        return pyUtils.assembleDomains(domains, 'OR');
-    },
-    /**
-     * Add a new empty group to this.groups of a specified type.
-     *
-     * @private
-     * @param {string} type
-     */
-    _createEmptyGroup: function (type) {
-        var id = _.uniqueId('__group__');
-        this.groups[id] = {
-            id: id,
-            type: type,
-            activeFilterIds: [],
-        };
-    },
-    /**
-     * Using a list of 'prefilters', create a new group in this.groups and a new
-     * filter for each prefilter. The new filters are put in the new group.
-     *
-     * @private
-     * @param {Object[]} group, list of 'prefilters'
-     */
-    _createGroupOfFilters: function (group) {
-        var self= this;
-        var type;
-        var groupId = _.uniqueId('__group__');
-        group.forEach(function (filter) {
-            var id = _.uniqueId('__filter__');
-            filter.id = id;
-            filter.groupId = groupId;
-            type = filter.type;
-            self.filters[id] = filter;
-        });
-        this.groups[groupId] = {
-            id: groupId,
-            type: type,
-            activeFilterIds: [],
-        };
-    },
-    /**
-     * Add a group of type 'timeRange' in this.groups and generate a filter
-     * of the same type for each suitable field in this.fields. The new filters
-     * are put in the new group.
-     *
-     * @private
-     */
-    _createGroupOfTimeRanges: function () {
-        var self = this;
-        var timeRanges = [];
-        Object.keys(this.fields).forEach(function (fieldName) {
-            var field = self.fields[fieldName];
-            var fieldType = field.type;
-            if (_.contains(['date', 'datetime'], fieldType) && field.sortable) {
-                timeRanges.push({
-                    type: 'timeRange',
-                    description: field.string,
-                    fieldName : fieldName,
-                    fieldType: fieldType,
-                    timeRangeId: false,
-                    comparisonTimeRangeId: false,
-                    defaultTimeRangeId: DEFAULT_TIMERANGE,
-                    timeRangeOptions: TIME_RANGE_OPTIONS,
-                    comparisonTimeRangeOptions: COMPARISON_TIME_RANGE_OPTIONS
-                });
-            }
-        });
-        if (timeRanges.length) {
-            this._createGroupOfFilters(timeRanges);
-        } else {
-            // create empty timeRange group
-            this._createEmptyGroup('timeRange');
-        }
-    },
-    /**
-     * Create a new groupNumber not already used elsewhere.
-     * Group numbers are used to separate graphically groups of items  in the
-     * search menus (filter menu, groupBy menu,...).
-     *
-     * @private
-     * @returns {number} groupNumber
-     */
-    _generateNewGroupNumber: function () {
-        var self = this;
-        var groupNumber = 1 + Object.keys(this.filters).reduce(
-            function (max, filterId) {
-                var filter = self.filters[filterId];
-                if (filter.groupNumber) {
-                    max = Math.max(filter.groupNumber, max);
-                }
-                return max;
-            },
-            1
-        );
-        return groupNumber;
-    },
-    /**
-     * @private
-     * @param {Object} filter
-     * @returns {string} domain
-     */
-    _getAutoCompletionFilterDomain: function (filter) {
-        var domain = "";
-        var field = this.fields[filter.attrs.name];
-        // TODO: should not do that, the domain logic should be put somewhere else
-        var Obj = searchBarAutocompleteRegistry.getAny([filter.attrs.widget, field.type]);
-        if (Obj) {
-            var obj = new (Obj) (this, filter, field, this.actionContext);
-            domain = obj.getDomain(filter.autoCompleteValues);
-        }
-        return domain;
-    },
-    /**
-     * Return the string representation of a domain created by combining
-     * appropriately (with an 'AND') the domains coming from the active groups.
-     *
-     * @private
-     * @returns {string} the string representation of a domain
-     */
-    _getDomain: function () {
-        var self = this;
-        var domains = this.query.map(function (groupId) {
-            var group = self.groups[groupId];
-            return self._getGroupDomain(group);
-        });
-        return pyUtils.assembleDomains(domains, 'AND');
-    },
-    /**
-     * Return an array containing 'facets' used to create the content of the search bar.
-     *
-     * @returns {Object}
-     */
-    _getFacets: function () {
-        var self = this;
-        // resolve active filters for facets
-        return this.query.map(groupId => {
-            var group = self.groups[groupId];
-            var facet = _.extend({}, group);
-            if (group.type === 'groupBy') {
-                facet.filters = group.activeFilterIds.map(id => {
-                    let filter = _.extend({}, self.filters[id[0]]);
-                    if (filter.hasOptions) {
-                        filter.optionId = id[1];
-                    }
-                    return filter;
-                });
-            } else {
-                facet.filters = _.compact(group.activeFilterIds.map(id => self.filters[id[0]]));
-            }
-            return facet;
-        });
-    },
-    /**
-     * Return the context of the provided filter.
-     *
-     * @private
-     * @param {Object} filter
-     * @returns {Object} context
-     */
-    _getFilterContext: function (filter) {
-        var context = filter.context || {};
 
-        // for <field> nodes, a dynamic context (like context="{'field1': self}")
-        // should set {'field1': [value1, value2]} in the context
-        if (filter.type === 'field' && filter.attrs.context) {
-            context = pyUtils.eval('context', filter.attrs.context, {
-                self: _.map(filter.autoCompleteValues, function (autoCompleteValue) {
-                    return autoCompleteValue.value;
-                }),
-            });
-        }
-        // the following code aims to restore this:
-        // https://github.com/odoo/odoo/blob/12.0/addons/web/static/src/js/views/search/search_inputs.js#L498
-        // this is required for the helpdesk tour to pass
-        // this seems weird to only do that for m2o fields, but a test fails if
-        // we do it for other fields (my guess being that the test should simply
-        // be adapted)
-        if (filter.type === 'field' && filter.isDefault) {
-            if (this.fields[filter.attrs.name].type === 'many2one') {
-                var value = filter.defaultValue;
-                // the following if required to make the main_flow_tour pass (see
-                // https://github.com/odoo/odoo/blob/12.0/addons/web/static/src/js/views/search/search_inputs.js#L461)
-                if (_.isArray(filter.defaultValue)) {
-                    value = filter.defaultValue[0];
-                }
-                context['default_' + filter.attrs.name] = value;
-            }
-        }
-        return context;
-    },
-    /**
-     * Compute (if possible) the domain of the provided filter.
-     *
-     * @private
-     * @param {Object} filter
-     * @returns {string|undefined} domain, string representation of a domain
-     */
-    _getFilterDomain: function (filter) {
-        let domain;
-        if (filter.type === 'filter') {
-            domain = filter.domain;
-            if (filter.hasOptions) {
-                domain = this._computeDateFilterDomain(filter);
-            }
-        } else if (filter.type === 'favorite') {
-            domain = filter.domain;
-        } else if (filter.type === 'field') {
-            domain = filter.domain;
-        }
-        return domain;
-    },
-    /**
-     * Compute the groupBys (if possible) of the provided filter.
-     *
-     * @private
-     * @param {Array} filterId
-     * @returns {string[]|undefined} groupBys
-     */
-    _getFilterGroupBys: function (filterId) {
-        var groupBys;
-        var filter = this.filters[filterId[0]];
-        if (filter.type === 'groupBy') {
-            var optionId = filterId[1];
-            var groupBy = filter.fieldName;
-            if (optionId) {
-                groupBy = groupBy + ':' + optionId;
-            }
-            groupBys = [groupBy];
-        }
-        if (filter.type === 'favorite') {
-            groupBys = filter.groupBys;
-        }
-        return groupBys;
-    },
-    /**
-     * Return the concatenation of groupBys comming from the active filters.
-     * The array this.query encoding the order in which the groups have been
-     * activated, the results respect the appropriate logic: the groupBys
-     * coming from an active favorite (if any) come first, then come the
-     * groupBys comming from the active filters of type 'groupBy'.
-     *
-     * @private
-     * @returns {string[]} groupBys
-     */
-    _getGroupBy: function () {
-        var self = this;
-        var groupBys = this.query.reduce(
-            function (acc, groupId) {
-                var group = self.groups[groupId];
-                return acc.concat(self._getGroupGroupBys(group));
-            },
-            []
-        );
-        return groupBys;
-    },
-    /**
-     * Return the list of the contexts of the filters acitve in the given
-     * group.
-     *
-     * @private
-     * @param {Object} group
-     * @returns {Object[]}
-     */
-    _getGroupContexts: function (group) {
-        var self = this;
-        var contexts = group.activeFilterIds.map(function (filterId) {
-            var filter = self.filters[filterId[0]];
-            return self._getFilterContext(filter);
-        });
-        return _.compact(contexts);
-    },
-    /**
-     * Return the string representation of a domain created by combining
-     * appropriately (with an 'OR') the domains coming from the filters
-     * active in the given group.
-     *
-     * @private
-     * @param {Object} group
-     * @returns {string} string representation of a domain
-     */
-    _getGroupDomain: function (group) {
-        var self = this;
-        var domains = group.activeFilterIds.map(function (filterId) {
-            var filter = self.filters[filterId[0]];
-            return self._getFilterDomain(filter);
-        });
-        return pyUtils.assembleDomains(_.compact(domains), 'OR');
-    },
-    /**
-     * Return the groupBys coming form the filters active in the given group.
-     *
-     * @private
-     * @param {Object} group
-     * @returns {string[]}
-     */
-    _getGroupGroupBys: function (group) {
-        var self = this;
-        var groupBys = group.activeFilterIds.reduce(
-            function (acc, filterId) {
-                acc = acc.concat(self._getFilterGroupBys(filterId));
-                return acc;
-            },
-            []
-        );
-        return _.compact(groupBys);
-    },
-    /**
-     * Return the id of the group with the provided type.
-     *
-     * @private
-     * @param {'groupBy'|'favorite'|'timeRange'} type
-     * @returns {string}
-     */
-    _getGroupIdOfType: function (type) {
-        var self = this;
-        return _.find(Object.keys(this.groups), function (groupId) {
-            var group = self.groups[groupId];
-            return group.type === type;
-        });
-    },
-    /**
-     * Used to get the key orderedBy of a favorite.
-     *
-     * @private
-     * @returns {Object[]|undefined} orderedBy
-     */
-    _getOrderedBy: function () {
-        var orderedBy;
-        var id = this._getGroupIdOfType('favorite');
-        if (this.query.indexOf(id) !== -1) {
-            // if we are here, this means that the group of favorite is
-            // active and activeFilterIds is a list of length one.
-            var group = this.groups[id];
-            var activeFavoriteId = group.activeFilterIds[0][0];
-            var favorite = this.filters[activeFavoriteId];
-            if (favorite.orderedBy && favorite.orderedBy.length) {
-                orderedBy = favorite.orderedBy;
-            }
-        }
-        return orderedBy;
-    },
-    /**
-     * Return the list of the contexts of active filters.
-     *
-     * @private
-     * @returns {Object[]}
-     */
-    _getQueryContext: function () {
-        var self = this;
-        var contexts = this.query.reduce(
-            function (acc, groupId) {
-                var group = self.groups[groupId];
-                acc = acc.concat(self._getGroupContexts(group));
-                return acc;
-            },
-            []
-        );
-        return _.compact(contexts);
-    },
-    /**
-     * Return an empty object or an object with a key timeRangeMenuData
-     * containing info on time ranges and their descriptions if a filter of type
-     * 'timeRange' is activated (only one can be).
-     * The key timeRange and comparisonTimeRange will be string or array
-     * representation of domains according to the value of evaluation:
-     * array if evaluation is true, string if false.
-     *
-     * @private
-     * @param {boolean} [evaluation=false]
-     * @returns {Object}
-     */
-    _getTimeRangeMenuData: function (evaluation) {
-        var context = {};
-        // groupOfTimeRanges can be undefined in case with withSearchBar is false
-        var groupOfTimeRanges = this.groups[this._getGroupIdOfType('timeRange')];
-        if (groupOfTimeRanges && groupOfTimeRanges.activeFilterIds.length) {
-            var filter = this.filters[groupOfTimeRanges.activeFilterIds[0][0]];
-
-            var comparisonTimeRange = "[]";
-            var comparisonTimeRangeDescription;
-
-            var timeRange = Domain.prototype.constructDomain(
-                    filter.fieldName,
-                    filter.timeRangeId,
-                    filter.fieldType
-                );
-            var timeRangeDescription = _.find(filter.timeRangeOptions, function (option) {
-                return option.optionId === filter.timeRangeId;
-            }).description.toString();
-            if (filter.comparisonTimeRangeId) {
-                comparisonTimeRange = Domain.prototype.constructDomain(
-                    filter.fieldName,
-                    filter.timeRangeId,
-                    filter.fieldType,
-                    filter.comparisonTimeRangeId
-                );
-                comparisonTimeRangeDescription = _.find(filter.comparisonTimeRangeOptions, function (comparisonOption) {
-                    return comparisonOption.optionId === filter.comparisonTimeRangeId;
-                }).description.toString();
-            }
-            if (evaluation) {
-                timeRange = Domain.prototype.stringToArray(timeRange);
-                comparisonTimeRange = Domain.prototype.stringToArray(comparisonTimeRange);
-            }
-            context = {
-                timeRangeMenuData: {
-                    comparisonField: filter.fieldName,
-                    timeRange: timeRange,
-                    timeRangeDescription: timeRangeDescription,
-                    comparisonTimeRange: comparisonTimeRange,
-                    comparisonTimeRangeDescription: comparisonTimeRangeDescription,
-                }
+            const defaultYearId = (optionId) => {
+                const year = this.optionGenerators.find(o => o.optionId === optionId).defaultYear;
+                return this.optionGenerators.find(o => o.setParam.year === year).optionId;
             };
-        }
-        return context;
-    },
-    /**
-     * Load custom filters in db, then create a group of type 'favorite' and a
-     * filter of type 'favorite' for each loaded custom filters.
-     * The new filters are put in the new group.
-     * Finally, if there exists (a necessarily unique) default favorite, it is activated
-     * if this.activateDefaultFavorite is true.
-     *
-     * @private
-     * @returns {Promise}
-     */
-    _loadFavorites: function () {
-        var self = this;
-        var def = this.loadFilters(this.modelName,this.actionId).then(function (favorites) {
-            if (favorites.length) {
-                favorites = favorites.map(function (favorite) {
-                    var userId = favorite.user_id ? favorite.user_id[0] : false;
-                    var groupNumber = userId ? 1 : 2;
-                    var context = pyUtils.eval('context', favorite.context, session.user_context);
-                    var groupBys = [];
-                    if (context.group_by) {
-                        groupBys = context.group_by;
-                        delete context.group_by;
-                    }
-                    var sort = JSON.parse(favorite.sort);
-                    var orderedBy = sort.map(function (order) {
-                        var fieldName;
-                        var asc;
-                        var sqlNotation = order.split(' ');
-                        if (sqlNotation.length > 1) {
-                            // regex: \fieldName (asc|desc)?\
-                            fieldName = sqlNotation[0];
-                            asc = sqlNotation[1] === 'asc';
-                        } else {
-                            // legacy notation -- regex: \-?fieldName\
-                            fieldName = order[0] === '-' ? order.slice(1) : order;
-                            asc = order[0] === '-' ? false : true;
-                        }
-                        return {
-                            name: fieldName,
-                            asc: asc,
-                        };
-                    });
-                    return {
-                        type: 'favorite',
-                        description: favorite.name,
-                        isRemovable: true,
-                        groupNumber: groupNumber,
-                        isDefault: favorite.is_default,
-                        domain: favorite.domain,
-                        groupBys: groupBys,
-                        // we want to keep strings as long as possible
-                        context: favorite.context,
-                        orderedBy: orderedBy,
-                        userId: userId,
-                        serverSideId: favorite.id,
-                    };
-                });
-                self._createGroupOfFilters(favorites);
-                if (self.activateDefaultFavorite) {
-                    var defaultFavorite = _.find(self.filters, function (filter) {
-                        return filter.type === 'favorite' && filter.isDefault;
-                    });
-                    if (defaultFavorite) {
-                        self.toggleFilter(defaultFavorite.id);
-                    }
+
+            const index = this.state.query.findIndex(queryElem => queryElem.filterId === filterId && queryElem.optionId === optionId);
+            if (index >= 0) {
+                this.state.query.splice(index, 1);
+                if (filter.type === 'filter' && noYearSelected(filterId)) {
+                    // This is the case where optionId was the last option
+                    // of type 'year' to be there before being removed above.
+                    // Since other options of type 'month' or 'quarter' do
+                    // not make sense without a year we deactivate all options.
+                    this.state.query = this.state.query.filter(queryElem => queryElem.filterId !== filterId);
                 }
             } else {
-                self._createEmptyGroup('favorite');
+                this.state.query.push({ groupId: filter.groupId, filterId, optionId });
+                if (filter.type === 'filter' && noYearSelected(filterId)) {
+                    // Here we add 'this_year' as options if no option of type year is already selected.
+                    this.state.query.push({ groupId: filter.groupId, filterId, optionId: defaultYearId(optionId) });
+                }
             }
-        });
-        return def;
-    },
-    /**
-     * Load search defaults and set the `domain` key on filter (of type `field`).
-     * Some search defaults need to fetch data (like m2o for example) so this
-     * is asynchronous.
-     *
-     * @private
-     * @returns {Promise[]}
-     */
-    _loadSearchDefaults: function () {
-        var self = this;
-        var defs = [];
-        _.each(this.filters, function (filter) {
-            if (filter.type === 'field' && filter.isDefault) {
-                var def;
-                var field = self.fields[filter.attrs.name];
-                var value = filter.defaultValue;
-                if (field.type === 'many2one') {
+        }
+
+        /**
+         * @todo the way it is done could be improved, but the actual state of the
+         * searchView doesn't allow to do much better.
+         *
+         * Update the domain of the search view by adding and/or removing filters.
+         * @param {Object[]} newFilters list of filters to add, described by
+         *   objects with keys domain (the domain as an Array), description (the text
+         *   to display in the facet) and type with value 'filter'.
+         * @param {string[]} filtersToRemove list of filter ids to remove
+         *   (previously added ones)
+         * @returns {string[]} list of added filters (to pass as filtersToRemove
+         *   for a further call to this function)
+         */
+        updateFilters(newFilters, filtersToRemove) {
+            const newFilterIDS = this.createNewFilters(newFilters);
+            this.state.query = this.state.query.filter(queryElem => !filtersToRemove.includes(queryElem.filterId));
+            return newFilterIDS;
+        }
+
+        //-----------------------------------------------------------------------------------------------
+        // Getters
+        //-----------------------------------------------------------------------------------------------
+
+        getFacets() {
+            const groups = this._getGroups();
+            const facets = groups.reduce(
+                (facets, group) => {
+                    const { activities, type, id } = group;
+                    const filters = activities.map(
+                        ({ filter, filterActivities }) => this._enrichFilterCopy(filter, filterActivities)
+                    );
+                    const facet = { group: { type, id }, filters };
+                    facets.push(facet);
+                    return facets;
+                },
+                []
+            );
+            return facets;
+        }
+
+        /**
+         * Return an array containing enriched copies of the filters of the provided type.
+         * @param {string} type
+         * @returns {Object[]}
+         */
+        getFiltersOfType(type) {
+            const fs = Object.values(this.state.filters).reduce(
+                (filters, filter) => {
+                    if (filter.type === type && !filter.invisible) {
+                        const activities = this.state.query.filter(queryElem => queryElem.filterId === filter.id);
+                        const f = this._enrichFilterCopy(filter, activities);
+                        filters.push(f);
+                    }
+                    return filters;
+                },
+                []
+            );
+            if (type === 'favorite') {
+                fs.sort((f1, f2) => f1.groupNumber - f2.groupNumber);
+            }
+            return fs;
+        }
+
+        //-----------------------------------------------------------------------------------------------
+        // Public
+        //-----------------------------------------------------------------------------------------------
+
+        async dispatch() {
+            const result = await super.dispatch(...arguments);
+            this.__notifyComponents();
+            this.trigger('search', this.getQuery());
+            return result;
+        }
+
+        /**
+         * Return the state of the control panel model (the filters and the
+         * current query). This state can then be used in an other control panel
+         * model (with same key modelName). See importedState
+         * @returns {Object}
+         */
+        exportState() {
+            return JSON.parse(JSON.stringify(this.state));
+        }
+
+        /**
+         * @returns {Object} An object called search query with keys domain, groupBy,
+         *      context, and optionally orderedBy and timeRanges.
+         */
+        getQuery() {
+            const requireEvaluation = true;
+            const groups = this._getGroups();
+            const query = {
+                context: this._getContext(groups),
+                domain: this._getDomain(groups, requireEvaluation),
+                groupBy: this._getGroupBy(groups),
+                orderedBy: this._getOrderedBy(groups)
+            };
+            if (this.searchMenuTypes.includes('timeRange')) {
+                const timeRanges = this._getTimeRanges(requireEvaluation);
+                query.timeRanges = timeRanges || {};
+            }
+            return query;
+        }
+
+        /**
+         * @param {Object} state
+         */
+        importState(state) {
+            Object.assign(this.state, state);
+        }
+
+        //-----------------------------------------------------------------------------------------------
+        // Private
+        //-----------------------------------------------------------------------------------------------
+
+        /**
+         * @private
+         */
+        _activateDefaultTimeRanges() {
+            const { field, range, comparisonRange } = this.actionContext.time_ranges;
+            this.activateTimeRange(field, range, comparisonRange);
+        }
+
+        /**
+         * @private
+         */
+        _activateFilters() {
+            const defaultFilters = [];
+            const defaultFavorites = [];
+            for (const fId in this.state.filters) {
+                if (this.state.filters[fId].isDefault) {
+                    if (this.state.filters[fId].type === 'favorite') {
+                        defaultFavorites.push(this.state.filters[fId]);
+                    } else {
+                        defaultFilters.push(this.state.filters[fId]);
+                    }
+                }
+            }
+            if (this.activateDefaultFavorite && defaultFavorites.length) {
+                // Activate default favorite
+                this.toggleFilter(defaultFavorites[0].id);
+            } else {
+                // Activate default filters
+                defaultFilters
+                    .sort((f1, f2) => (f1.defaultRank || 100) - (f2.defaultRank || 100))
+                    .forEach(f => {
+                        if (f.hasOptions) {
+                            this.toggleFilterWithOptions(f.id);
+                        } else if (f.type === 'field') {
+                            let { operator, label, value } = f.defaultAutocompleteValue;
+                            this.addAutoCompletionValues({ filterId: f.id, value, operator, label });
+                        } else {
+                            this.toggleFilter(f.id);
+                        }
+                    });
+            }
+            if (this.actionContext.time_ranges) {
+                this._activateDefaultTimeRanges();
+            }
+        }
+
+        /**
+         * @private
+         */
+        _addFilters() {
+            this._createGroupOfFiltersFromArch();
+            this._createGroupOfDynamicFilters();
+            this._createGroupOfFavorites();
+            this._createGroupOfTimeRanges();
+        }
+
+        _cleanArch(arch) {
+            if (arch.children) {
+                arch.children = arch.children.reduce(
+                    (children, child) => {
+                        if (typeof child === 'string') {
+                            return children;
+                        }
+                        this._cleanArch(child);
+                        return [...children, child];
+                    },
+                    []
+                );
+            }
+            return arch;
+        }
+
+        /**
+         * @private
+         */
+        _createGroupOfDynamicFilters() {
+            const pregroup = this.dynamicFilters.map(filter => {
+                return {
+                    description: filter.description,
+                    domain: JSON.stringify(filter.domain),
+                    isDefault: true,
+                    type: 'filter',
+                };
+            });
+            this._createGroupOfFilters(pregroup);
+        }
+
+        /**
+         * @private
+         */
+        _createGroupOfFavorites() {
+            this.favoriteFilters.forEach(irFilter => {
+                const favorite = this._irFilterToFavorite(irFilter);
+                this._createGroupOfFilters([favorite]);
+            });
+        }
+
+        /**
+         * Using a list (a 'pregroup') of 'prefilters', create new filters in
+         * state.filters for each prefilter. The new filters
+         * belong to a same new group.
+         * @param {Object[]} pregroup, list of 'prefilters'
+         * @param {string} type
+         */
+        _createGroupOfFilters(pregroup) {
+            pregroup.forEach(preFilter => {
+                const filter = Object.assign(preFilter, { groupId, id: filterId });
+                this.state.filters[filterId] = filter;
+                filterId++;
+            });
+            groupId++;
+        }
+
+        /**
+         * Parse the arch of a 'search' view and create corresponding filters and groups.
+         *
+         * A searchview arch may contain a 'searchpanel' node, but this isn't
+         * the concern of the ControlPanel (the SearchPanel will handle it).
+         * Ideally, this code should whitelist the tags to take into account
+         * instead of blacklisting the others, but with the current (messy)
+         * structure of a searchview arch, it's way simpler to do it that way.
+         * @private
+         */
+        _createGroupOfFiltersFromArch() {
+
+            const children = this.parsedArch.children.filter(child => child.tag !== 'searchpanel');
+            const preFilters = children.reduce(
+                (preFilters, child) => {
+                    if (child.tag === 'group') {
+                        return [...preFilters, ...child.children.map(c => this._evalArchChild(c))];
+                    } else {
+                        return [...preFilters, this._evalArchChild(child)];
+                    }
+                },
+                []
+            );
+            preFilters.push({ tag: 'separator' });
+
+            // create groups and filters
+            let currentTag;
+            let currentGroup = [];
+            let pregroupOfGroupBys = [];
+
+            preFilters.forEach(preFilter => {
+                if (preFilter.tag !== currentTag || ['separator', 'field'].includes(preFilter.tag)) {
+                    if (currentGroup.length) {
+                        if (currentTag === 'groupBy') {
+                            pregroupOfGroupBys = [...pregroupOfGroupBys, ...currentGroup];
+                        } else {
+                            this._createGroupOfFilters(currentGroup);
+                        }
+                    }
+                    currentTag = preFilter.tag;
+                    currentGroup = [];
+                    groupNumber++;
+                }
+                if (preFilter.tag !== 'separator') {
+                    const filter = {
+                        type: preFilter.tag,
+                        // we need to codify here what we want to keep from attrs
+                        // and how, for now I put everything.
+                        // In some sence, some filter are active (totally determined, given)
+                        // and others are passive (require input(s) to become determined)
+                        // What is the right place to process the attrs?
+                    };
+                    if (filter.type === 'filter' || filter.type === 'groupBy') {
+                        filter.groupNumber = groupNumber;
+                    }
+                    this._extractAttributes(filter, preFilter.attrs);
+                    currentGroup.push(filter);
+                }
+            });
+
+            if (pregroupOfGroupBys.length) {
+                this._createGroupOfFilters(pregroupOfGroupBys);
+            }
+        }
+
+        _createGroupOfTimeRanges() {
+            const pregroup = [{ type: 'timeRange' }];
+            this._createGroupOfFilters(pregroup);
+        }
+
+        _enrichFilterCopy(filter, activities) {
+            const isActive = Boolean(activities.length);
+            const f = Object.assign({ isActive }, filter);
+
+            function _enrichOptions(options) {
+                return options.map(o => {
+                    const { description, optionId, groupNumber } = o;
+                    const isActive = activities.some(a => a.optionId === optionId);
+                    return { description, optionId, groupNumber, isActive };
+                });
+            }
+
+            switch (f.type) {
+                case 'filter':
+                    if (f.hasOptions) {
+                        f.options = _enrichOptions(this.optionGenerators);
+                    }
+                    break;
+                case 'groupBy':
+                    if (f.hasOptions) {
+                        f.options = _enrichOptions(this.intervalOptions);
+                    }
+                    break;
+                case 'field':
+                    f.autoCompleteValues = activities.map(({ label, value, operator }) => {
+                        return { label, value, operator };
+                    });
+                    break;
+                case 'timeRange':
+                    if (activities.length) {
+                        const { fieldName, rangeId, comparisonRangeId } = activities[0];
+                        Object.assign(f, this._extractTimeRange({ fieldName, rangeId, comparisonRangeId }));
+                    }
+                    break;
+            }
+
+            return f;
+        }
+
+        _evalArchChild(child) {
+            if (child.attrs.context) {
+                try {
+                    const context = pyUtils.eval('context', child.attrs.context);
+                    child.attrs.context = context;
+                    if (context.group_by) {
+                        // let us extract basic data since we just evaluated context
+                        // and use a correct tag!
+                        child.attrs.fieldName = context.group_by.split(':')[0];
+                        child.attrs.defaultInterval = context.group_by.split(':')[1];
+                        child.tag = 'groupBy';
+                    }
+                } catch (e) { }
+            }
+            if (this.searchDefaults.hasOwnProperty(child.attrs.name)) {
+                child.attrs.isDefault = true;
+                let value = this.searchDefaults[child.attrs.name];
+                if (child.tag === 'field') {
                     if (value instanceof Array) {
-                        // M2O search fields do not currently handle multiple default values
-                        // there are many cases of {search_default_$m2ofield: [id]}, need
-                        // to handle this as if it were a single value.
                         value = value[0];
                     }
-                    def = self._rpc({
-                        model: field.relation,
-                        method: 'name_get',
-                        args: [value],
-                        context: self.actionContext,
-                    }).then(function (result) {
-                        var autocompleteValue = {
-                            label: result[0][1],
-                            value: value,
-                        };
-                        filter.autoCompleteValues.push(autocompleteValue);
-                        filter.domain = self._getAutoCompletionFilterDomain(filter);
-                    });
-                } else {
-                    var autocompleteValue;
-                    if (field.type === 'selection') {
-                        var match = _.find(field.selection, function (sel) {
-                            return sel[0] === value;
-                        });
-                        autocompleteValue = {
-                            label: match[1],
-                            value: match[0],
-                        };
-                    } else {
-                        autocompleteValue = {
-                            label: String(value),
-                            value: value,
-                        };
-                    }
-                    filter.autoCompleteValues.push(autocompleteValue);
-                    filter.domain = self._getAutoCompletionFilterDomain(filter);
-                }
-                if (def) {
-                    defs.push(def);
+                    child.attrs.defaultAutocompleteValue = { value, operator: '=' };
+                } else if (child.tag === 'groupBy') {
+                    child.attrs.defaultRank = typeof value === 'number' ? value : 100;
                 }
             }
-        });
-        return defs;
-    },
-    /**
-     * Compute the search Query and save it as an ir.filter in db.
-     * No evaluation of domains is done in order to keep them dynamic.
-     * If the operatio is successful, a new filter of type 'favorite' is
-     * created and activated.
-     *
-     * @private
-     * @param {Object} favorite
-     * @returns {Promise}
-     */
-    _saveQuery: function (favorite) {
-        var self = this;
-        var userContext = session.user_context;
-        var controllerQueryParams;
-        this.trigger_up('get_controller_query_params', {
-            callback: function (state) {
-                controllerQueryParams = state;
-            },
-        });
-        var queryContext = this._getQueryContext();
-        var timeRangeMenuInfo = this._getTimeRangeMenuData(false);
-        var context = pyUtils.eval(
-            'contexts',
-            [userContext, controllerQueryParams.context, timeRangeMenuInfo].concat(queryContext)
-        );
-        context = _.omit(context, Object.keys(userContext));
-        var groupBys = this._getGroupBy();
-        if (groupBys.length) {
-            context.group_by = groupBys;
+            return child;
         }
-        var domain = this._getDomain();
-        var userId = favorite.isShared ? false : session.uid;
-        var orderedBy = this._getOrderedBy() || [];
-        if (controllerQueryParams.orderedBy) {
-            orderedBy = controllerQueryParams.orderedBy;
+
+        /**
+         * @private
+         * @param {Object} filter
+         * @param {Object} attrs
+         */
+        _extractAttributes(filter, attrs) {
+            if (attrs.isDefault) {
+                filter.isDefault = attrs.isDefault;
+            }
+            filter.description = attrs.string || attrs.help || attrs.name || attrs.domain || 'Ω';
+            if (attrs.invisible) {
+                filter.invisible = true;
+            }
+            switch (filter.type) {
+                case 'filter':
+                    if (attrs.context) {
+                        filter.context = attrs.context;
+                    }
+                    if (attrs.date) {
+                        filter.hasOptions = true;
+                        filter.fieldName = attrs.date;
+                        filter.fieldType = this.fields[attrs.date].type;
+                        filter.defaultOptionId = attrs.default_period || DEFAULT_PERIOD;
+                        filter.basicDomains = this._getDateFilterBasicDomains(filter);
+                    } else {
+                        filter.domain = attrs.domain;
+                    }
+                    if (filter.isDefault) {
+                        filter.defaultRank = -5;
+                    }
+                    break;
+                case 'groupBy':
+                    filter.fieldName = attrs.fieldName;
+                    filter.fieldType = this.fields[attrs.fieldName].type;
+                    if (['date', 'datetime'].includes(filter.fieldType)) {
+                        filter.hasOptions = true;
+                        filter.defaultOptionId = attrs.defaultInterval || DEFAULT_INTERVAL;
+                    }
+                    if (filter.isDefault) {
+                        filter.defaultRank = attrs.defaultRank;
+                    }
+                    break;
+                case 'field':
+                    const field = this.fields[attrs.name];
+                    filter.fieldName = attrs.name;
+                    filter.fieldType = field.type;
+                    if (attrs.domain) {
+                        filter.domain = attrs.domain;
+                    }
+                    if (attrs.filter_domain) {
+                        filter.filterDomain = attrs.filter_domain;
+                    } else if (attrs.operator) {
+                        filter.operator = attrs.operator;
+                    }
+                    if (attrs.context) {
+                        filter.context = attrs.context;
+                    }
+                    if (filter.isDefault) {
+                        filter.defaultRank = -10;
+                        filter.defaultAutocompleteValue = attrs.defaultAutocompleteValue;
+                        this._prepareDefaultLabel(filter);
+                    }
+                    break;
+            }
+            if (filter.fieldName && !attrs.string) {
+                const { string } = this.fields[filter.fieldName];
+                filter.description = string;
+            }
         }
-        var sort = orderedBy.map(function (order) {
-                return order.name + ((order.asc === false) ? " desc" : "");
-        });
 
-        var irFilter = {
-            name: favorite.description,
-            context: context,
-            domain: domain,
-            is_default: favorite.isDefault,
-            user_id: userId,
-            model_id: this.modelName,
-            action_id: this.actionId,
-            sort: JSON.stringify(sort),
-        };
-        return this.createFilter(irFilter).then(function (serverSideId) {
-            // we don't want the groupBys to be located in the context in control panel model
-            delete context.group_by;
-            favorite.isRemovable = true;
-            favorite.groupNumber = userId ? 1 : 2;
-            favorite.context = context;
-            favorite.groupBys = groupBys;
-            favorite.domain = domain;
-            favorite.orderedBy = orderedBy;
-            // not sure keys are usefull
-            favorite.userId = userId;
-            favorite.serverSideId = serverSideId;
-            self._addNewFavorite(favorite);
-        });
-    },
-});
+        _prepareDefaultLabel(filter) {
+            const { fieldType, fieldName, defaultAutocompleteValue } = filter;
+            const { selection, context, relation } = this.fields[fieldName];
+            if (fieldType === 'selection') {
+                defaultAutocompleteValue.label = selection.find(
+                    ([val, _]) => val === defaultAutocompleteValue.value
+                )[1];
+            } else if (fieldType === 'many2one') {
+                const promise = this.env.services.rpc({
+                    args: [defaultAutocompleteValue.value],
+                    context: context,
+                    method: 'name_get',
+                    model: relation,
+                }).then(results => {
+                    defaultAutocompleteValue.label = results[0][1];
+                }).guardedCatch(() => {
+                    defaultAutocompleteValue.label = defaultAutocompleteValue.value;
+                });
+                this.labelPromisses.push(promise);
+            } else {
+                defaultAutocompleteValue.label = defaultAutocompleteValue.value;
+            }
+        }
 
-return ControlPanelModel;
+        /**
+         * @private
+         * @param {string} fieldName
+         * @param {number} rangeId
+         * @param {number} comparisonRangeId
+         */
+        _extractTimeRange({ fieldName, rangeId, comparisonRangeId }) {
+            const field = this.fields[fieldName];
+            const timeRange = {
+                fieldName,
+                fieldDescription: field.string || fieldName,
+                rangeId,
+                range: Domain.prototype.constructDomain(fieldName, rangeId, field.type),
+                rangeDescription: this.env._t(TIME_RANGE_OPTIONS[rangeId].description),
+            };
+            if (comparisonRangeId) {
+                timeRange.comparisonRangeId = comparisonRangeId;
+                timeRange.comparisonRange = Domain.prototype.constructDomain(fieldName, rangeId, field.type, comparisonRangeId);
+                timeRange.comparisonRangeDescription = this.env._t(COMPARISON_TIME_RANGE_OPTIONS[comparisonRangeId].description);
+            }
+            return timeRange;
+        }
 
+        /**
+         * Return the domain resulting from the combination of the auto-completion
+         * values of a field filter.
+         * @private
+         * @param {Object} filter
+         * @param {string} type field type
+         * @returns {string}
+         */
+        _getAutoCompletionFilterDomain(filter, filterActivities) {
+            // don't work yet!
+            const domains = filterActivities.map(({ label, value, operator }) => {
+                let domain;
+                if (filter.filterDomain) {
+                    domain = Domain.prototype.stringToArray(
+                        filter.filterDomain,
+                        {
+                            self: label,
+                            raw_value: value,
+                        }
+                    );
+                } else {
+                    // Create new domain
+                    domain = [[filter.fieldName, operator, value]];
+                }
+                return Domain.prototype.arrayToString(domain);
+            });
+            return pyUtils.assembleDomains(domains, 'OR');
+        }
+
+        /**
+         * @private
+         * @returns {Object}
+         */
+        _getContext(groups, withActiveContext = true) {
+            const types = ['filter', 'favorite', 'field'];
+            const contexts = groups.reduce(
+                (contexts, group) => {
+                    if (types.includes(group.type)) {
+                        contexts.push(...this._getGroupContexts(group));
+                    }
+                    return contexts;
+                },
+                []
+            );
+            if (withActiveContext) {
+                contexts.unshift(this.actionContext);
+            }
+            const evaluationContext = this.env.session.user_context;
+            try {
+                return pyUtils.eval('contexts', contexts, evaluationContext);
+            } catch (err) {
+                throw new Error(
+                    this.env._t("Failed to evaluate search context") + ":\n" +
+                    JSON.stringify(err)
+                );
+            }
+        }
+
+        /**
+         * Construct an object containing constious domains based on this.referenceMoment and
+         * the field associated with the provided date filter.
+         * @private
+         * @param {Object} filter
+         * @returns {Object}
+         */
+        _getDateFilterBasicDomains({ fieldName, fieldType }) {
+            const _constructBasicDomain = (y, o) => {
+                const setParam = Object.assign({}, y.setParam, o ? o.setParam : {});
+                const granularity = o ? o.granularity : y.granularity;
+                const date = this.referenceMoment.clone().set(setParam);
+                let leftBound = date.clone().startOf(granularity).locale('en');
+                let rightBound = date.clone().endOf(granularity).locale('en');
+                if (fieldType === 'date') {
+                    leftBound = leftBound.format("YYYY-MM-DD");
+                    rightBound = rightBound.format("YYYY-MM-DD");
+                } else {
+                    leftBound = leftBound.utc().format("YYYY-MM-DD HH:mm:ss");
+                    rightBound = rightBound.utc().format("YYYY-MM-DD HH:mm:ss");
+                }
+                const domain = Domain.prototype.arrayToString([
+                    '&',
+                    [fieldName, ">=", leftBound],
+                    [fieldName, "<=", rightBound]
+                ]);
+                const description = o ? o.description + " " + y.description : y.description;
+                return { domain, description };
+            };
+
+            const domains = {};
+            this.optionGenerators.filter(y => y.groupNumber === 2).forEach(y => {
+                domains[y.optionId] = _constructBasicDomain(y);
+                this.optionGenerators.filter(y => y.groupNumber === 1).forEach(o => {
+                    domains[y.optionId + "__" + o.optionId] = _constructBasicDomain(y, o);
+                });
+            });
+            return domains;
+        }
+
+        /**
+         * Compute the string representation of the current domain associated to a date filter
+         * starting from its currentOptionIds.
+         * @private
+         * @param {Object} filter
+         * @returns {string}
+         */
+        _getDateFilterDomain(filter, filterActivities) {
+            const domains = [];
+            const yearIds = [];
+            const otherOptionIds = [];
+            filterActivities.forEach(({ optionId }) => {
+                if (YEAR_OPTIONS[optionId]) {
+                    yearIds.push(optionId);
+                } else {
+                    otherOptionIds.push(optionId);
+                }
+            });
+            // the following case corresponds to years selected only
+            if (otherOptionIds.length === 0) {
+                yearIds.forEach(yearId => {
+                    const d = filter.basicDomains[yearId];
+                    domains.push(d.domain);
+                });
+            } else {
+                otherOptionIds.forEach(optionId => {
+                    yearIds.forEach(yearId => {
+                        const d = filter.basicDomains[`${yearId}__${optionId}`];
+                        domains.push(d.domain);
+                    });
+                });
+            }
+            return pyUtils.assembleDomains(domains, 'OR');
+        }
+
+        /**
+         * Return the string or array representation of a domain created by combining
+         * appropriately (with an 'AND') the domains coming from the active groups.
+         * @private
+         * @param {boolean} [evaluation=true]
+         * @returns {string} the string representation of a domain
+         */
+        _getDomain(groups, evaluation = true) {
+            const types = ['filter', 'favorite', 'field'];
+            const domains = groups.reduce(
+                (domains, group) => {
+                    if (types.includes(group.type)) {
+                        domains.push(this._getGroupDomain(group));
+                    }
+                    return domains;
+                },
+                []
+            );
+            let filterDomain = pyUtils.assembleDomains(domains, 'AND');
+
+            if (evaluation) {
+                const userContext = this.env.session.user_context;
+                try {
+                    return pyUtils.eval('domains', [this.actionDomain, filterDomain], userContext);
+                } catch (err) {
+                    throw new Error(
+                        this.env._t("Failed to evaluate search domain") + ":\n" +
+                        JSON.stringify(err)
+                    );
+                }
+            } else {
+                return filterDomain;
+            }
+        }
+
+        /**
+        * Return the context of the provided filter.
+        * @private
+        * @param {Object} filter
+        * @returns {Object} context
+        */
+        _getFilterContext(filter, filterActivities) {
+            let context = filter.context || {};
+            // for <field> nodes, a dynamic context (like context="{'field1': self}")
+            // should set {'field1': [value1, value2]} in the context
+            if (filter.type === 'field' && filter.context) {
+                context = pyUtils.eval('context',
+                    filter.context,
+                    { self: filterActivities.map(({ value }) => value) },
+                );
+            }
+            // the following code aims to remodel this:
+            // https://github.com/odoo/odoo/blob/12.0/addons/web/static/src/js/views/search/search_inputs.js#L498
+            // this is required for the helpdesk tour to pass
+            // this seems weird to only do that for m2o fields, but a test fails if
+            // we do it for other fields (my guess being that the test should simply
+            // be adapted)
+            if (filter.type === 'field' && filter.isDefault && filter.fieldType === 'many2one') {
+                context[`default_${filter.fieldName}`] = filter.defaultAutocompleteValue.value;
+            }
+            return context;
+        }
+
+        /**
+         * Compute (if possible) the domain of the provided filter.
+         * @private
+         * @param {Object} filter
+         * @returns {string} domain, string representation of a domain
+         */
+        _getFilterDomain(filter, filterActivities) {
+            if (filter.type === 'filter' && filter.hasOptions) {
+                return this._getDateFilterDomain(filter, filterActivities);
+            } else if (filter.type === 'field') {
+                return this._getAutoCompletionFilterDomain(filter, filterActivities);
+            }
+            return filter.domain;
+        }
+
+        /**
+         * Compute the groupBys (if possible) of the provided filter.
+         * @private
+         * @param {Array} filterId
+         * @param {Array} [optionId]
+         * @returns {string[]} groupBys
+         */
+        _getFilterGroupBys(filter, filterActivities) {
+            if (filter.type === 'groupBy') {
+                let groupBy = filter.fieldName;
+                const { optionId } = filterActivities[0];
+                if (optionId) {
+                    groupBy = `${groupBy}:${optionId}`;
+                }
+                return [groupBy];
+            } else {
+                return filter.groupBys;
+            }
+        }
+
+        /**
+         * Return the concatenation of groupBys comming from the active filters.
+         * The array state.query encoding the order in which the groups have been
+         * activated, the results respect the appropriate logic: the groupBys
+         * coming from an active favorite (if any) come first, then come the
+         * groupBys comming from the active filters of type 'groupBy'.
+         * @private
+         * @returns {string[]}
+         */
+        _getGroupBy(groups) {
+            const groupBys = groups.reduce(
+                (groupBys, group) => {
+                    if (['groupBy', 'favorite'].includes(group.type)) {
+                        groupBys.push(...this._getGroupGroupBys(group));
+                    }
+                    return groupBys;
+                },
+                []
+            );
+            const groupBy = groupBys.length ? groupBys : (this.actionContext.group_by || []);
+            return typeof groupBy === 'string' ? [groupBy] : groupBy;
+        }
+
+        /**
+         * Return the list of the contexts of the filters acitve in the given
+         * group.
+         * @private
+         * @param {Object} group
+         * @returns {Object[]}
+         */
+        _getGroupContexts(group) {
+            const contexts = group.activities.reduce(
+                (ctx, qe) => [...ctx, this._getFilterContext(qe.filter, qe.filterActivities)],
+                []
+            );
+            return contexts;
+        }
+
+        /**
+         * Return the string representation of a domain created by combining
+         * appropriately (with an 'OR') the domains coming from the filters
+         * active in the given group.
+         * @private
+         * @param {Object} group
+         * @returns {string} string representation of a domain
+         */
+        _getGroupDomain(group) {
+            const domains = group.activities.map(({ filter, filterActivities }) => {
+                return this._getFilterDomain(filter, filterActivities);
+            });
+            return pyUtils.assembleDomains(domains, 'OR');
+        }
+
+        /**
+         * Return the groupBys coming form the filters active in the given group.
+         * @private
+         * @param {Object} group
+         * @returns {string[]}
+         */
+        _getGroupGroupBys(group) {
+            const groupBys = group.activities.reduce(
+                (gb, qe) => [...gb, ...this._getFilterGroupBys(qe.filter, qe.filterActivities)],
+                []
+            );
+            return groupBys;
+        }
+
+        _getGroups() {
+            const groups = this.state.query.reduce(
+                (groups, queryElem) => {
+                    const { groupId, filterId } = queryElem;
+                    let group = groups.find(group => group.id === groupId);
+                    const filter = this.state.filters[filterId];
+                    if (!group) {
+                        const { type } = filter;
+                        group = {
+                            id: groupId,
+                            type,
+                            activities: []
+                        };
+                        groups.push(group);
+                    }
+                    group.activities.push(queryElem);
+                    return groups;
+                },
+                []
+            );
+
+            groups.forEach(g => this._mergeActivities(g));
+
+            return groups;
+        }
+
+        /**
+         * Used to get the key orderedBy of a favorite.
+         * @private
+         * @returns {(Object[]|undefined)} orderedBy
+         */
+        _getOrderedBy(groups) {
+            return groups.reduce(
+                (orderedBy, group) => {
+                    if (group.type === 'favorite') {
+                        const favoriteOrderedBy = group.activities[0].filter.orderedBy;
+                        if (favoriteOrderedBy) {
+                            // Group order is reversed but inner order is kept
+                            orderedBy = [...favoriteOrderedBy, ...orderedBy];
+                        }
+                    }
+                    return orderedBy;
+                },
+                []
+            );
+        }
+
+        /**
+         * @private
+         * @param {boolean} [evaluation=false]
+         * @returns {Object}
+         */
+        _getTimeRanges(evaluation = false) {
+            let timeRanges = this.state.query.reduce((last, queryElem) => {
+                const { filterId } = queryElem;
+                const filter = this.state.filters[filterId];
+                if (filter.type === 'timeRange') {
+                    last = this._extractTimeRange(queryElem);
+                } else if (filter.type === 'favorite' && filter.timeRanges) {
+                    // we want to make sure that last is not observed! (it is change below in case of evaluation)
+                    const { fieldName, rangeId, comparisonRangeId } = filter.timeRanges;
+                    last = this._extractTimeRange({ fieldName, rangeId, comparisonRangeId });
+                }
+                return last;
+            }, false);
+
+            if (timeRanges) {
+                if (evaluation) {
+                    timeRanges.range = Domain.prototype.stringToArray(timeRanges.range);
+                    if (timeRanges.comparisonRangeId) {
+                        timeRanges.comparisonRange = Domain.prototype.stringToArray(timeRanges.comparisonRange);
+                    }
+                }
+                return timeRanges;
+            }
+        }
+
+        /**
+         * @private
+         * @param {Object} irFilter
+         * @returns {Object}
+         */
+        _irFilterToFavorite(irFilter) {
+            let userId = irFilter.user_id || false;
+            if (Array.isArray(userId)) {
+                userId = userId[0];
+            }
+            const groupNumber = userId ? FAVORITE_PRIVATE_GROUP : FAVORITE_SHARED_GROUP;
+            const context = pyUtils.eval('context', irFilter.context, this.env.session.user_context);
+            let groupBys = [];
+            if (context.group_by) {
+                groupBys = context.group_by;
+                delete context.group_by;
+            }
+            let timeRanges;
+            if (context.time_ranges) {
+                const { field, range, comparisonRange } = context.time_ranges;
+                timeRanges = this._extractTimeRange({
+                    fieldName: field,
+                    rangeId: range,
+                    comparisonRangeId: comparisonRange,
+                });
+                delete context.time_ranges;
+            }
+            let sort;
+            try {
+                sort = JSON.parse(irFilter.sort);
+            } catch (err) {
+                if (err instanceof SyntaxError) {
+                    sort = [];
+                } else {
+                    throw err;
+                }
+            }
+            const orderedBy = sort.map(order => {
+                let fieldName;
+                let asc;
+                const sqlNotation = order.split(' ');
+                if (sqlNotation.length > 1) {
+                    // regex: \fieldName (asc|desc)?\
+                    fieldName = sqlNotation[0];
+                    asc = sqlNotation[1] === 'asc';
+                } else {
+                    // legacy notation -- regex: \-?fieldName\
+                    fieldName = order[0] === '-' ? order.slice(1) : order;
+                    asc = order[0] === '-' ? false : true;
+                }
+                return {
+                    asc: asc,
+                    name: fieldName,
+                };
+            });
+            const favorite = {
+                context,
+                description: irFilter.name,
+                domain: irFilter.domain,
+                groupBys,
+                groupNumber,
+                orderedBy,
+                removable: true,
+                serverSideId: irFilter.id,
+                type: 'favorite',
+                userId,
+            };
+            if (irFilter.is_default) {
+                favorite.isDefault = irFilter.is_default;
+            }
+            if (timeRanges) {
+                favorite.timeRanges = timeRanges;
+            }
+            return favorite;
+        }
+
+        /**
+         * @private
+         * @param {Object} favorite
+         * @returns {Object}
+         */
+        _favoriteToIrFilter(favorite) {
+            const irFilter = {
+                action_id: this.actionId,
+                model_id: this.modelName,
+            };
+
+            // ir.filter fields
+            if ('description' in favorite) {
+                irFilter.name = favorite.description;
+            }
+            if ('domain' in favorite) {
+                irFilter.domain = favorite.domain;
+            }
+            if ('isDefault' in favorite) {
+                irFilter.is_default = favorite.isDefault;
+            }
+            if ('orderedBy' in favorite) {
+                const sort = favorite.orderedBy.map(
+                    ob => ob.name + (ob.asc === false ? " desc" : "")
+                );
+                irFilter.sort = JSON.stringify(sort);
+            }
+            if ('serverSideId' in favorite) {
+                irFilter.id = favorite.serverSideId;
+            }
+            if ('userId' in favorite) {
+                irFilter.user_id = favorite.userId;
+            }
+
+            // Context
+            const context = Object.assign({}, favorite.context);
+            if ('groupBys' in favorite) {
+                context.group_by = favorite.groupBys;
+            }
+            if ('timeRanges' in favorite) {
+                const { fieldName, rangeId, comparisonRangeId } = favorite.timeRanges;
+                context.time_ranges = {
+                    field: fieldName,
+                    range: rangeId,
+                    comparisonRange: comparisonRangeId,
+                };
+            }
+            if (Object.keys(context).length) {
+                irFilter.context = context;
+            }
+
+            return irFilter;
+        }
+
+        _mergeActivities(group) {
+            const { activities, type } = group;
+            let res = [];
+            switch (type) {
+                case 'groupBy':
+                    for (const activity of activities) {
+                        const { filterId } = activity;
+                        res.push({
+                            filter: this.state.filters[filterId],
+                            filterActivities: [activity]
+                        });
+                    }
+                    break;
+                case 'filter':
+                    for (const activity of activities) {
+                        const { filterId } = activity;
+                        let a = res.find(({ filter }) => filter.id === filterId);
+                        if (!a) {
+                            a = {
+                                filter: this.state.filters[filterId],
+                                filterActivities: []
+                            };
+                            res.push(a);
+                        }
+                        a.filterActivities.push(activity);
+                    }
+                    break;
+                case 'field':
+                case 'timeRange':
+                case 'favorite':
+                    // all activities in the group have same filterId
+                    const { filterId } = group.activities[0];
+                    const filter = this.state.filters[filterId];
+                    res.push({
+                        filter,
+                        filterActivities: group.activities
+                    });
+                    break;
+            }
+            group.activities = res;
+        }
+
+        /**
+         * @private
+         */
+        _prepareInitialState() {
+            this._addFilters();
+            this._activateFilters();
+        }
+
+        /**
+         * Bind the model mutations to the `mutations` key.
+         * @private
+         */
+        _registerMutations() {
+            const mutations = [
+                'createNewFavorite', 'createNewFilters', 'createNewGroupBy',
+                'activateTimeRange',
+                'clearQuery', 'deactivateGroup',
+                'deleteFavorite',
+                'addAutoCompletionValues', 'toggleFilter', 'toggleFilterWithOptions',
+                'search',
+                'updateFilters'
+            ];
+            mutations.forEach(m => { this._registerMutation(m); });
+        }
+
+        /**
+         * Bind the model getters to the `getters` key.
+         * @private
+         */
+        _registerGetters() {
+            const getters = ['getFacets', 'getFiltersOfType'];
+            getters.forEach(g => this._registerGetter(g));
+        }
+
+        /**
+         * Compute the search Query and save it as an ir.filter in db.
+         * No evaluation of domains is done in order to keep them dynamic.
+         * If the operation is successful, a new filter of type 'favorite' is
+         * created and activated.
+         * @private
+         * @param {Object} preFilter
+         * @returns {Object}
+         */
+        async _saveQuery(preFilter) {
+            const groups = this._getGroups();
+
+            const userContext = this.env.session.user_context;
+            let controllerQueryParams;
+            this.trigger(
+                'get-controller-query-params',
+                p => {
+                    controllerQueryParams = p;
+                }
+            );
+            controllerQueryParams = controllerQueryParams || {};
+            controllerQueryParams.context = controllerQueryParams.context || {};
+
+            const withoutActiveContext = false;
+            const queryContext = this._getContext(groups, withoutActiveContext);
+            const context = pyUtils.eval(
+                'contexts',
+                [userContext, controllerQueryParams.context, queryContext]
+            );
+            for (const key in userContext) {
+                delete context[key];
+            }
+
+            const requireEvaluation = false;
+            const domain = this._getDomain(groups, requireEvaluation);
+            const groupBys = this._getGroupBy(groups);
+            const timeRanges = this._getTimeRanges(requireEvaluation);
+            const orderedBy = controllerQueryParams.orderedBy ?
+                controllerQueryParams.orderedBy :
+                (this._getOrderedBy(groups) || []);
+
+            const userId = preFilter.isShared ? false : this.env.session.uid;
+            delete preFilter.isShared;
+
+            Object.assign(preFilter, {
+                context,
+                domain,
+                groupBys,
+                groupNumber: userId ? FAVORITE_PRIVATE_GROUP : FAVORITE_SHARED_GROUP,
+                orderedBy,
+                removable: true,
+                userId,
+            });
+            if (timeRanges) {
+                preFilter.timeRanges = timeRanges;
+            }
+            const irFilter = this._favoriteToIrFilter(preFilter);
+            const serverSideId = await this.env.dataManager.create_filter(irFilter);
+
+            preFilter.serverSideId = serverSideId;
+
+            return preFilter;
+        }
+
+        /**
+         * TODO: doc
+         * @private
+         * @param {Object} config
+         */
+        _setProperties(config) {
+            this.modelName = config.modelName;
+            this.actionDomain = config.actionDomain || [];
+            this.actionContext = config.actionContext || {};
+            this.actionId = config.actionId;
+            this.withSearchBar = 'withSearchBar' in config ? config.withSearchBar : true;
+            this.searchMenuTypes = config.searchMenuTypes || [];
+
+            this.searchDefaults = [];
+            for (const key in this.actionContext) {
+                const match = /^search_default_(.*)$/.exec(key);
+                if (match) {
+                    this.searchDefaults[match[1]] = this.actionContext[key];
+                    delete this.actionContext[key];
+                }
+            }
+            this.labelPromisses = [];
+
+            const viewInfo = config.viewInfo || {};
+
+            this.parsedArch = this._cleanArch(parseArch(viewInfo.arch || '<search/>'));
+            this.fields = viewInfo.fields || {};
+            this.favoriteFilters = viewInfo.favoriteFilters || [];
+            this.activateDefaultFavorite = 'search_disable_custom_filters' in this.actionContext ?
+                !this.actionContext.search_disable_custom_filters :
+                true;
+
+            this.dynamicFilters = config.dynamicFilters || [];
+
+            this.referenceMoment = moment();
+            const setDescriptions = (options) => {
+                return Object.values(options).map(o => {
+                    const oClone = JSON.parse(JSON.stringify(o));
+                    const description = o.description ?
+                        this.env._t(o.description) :
+                        this.referenceMoment.clone().add(o.addParam).format(o.format);
+                    return Object.assign(oClone, { description: description });
+                });
+            };
+            const process = (options) => {
+                return options.map(o => {
+                    const date = this.referenceMoment.clone().set(o.setParam).add(o.addParam);
+                    delete o.addParam;
+                    o.setParam[o.granularity] = date[o.granularity]();
+                    o.defaultYear = date.year();
+                    return o;
+                });
+            };
+            this.optionGenerators = process(setDescriptions(OPTION_GENERATORS));
+            this.intervalOptions = setDescriptions(INTERVAL_OPTIONS);
+        }
+
+    }
+
+    return ControlPanelModel;
 });

@@ -3,75 +3,26 @@
 
 <!-- Owl Templates -->
 
-<t t-name="AddNewFavoriteMenu" owl="1">
-    <li class="o_menu_item o_add_favorite" role="menuitem">
-        <button type="button"
-            class="dropdown-item"
-            t-ref="fallback-focus"
-            t-on-click="_toggleOpen"
-            >
-            Save Current Search
-        </button>
-        <div t-if="state.open" class="dropdown-item-text">
-            <div role="menuitem" class="dropdown-item-text">
-                <input type="text"
-                    class="o_input"
-                    autofocus=""
-                    t-att-value="props.actionName"
-                    t-on-input="_onInput"
-                    t-ref="description"
-                    t-on-keydown="_onInputKeydown"
-                />
-            </div>
-            <div class="custom-control custom-checkbox">
-                <input type="checkbox"
-                    t-att-id="useByDefaultId"
-                    class="custom-control-input"
-                    t-att-checked="state.isDefault"
-                    t-on-change="_onCheckboxChange"
-                />
-                <label class="custom-control-label" t-att-for="useByDefaultId">
-                    Use by default
-                </label>
-            </div>
-            <div class="custom-control custom-checkbox">
-                <input type="checkbox"
-                    t-att-id="shareAllUsersId"
-                    class="custom-control-input"
-                    t-att-checked="state.isShared"
-                    t-on-change="_onCheckboxChange"
-                />
-                <label class="custom-control-label" t-att-for="shareAllUsersId">
-                    Share with all users <i class="fa fa-users" role="img" aria-label="Users" title="Users"/>
-                </label>
-            </div>
-            <div class="dropdown-item-text">
-                <button type="button" class="btn btn-primary" t-on-click="_saveFavorite">Save</button>
-            </div>
-        </div>
-    </li>
-</t>
-
 <t t-name="ControlPanel" owl="1">
     <div class="o_control_panel">
         <div class="o_cp_top">
             <ol t-if="props.withBreadcrumbs" class="breadcrumb" role="navigation">
                 <li t-foreach="props.breadcrumbs" t-as="bc" t-key="bc_index"
                     class="breadcrumb-item"
+                    t-att-class="{ o_back_button: bc_index === props.breadcrumbs.length -1 }"
                     t-att-accesskey="bc_last and 'b'"
                     t-on-click.prevent="trigger('breadcrumb_clicked', { controllerID: bc.controllerID })"
                     >
                     <a t-if="bc.title" href="#" t-esc="bc.title"/>
                     <em t-else="" class="text-warning">Unnamed</em>
                 </li>
-                <li class="breadcrumb-item active" t-esc="storeState.title"/>
+                <li class="breadcrumb-item active" t-esc="props.title"/>
             </ol>
-            <div t-if="storeState.cp_content.searchView or props.withSearchBar"
-                class="o_cp_searchview"
+            <div class="o_cp_searchview"
                 role="search"
                 t-ref="searchView"
                 >
-                <div class="o_searchview" role="search" aria-autocomplete="list" >
+                <div t-if="props.withSearchBar" class="o_searchview" role="search" aria-autocomplete="list" >
                     <i t-attf-class="o_searchview_more fa fa-search-{{ state.displayDropdowns ? 'minus' : 'plus' }}"
                         title="Advanced Search..."
                         role="img"
@@ -87,35 +38,37 @@
                 <div class="o_cp_buttons" role="toolbar" aria-label="Control panel toolbar" t-ref="buttons">
                     <t t-slot="buttons"/>
                 </div>
-                <Sidebar t-if="storeState.sidebar and storeState.sidebar.items" modelName="props.modelName"/>
+                <Sidebar t-if="props.sidebar and props.sidebar.items"
+                    viewType="props.viewType"
+                    t-props="props.sidebar"
+                />
             </div>
             <div class="o_cp_right">
-                <div t-if="storeState.cp_content.searchViewButtons or (props.withSearchBar and state.displayDropdowns)"
-                    class="btn-group o_search_options position-static"
+                <div class="btn-group o_search_options position-static"
                     role="search"
                     t-ref="searchViewButtons"
-                    t-on-update_query.stop="_onUpdateQuery"
                     >
-                    <FilterMenu t-if="props.searchMenuTypes.includes('filter')"
-                        class="o_filter_menu"
-                        fields="props.fields"
-                    />
-                    <GroupByMenu t-if="props.searchMenuTypes.includes('groupBy')"
-                        class="o_group_by_menu"
-                        fields="props.fields"
-                    />
-                    <TimeRangeMenu t-if="props.searchMenuTypes.includes('timeRange')"
-                        class="o_time_range_menu"
-                        fields="props.fields"
-                    />
-                    <FavoriteMenu t-if="props.searchMenuTypes.includes('favorite')"
-                        class="o_favorite_menu"
-                        action="props.action"
-                        fields="props.fields"
-                        viewType="props.viewType"
-                    />
+                    <t t-if="props.withSearchBar and state.displayDropdowns">
+                        <FilterMenu t-if="props.searchMenuTypes.includes('filter')"
+                            class="o_filters_menu"
+                            fields="props.fields"
+                        />
+                        <GroupByMenu t-if="props.searchMenuTypes.includes('groupBy')"
+                            class="o_group_bys_menu"
+                            fields="props.fields"
+                        />
+                        <TimeRangeMenu t-if="props.searchMenuTypes.includes('timeRange')"
+                            class="o_time_range_menu"
+                            fields="props.fields"
+                        />
+                        <FavoriteMenu t-if="props.searchMenuTypes.includes('favorite')"
+                            class="o_favorites_menu"
+                            fields="props.fields"
+                            viewType="props.viewType"
+                        />
+                    </t>
                 </div>
-                <Pager class="o_cp_pager" role="'search'" t-props="storeState.pager"/>
+                <Pager class="o_cp_pager" role="'search'" t-ref="pager" t-props="props.pager"/>
                 <nav t-if="props.views.length &gt; 1" class="btn-group o_cp_switch_buttons" role="toolbar" aria-label="View switcher">
                     <t t-foreach="props.views" t-as="view" t-key="view.type">
                         <t t-call="ViewSwitcherButton"/>
@@ -123,15 +76,6 @@
                 </nav>
             </div>
         </div>
-    </div>
-</t>
-
-<t t-name="ControlPanelX2Many" owl="1">
-    <div class="o_x2m_control_panel">
-        <div class="o_cp_buttons" role="toolbar" aria-label="Control panel toolbar" t-ref="buttons">
-            <t t-slot="buttons"/>
-        </div>
-        <Pager class="o_cp_pager" role="'toolbar'" t-props="props.pager"/>
     </div>
 </t>
 
@@ -145,15 +89,14 @@
                     accesskey="b"
                     t-on-click.prevent="trigger('breadcrumb_clicked', { controllerID: breadcrumb.controllerID })"
                 />
-                <li class="breadcrumb-item active" t-esc="storeState.title"/>
+                <li class="breadcrumb-item active" t-esc="props.title"/>
             </ol>
-            <div t-if="storeState.cp_content.searchView or props.withSearchBar"
-                class="o_cp_searchview"
+            <div class="o_cp_searchview"
                 t-att-class="{ o_searchview_quick: state.isSearching }"
                 role="search"
                 t-ref="searchView"
                 >
-                <div class="o_searchview" role="search" aria-autocomplete="list">
+                <div t-if="props.withSearchBar" class="o_searchview" role="search" aria-autocomplete="list">
                     <!-- Mobile search view open -->
                     <div t-if="state.isFiltering" class="o_mobile_search">
                         <div class="o_mobile_search_header">
@@ -174,14 +117,13 @@
                         <SearchBar t-if="props.withSearchBar" fields="props.fields"/>
                         <div class="o_mobile_search_filter o_search_options"
                             t-ref="searchViewButtons"
-                            t-on-update_query.stop="_onUpdateQuery"
                             >
                             <FilterMenu t-if="props.searchMenuTypes.includes('filter')"
-                                class="o_filter_menu"
+                                class="o_filters_menu"
                                 fields="props.fields"
                             />
                             <GroupByMenu t-if="props.searchMenuTypes.includes('groupBy')"
-                                class="o_group_by_menu"
+                                class="o_group_bys_menu"
                                 fields="props.fields"
                             />
                             <TimeRangeMenu t-if="props.searchMenuTypes.includes('timeRange')"
@@ -189,8 +131,7 @@
                                 fields="props.fields"
                             />
                             <FavoriteMenu t-if="props.searchMenuTypes.includes('favorite')"
-                                class="o_favorite_menu"
-                                action="props.action"
+                                class="o_favorites_menu"
                                 fields="props.fields"
                                 viewType="props.viewType"
                             />
@@ -225,7 +166,7 @@
                 </div>
             </div>
             <div class="o_cp_right">
-                <Pager class="o_cp_pager" role="'search'" t-props="storeState.pager"/>
+                <Pager class="o_cp_pager" role="'search'" t-ref="pager" t-props="props.pager"/>
                 <nav t-if="props.views and props.views.length &gt; 1"
                     class="btn-group o_cp_switch_buttons"
                     t-att-class="{ show: state.viewSwitcherOpen }"
@@ -235,7 +176,7 @@
                     >
                     <button type="button"
                         class="btn btn-link btn-sm"
-                        t-attf-aria-expanded="{ state.viewSwitcherOpen ? 'true' : 'false' }"
+                        t-attf-aria-expanded="{{ state.viewSwitcherOpen ? 'true' : 'false' }}"
                         t-on-click="state.viewSwitcherOpen = !state.viewSwitcherOpen"
                         >
                         <span class="fa fa-lg" t-att-class="props.views.find(v => v.type === props.viewType).icon"/>
@@ -251,6 +192,15 @@
                 </nav>
             </div>
         </div>
+    </div>
+</t>
+
+<t t-name="ControlPanelX2Many" owl="1">
+    <div class="o_x2m_control_panel">
+        <div class="o_cp_buttons" role="toolbar" aria-label="Control panel toolbar" t-ref="buttons">
+            <t t-slot="buttons"/>
+        </div>
+        <Pager class="o_cp_pager" role="'toolbar'" t-props="props.pager"/>
     </div>
 </t>
 
@@ -279,7 +229,7 @@
             t-att-readonly="env.device.isMobile"
             t-att-value="formattedDate"
             t-ref="input"
-            t-on-change="changeDatetime"
+            t-on-change="_changeDatetime"
             t-on-click="_onInputClicked"
             t-on-input="_onInput"
         />
@@ -314,13 +264,78 @@
         </button>
         <ul t-if="state.open" class="o_dropdown_menu dropdown-menu show" role="menu">
             <t t-set="currentGroup" t-value="null"/>
-            <t t-foreach="items" t-as="item" t-key="item_index">
+            <t t-foreach="_assignKeys(items)" t-as="item" t-key="item.key">
                 <li t-if="currentGroup !== null and currentGroup !== item.groupNumber" class="dropdown-divider" role="separator"/>
-                <DropdownMenuItem t-props="item" t-on-select-item="_onItemSelected"/>
+                <t t-if="item.Component" t-component="item.Component" t-props="item.props"/>
+                <DropdownMenuItem t-else="" t-props="item"/>
                 <t t-set="currentGroup" t-value="item.groupNumber"/>
             </t>
         </ul>
     </div>
+</t>
+
+<t t-name="FavoriteMenu" t-inherit="DropdownMenu" t-inherit-mode="primary" owl="1">
+    <xpath expr="//DropdownMenuItem" position="attributes">
+        <attribute name="t-on-remove-item.stop">_onItemRemoved</attribute>
+    </xpath>
+    <xpath expr="//div[1]" position="inside">
+        <Dialog t-if="state.deletedFavorite"
+            title="'Warning'"
+            size="'medium'"
+            t-on-dialog-closed="state.deletedFavorite = false"
+            >
+            <t t-if="state.deletedFavorite.userId">
+                Are you sure that you want to remove this filter?
+            </t>
+            <t t-else="">
+                This filter is global and will be removed for everybody if you continue.
+            </t>
+            <t t-set="buttons">
+                <button type="button" class="btn btn-primary" t-on-click="_onRemoveFavorite">
+                    Ok
+                </button>
+                <button type="button" class="btn btn-secondary" t-on-click.stop="state.deletedFavorite = false">
+                    Cancel
+                </button>
+            </t>
+        </Dialog>
+    </xpath>
+</t>
+
+<t t-name="FilterMenu" t-inherit="DropdownMenu" t-inherit-mode="primary" owl="1">
+    <xpath expr="//ul[@role='menu']" position="inside">
+        <li t-if="items.length" class="dropdown-divider" role="separator"/>
+        <FilterGeneratorMenu
+            fields="props.fields"
+            t-on-create-new-filters.stop="_onCreateNewFilters"
+        />
+    </xpath>
+</t>
+
+<t t-name="GroupByMenu" t-inherit="DropdownMenu" t-inherit-mode="primary" owl="1">
+    <xpath expr="//ul[@role='menu']" position="inside">
+        <t t-if="fields.length">
+            <li t-if="items.length" class="dropdown-divider" role="separator"/>
+            <GroupByGeneratorMenu
+                fields="fields"
+                t-on-create-new-groupby.stop="_onCreateNewGroupBy"
+            />
+        </t>
+    </xpath>
+</t>
+
+<t t-name="TimeRangeMenu" t-inherit="DropdownMenu" t-inherit-mode="primary" owl="1">
+    <xpath expr="//ul[@role='menu']/t[@t-foreach]" position="replace">
+        <li class="o_menu_item dropdown-item-text" role="menuitem">
+            <t t-if="fields.length" t-call="TimeRangeEditor"/>
+            <t t-else="">
+                No date field available.
+            </t>
+        </li>
+        <li class="o_menu_item dropdown-item-text" role="menuitem">
+            <button type="button" class="btn btn-primary" t-on-click="_onApply">Apply</button>
+        </li>
+    </xpath>
 </t>
 
 <t t-name="DropdownMenuItem" owl="1">
@@ -348,7 +363,7 @@
                         role="menuitem"
                         t-att-href="option.url or '#'"
                         t-esc="option.description"
-                        t-on-click.prevent="trigger('select-item', { item: props, option: option })"
+                        t-on-click.prevent="trigger('item-selected', { item: props, option: option })"
                     />
                 </li>
                 <t t-set="currentGroup" t-value="option.groupNumber"/>
@@ -357,10 +372,10 @@
     </li>
     <li t-else="" class="o_menu_item" role="menuitem" t-on-keydown="_onKeydown">
         <a class="dropdown-item"
-            t-att-class="{ selected: props.isActive }"
+            t-att-class="{ selected: props.isActive, [props.className]: props.className }"
             role="menuitem"
             t-att-href="props.url or '#'"
-            t-on-click.prevent="trigger('select-item', { item: props })"
+            t-on-click.prevent="trigger('item-selected', { item: props })"
             >
             <t t-esc="props.description"/>
             <i t-if="props.removable"
@@ -368,230 +383,60 @@
                 title="Delete item"
                 t-on-click.stop.prevent="trigger('remove-item', { item: props })"
             />
-            <i t-if="props.editable and !env.device.isMobile"
-                class="o_icon_right fa fa-pencil"
-                title="Edit item"
-                t-on-click.stop.prevent="trigger('edit-item', { item: props })"
-            />
         </a>
     </li>
 </t>
 
-<t t-name="FavoriteMenu" t-inherit="DropdownMenu" t-inherit-mode="primary" owl="1">
-    <xpath expr="//ul[@role='menu']" position="inside">
-        <AddNewFavoriteMenu actionName="props.action.name" favorites="items"/>
-    </xpath>
-    <xpath expr="//DropdownMenuItem" position="attributes">
-        <attribute name="t-on-drag">_onDrag</attribute>
-        <attribute name="t-on-remove-item.stop">_onItemRemoved</attribute>
-        <attribute name="t-on-edit-item.stop">_onItemEdited</attribute>
-    </xpath>
-    <xpath expr="//div[1]" position="inside">
-        <Dialog t-if="state.editDialog"
-            title="'Edit favorite'"
-            size="'medium'"
-            contentClass="'o_favorite_edit_dialog'"
-            stopClicks="true"
-            t-on-dialog_closed="_closeEditDialog"
+<t t-name="FavoriteGeneratorMenu" owl="1">
+    <li class="o_menu_item o_add_favorite" role="menuitem">
+        <button type="button"
+            class="dropdown-item"
+            t-ref="fallback-focus"
+            t-on-click="_toggleOpen"
             >
-            <div class="o_favorite_name">
-                <label t-attf-for="o_favorite_name_{{ id }}">Name</label>
-                <input type="text" t-attf-id="o_favorite_name_{{ id }}"
+            Save Current Search
+        </button>
+        <div t-if="state.open" class="dropdown-item-text">
+            <div role="menuitem" class="dropdown-item-text">
+                <input type="text"
                     class="o_input"
-                    t-att-value="state.editDialog.description"
-                    t-on-input="_onDescriptionInput"
+                    autofocus=""
+                    t-ref="description"
+                    t-model.trim="state.description"
+                    t-on-keydown="_onInputKeydown"
                 />
             </div>
-            <div class="o_favorite_checkboxes">
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" t-attf-id="o_default_name_{{ id }}" class="custom-control-input"
-                        name="default"
-                        t-att-checked="state.editDialog.isDefault"
-                        t-on-change="_onCheckboxChange"
-                    />
-                    <label t-attf-for="o_default_name_{{ id }}" class="custom-control-label">Use by default</label>
-                </div>
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" t-attf-id="o_shared_name_{{ id }}" class="custom-control-input"
-                        name="shared"
-                        t-att-checked="!state.editDialog.userId"
-                        t-on-change="_onCheckboxChange"
-                    />
-                    <label t-attf-for="o_shared_name_{{ id }}" class="custom-control-label">
-                        Share with all users <i role="img" class="fa fa-users" aria-label="Users" title="Users"/>
-                    </label>
-                </div>
-            </div>
-            <div class="o_favorite_domain">
-                <label>Domain</label>
-                <div class="o_domain_selector_container" t-ref="domain-selector"/>
-            </div>
-            <t t-set="buttons">
-                <button type="button"
-                    class="btn btn-primary"
-                    t-on-click="_saveFavorite"
-                    >
-                    Save
-                </button>
-                <button type="button"
-                    class="btn btn-secondary"
-                    t-on-click.stop="_closeEditDialog"
-                    >
-                    Cancel
-                </button>
-            </t>
-        </Dialog>
-        <Dialog t-if="state.deleteDialog"
-            title="'Warning'"
-            size="'medium'"
-            t-on-dialog_closed="state.deleteDialog = false"
-            >
-            <t t-if="state.deleteDialog.favorite.userId">
-                Are you sure that you want to remove this filter?
-            </t>
-            <t t-else="">
-                This filter is global and will be removed for everybody if you continue.
-            </t>
-            <t t-set="buttons">
-                <button type="button"
-                    class="btn btn-primary"
-                    t-on-click="_removeFavorite"
-                    >
-                    Ok
-                </button>
-                <button type="button"
-                    class="btn btn-secondary"
-                    t-on-click.stop="state.deleteDialog = false"
-                    >
-                    Cancel
-                </button>
-            </t>
-        </Dialog>
-    </xpath>
-</t>
-
-<t t-name="FilterMenu" t-inherit="DropdownMenu" t-inherit-mode="primary" owl="1">
-    <xpath expr="//ul[@role='menu']" position="inside">
-        <t t-if="Object.keys(props.fields).length">
-            <li t-if="items.length" class="dropdown-divider" role="separator"/>
-            <FilterMenuGenerator class="o_menu_generator"
-                fields="props.fields"
-                t-on-create-new-filters.stop="_onCreateNewFilters"
-            />
-        </t>
-    </xpath>
-</t>
-
-<t t-name="GroupByMenu" t-inherit="DropdownMenu" t-inherit-mode="primary" owl="1">
-    <xpath expr="//ul[@role='menu']" position="inside">
-        <t t-if="Object.keys(props.fields).length">
-            <li t-if="items.length" class="dropdown-divider" role="separator"/>
-            <GroupByMenuGenerator class="o_menu_generator"
-                fields="props.fields"
-                t-on-create-new-groupby.stop="_onCreateNewGroupBy"
-            />
-        </t>
-    </xpath>
-</t>
-
-<t t-name="TimeRangeMenu" owl="1" t-inherit="DropdownMenu" t-inherit-mode="primary">
-    <xpath expr="//t[@t-foreach='items']" position="replace">
-        <li class="o_menu_item dropdown-item-text" role="menuitem">
-            <label t-attf-for="field_select_{{id}}">Based On</label>
-            <select t-attf-id="field_select_{{id}}" class="o_input" t-on-change="_onFieldNameChanged">
-                <option t-foreach="fields" t-as="field" t-key="field.name"
-                    t-att-selected="state.fieldName === field.name"
-                    t-att-value="field.name"
-                    t-esc="field.description"
-                />
-            </select>
-        </li>
-        <li class="o_menu_item dropdown-item-text" role="menuitem">
-            <label t-attf-for="range_select_{{id}}">Range</label>
-            <select t-attf-id="range_select_{{id}}" class="o_input" t-on-change="_onRangeChanged">
-                <optgroup t-foreach="periodGroups" t-as="group" t-key="group" label="">
-                    <t t-foreach="Object.values(periodOptions)" t-as="option" t-key="option_index">
-                        <option t-if="option.groupNumber === group"
-                            t-att-selected="state.rangeId === option.id"
-                            t-att-value="option.id"
-                            t-esc="env._t(option.description)"
-                        />
-                    </t>
-                </optgroup>
-            </select>
-        </li>
-        <li class="o_menu_item dropdown-item-text" role="menuitem">
             <div class="custom-control custom-checkbox">
-                <input type="checkbox" t-attf-id="checkbox_select_{{id}}"
+                <input type="checkbox"
+                    t-att-id="useByDefaultId"
                     class="custom-control-input"
-                    t-att-checked="state.isComparing"
-                    t-on-change="state.isComparing = !state.isComparing"
+                    t-att-checked="state.isDefault"
+                    t-on-change="_onCheckboxChange"
                 />
-                <label t-attf-for="checkbox_select_{{id}}" class="custom-control-label">Compare To</label>
+                <label class="custom-control-label" t-att-for="useByDefaultId">
+                    Use by default
+                </label>
             </div>
-            <select t-if="state.isComparing" class="o_input" t-on-change="_onComparisonRangeChanged">
-                <option t-foreach="Object.values(comparisonTimeRangeOptions)" t-as="option" t-key="option_index"
-                    t-att-selected="state.comparisonRangeId === option.id"
-                    t-att-value="option.id"
-                    t-esc="env._t(option.description)"
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox"
+                    t-att-id="shareAllUsersId"
+                    class="custom-control-input"
+                    t-att-checked="state.isShared"
+                    t-on-change="_onCheckboxChange"
                 />
-            </select>
-        </li>
-        <li class="o_menu_item dropdown-item-text" role="menuitem">
-            <button type="button" class="btn btn-primary" t-on-click="_onApply">Apply</button>
-        </li>
-    </xpath>
-</t>
-
-<t t-name="Pager" owl="1">
-    <nav t-att-role="props.role" aria-label="Pager">
-        <div class="o_pager">
-            <t t-if="props.size &gt; 1 and !(props.hiddenInSinglePage and singlePage)">
-                <span class="o_pager_counter" t-on-click.stop="">
-                    <input t-if="state.editing" type="text"
-                        class="o_pager_value o_input"
-                        autofocus=""
-                        t-att-value="value"
-                        t-on-blur="state.editing = false"
-                        t-on-change="_onValueChange"
-                        t-on-keydown.stop="_onValueKeydown"
-                    />
-                    <span t-else=""
-                        class="o_pager_value"
-                        t-esc="value"
-                        t-on-click="_onEdit"
-                    />
-                    <span> / </span>
-                    <span t-esc="props.size"/>
-                </span>
-                <span class="btn-group" aria-atomic="true">
-                    <!-- accesskeys not wanted in X2Many widgets -->
-                    <button type="button"
-                        class="fa fa-chevron-left btn btn-secondary o_pager_previous"
-                        t-att-disabled="props.disabled or singlePage"
-                        t-att-accesskey="props.withAccessKey ? 'p' : false"
-                        aria-label="Previous"
-                        title="Previous"
-                        tabindex="-1"
-                        t-on-click.stop="_changeSelection(-1)"
-                    />
-                    <button type="button"
-                        class="fa fa-chevron-right btn btn-secondary o_pager_next"
-                        t-att-disabled="props.disabled or singlePage"
-                        t-att-accesskey="props.withAccessKey ? 'n' : false"
-                        aria-label="Next"
-                        title="Next"
-                        tabindex="-1"
-                        t-on-click.stop="_changeSelection(1)"
-                    />
-                </span>
-            </t>
+                <label class="custom-control-label" t-att-for="shareAllUsersId">
+                    Share with all users <i class="fa fa-users" role="img" aria-label="Users" title="Users"/>
+                </label>
+            </div>
+            <div class="dropdown-item-text">
+                <button type="button" class="o_save_favorite btn btn-primary" t-on-click="_saveFavorite">Save</button>
+            </div>
         </div>
-    </nav>
+    </li>
 </t>
 
-<t t-name="FilterMenuGenerator" owl="1">
-    <div>
+<t t-name="FilterGeneratorMenu" owl="1">
+    <div class="o_generator_menu">
         <button type="button"
             class="o_add_custom_filter dropdown-item"
             aria-expanded="false"
@@ -608,8 +453,8 @@
                 <t t-set="fieldType" t-value="fields[condition.field].type"/>
                 <t t-set="selectedOperator" t-value="OPERATORS[FIELD_TYPES[fieldType]][condition.operator]"/>
                 <span t-if="!condition_first" class="o_or_filter">or</span>
-                <select class="o_input o_menu_generator_field"
-                    t-on-change="_onFieldSelected(condition)"
+                <select class="o_input o_generator_menu_field"
+                    t-on-change="_onFieldSelect(condition)"
                     >
                     <option t-foreach="fields" t-as="field" t-key="field_index"
                         t-att-value="field.name"
@@ -617,16 +462,16 @@
                         t-esc="field.string"
                     />
                 </select>
-                <select class="o_input o_menu_generator_operator"
-                    t-on-change="_onOperatorSelected(condition)"
+                <select class="o_input o_generator_menu_operator"
+                    t-on-change="_onOperatorSelect(condition)"
                     >
                     <option t-foreach="OPERATORS[FIELD_TYPES[fieldType]]" t-as="operator" t-key="operator_index"
                         t-att-value="operator.symbol"
                         t-att-selected="operator_index === condition.operator"
-                        t-esc="operator.text"
+                        t-esc="operator.description"
                     />
                 </select>
-                <span t-if="!_hasValue(selectedOperator)" class="o_menu_generator_value">
+                <span t-if="!_hasValue(selectedOperator)" class="o_generator_menu_value">
                     <t t-if="fieldType === 'date'">
                         <DatePicker
                             value="condition.value[0]"
@@ -640,12 +485,10 @@
                     <t t-elif="fieldType === 'datetime'">
                         <DateTimePicker
                             value="condition.value[0]"
-                            defaultValue="['00:00:00', 'hh:mm:ss']"
                             t-on-datetime-changed="_onDateChanged(condition, 0)"
                         />
                         <DateTimePicker t-if="selectedOperator.symbol === 'between'"
                             value="condition.value[1]"
-                            defaultValue="['23:59:59', 'hh:mm:ss']"
                             t-on-datetime-changed="_onDateChanged(condition, 1)"
                         />
                     </t>
@@ -673,7 +516,7 @@
                     />
                 </span>
                 <i t-if="state.conditions.length &gt; 1"
-                    class="fa fa-trash-o o_menu_generator_delete"
+                    class="fa fa-trash-o o_generator_menu_delete"
                     role="image"
                     aria-label="Delete"
                     title="Delete"
@@ -681,7 +524,9 @@
                 />
             </div>
             <div class="o_add_filter_menu dropdown-item-text">
-                <button type="button" class="btn btn-primary o_apply_filter" t-on-click="_onApply">Apply</button>
+                <button type="button" class="btn btn-primary o_apply_filter" t-on-click="_onApply">
+                    Apply
+                </button>
                 <button type="button"
                     class="btn btn-secondary o_add_condition"
                     t-on-click="_addDefaultCondition"
@@ -694,10 +539,10 @@
     </div>
 </t>
 
-<t t-name="GroupByMenuGenerator" owl="1">
-    <div>
+<t t-name="GroupByGeneratorMenu" owl="1">
+    <div class="o_generator_menu">
         <button type="button"
-            class="dropdown-item"
+            class="o_add_custom_group_by dropdown-item"
             aria-expanded="false"
             t-ref="fallback-focus"
             t-on-click="state.open = !state.open"
@@ -706,18 +551,15 @@
             Add Custom Group
         </button>
         <div t-if="state.open" class="dropdown-item-text">
-            <select class="w-auto o_input o_group_selector" t-on-change="_onFieldSelected">
-                <option t-foreach="fields" t-as="field" t-key="field_index"
+            <select class="w-auto o_input o_group_by_selector" t-model="state.fieldName">
+                <option t-foreach="props.fields" t-as="field" t-key="field.name"
                     t-att-value="field.name"
                     t-esc="field.string"
                 />
             </select>
         </div>
-        <div t-if="state.open" class="dropdown-item-text">
-            <button type="button"
-                class="btn btn-primary o_apply_group"
-                t-on-click="_onApply"
-                >
+        <div t-if="state.open" class="o_add_group_by_menu dropdown-item-text">
+            <button type="button" class="btn btn-primary o_apply_group_by" t-on-click="_onApply">
                 Apply
             </button>
         </div>
@@ -726,7 +568,7 @@
 
 <t t-name="OwlDialog" owl="1">
     <Portal target="'body'">
-        <div class="o_dialog" t-on-focus="_onFocus" t-on-click="_onDialogClick">
+        <div class="o_dialog" t-on-focus="_onFocus" t-on-mousedown="_onDialogMousedown">
             <div t-if="props.backdrop" class="modal-backdrop show" t-on-click="_onBackdropClick"/>
             <div role="dialog" class="modal"
                 tabindex="-1"
@@ -760,6 +602,51 @@
     </Portal>
 </t>
 
+<t t-name="Pager" owl="1">
+    <nav t-att-role="props.role" aria-label="Pager">
+        <div t-if="props.limit and !(props.hiddenInSinglePage and singlePage)" class="o_pager">
+            <span class="o_pager_counter" t-on-click.stop="">
+                <input t-if="state.editing" type="text"
+                    class="o_pager_value o_input"
+                    autofocus=""
+                    t-att-value="value"
+                    t-on-blur="state.editing = false"
+                    t-on-change="_onValueChange"
+                    t-on-keydown.stop="_onValueKeydown"
+                />
+                <span t-else=""
+                    class="o_pager_value"
+                    t-esc="value"
+                    t-on-click="_onEdit"
+                />
+                <span> / </span>
+                <span class="o_pager_limit" t-esc="props.size"/>
+            </span>
+            <span class="btn-group" aria-atomic="true">
+                <!-- accesskeys not wanted in X2Many widgets -->
+                <button type="button"
+                    class="fa fa-chevron-left btn btn-secondary o_pager_previous"
+                    t-att-disabled="singlePage"
+                    t-att-accesskey="props.withAccessKey ? 'p' : false"
+                    aria-label="Previous"
+                    title="Previous"
+                    tabindex="-1"
+                    t-on-click="_changeSelection(-1)"
+                />
+                <button type="button"
+                    class="fa fa-chevron-right btn btn-secondary o_pager_next"
+                    t-att-disabled="singlePage"
+                    t-att-accesskey="props.withAccessKey ? 'n' : false"
+                    aria-label="Next"
+                    title="Next"
+                    tabindex="-1"
+                    t-on-click="_changeSelection(1)"
+                />
+            </span>
+        </div>
+    </nav>
+</t>
+
 <t t-name="SearchBar" owl="1">
     <div class="o_searchview_input_container">
         <SearchFacet t-foreach="getters.getFacets()" t-as="facet" t-key="facet_index"
@@ -775,8 +662,8 @@
             placeholder="Search..."
             role="searchbox"
             t-ref="search-input"
-            t-on-input="_onInputSearch"
-            t-on-keydown="_onInputKeydown"
+            t-on-keydown="_onSearchKeydown"
+            t-on-input="_onSearchInput"
         />
         <ul t-if="state.sources.length" class="o_dropdown_menu o_searchview_autocomplete dropdown-menu show" role="menu">
             <li t-foreach="state.sources" t-as="src" t-key="src.id"
@@ -795,7 +682,7 @@
                 </a>
                 <a href="#" t-on-click.prevent="">
                     <t t-if="src.label" t-esc="src.label"/>
-                    <t t-elif="['date', 'datetime'].includes(src.field.type)">
+                    <t t-elif="['date', 'datetime'].includes(props.fields[src.fieldName].type)">
                         Search <em t-esc="src.description"/> at: <strong t-esc="state.inputValue"/>
                     </t>
                     <t t-else="">
@@ -813,8 +700,6 @@
         role="img"
         aria-label="search"
         t-on-keydown="_onKeydown"
-        t-on-mouseenter="state.displayTooltip = true"
-        t-on-mouseleave="state.displayTooltip = false"
         >
         <span t-if="props.group.type === 'field'" class="o_searchview_facet_label">
             <t t-esc="props.filters[0].description"/>
@@ -823,7 +708,7 @@
         <div class="o_facet_values">
             <t t-foreach="values" t-as="facetValue" t-key="facetValue_index">
                 <span t-if="!facetValue_first" class="o_facet_values_sep" t-esc="separator"/>
-                <span t-esc="facetValue"/>
+                <span class="o_facet_value" t-esc="facetValue"/>
             </t>
         </div>
         <i class="fa fa-sm fa-remove o_facet_remove"
@@ -832,13 +717,6 @@
             title="Remove"
             t-on-click="trigger('remove-facet', props)"
         />
-        <Tooltip t-if="env.isDebug() and state.displayTooltip and domains"
-            target="el"
-            title="values.join(' ')"
-            position="props.tooltipPosition"
-            >
-            <li t-foreach="domains" t-as="domain" t-key="domain_index" t-esc="domain"/>
-        </Tooltip>
     </div>
 </t>
 
@@ -857,27 +735,58 @@
     </aside>
 </t>
 
-<t t-name="Tooltip" owl="1">
-    <Portal target="'body'">
-        <div class="tooltip fade bs-tooltip-auto show" role="tooltip" t-ref="tooltip">
-            <div class="arrow"/>
-            <div class="tooltip-inner">
-                <div t-if="props.title" class="oe_tooltip_string" role="tooltip" t-esc="props.title"/>
-                <p t-if="props.help" class="oe_tooltip_help" role="tooltip" t-esc="props.help"/>
-                <ul class="oe_tooltip_technical" role="tooltip">
-                    <t t-slot="default"/>
-                </ul>
-            </div>
+<t t-name="TimeRangeEditor" owl="1">
+    <div class="o_time_range_editor">
+        <div class="o_time_range_section">
+            <label t-attf-for="field_select_{{ id }}">Based On</label>
+            <select t-attf-id="field_select_{{ id }}" class="o_input" t-model="state.fieldName">
+                <option t-foreach="fields" t-as="field" t-key="field.name"
+                    t-att-selected="state.fieldName === field.name"
+                    t-att-value="field.name"
+                    t-esc="field.description"
+                />
+            </select>
         </div>
-    </Portal>
+        <div class="o_time_range_section">
+            <label t-attf-for="range_select_{{ id }}">Range</label>
+            <select t-attf-id="range_select_{{ id }}" class="o_input" t-model="state.rangeId">
+                <optgroup t-foreach="periodGroups" t-as="group" t-key="group" label="">
+                    <t t-foreach="Object.values(periodOptions)" t-as="option" t-key="option_index">
+                        <option t-if="option.groupNumber === group"
+                            t-att-selected="state.rangeId === option.id"
+                            t-att-value="option.id"
+                            t-esc="env._t(option.description)"
+                        />
+                    </t>
+                </optgroup>
+            </select>
+        </div>
+        <div class="o_time_range_section">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" t-attf-id="checkbox_select_{{ id }}"
+                    class="custom-control-input"
+                    t-att-checked="state.comparisonRangeId"
+                    t-on-click="_onCheckboxClick"
+                />
+                <label t-attf-for="checkbox_select_{{ id }}" class="custom-control-label">Compare To</label>
+            </div>
+            <select t-if="state.comparisonRangeId" class="o_input" t-model="state.comparisonRangeId">
+                <option t-foreach="Object.values(comparisonTimeRangeOptions)" t-as="option" t-key="option_index"
+                    t-att-selected="state.comparisonRangeId === option.id"
+                    t-att-value="option.id"
+                    t-esc="env._t(option.description)"
+                />
+            </select>
+        </div>
+    </div>
 </t>
 
 <t t-name="ViewSwitcherButton" owl="1">
     <button type="button"
         t-att-accesskey="view.accessKey"
-        t-attf-class="btn btn-secondary fa fa-lg {{view.icon}} o_cp_switch_{{view.type}} {{props.viewType === view.type ? ' active' : ''}}"
+        t-attf-class="btn btn-secondary fa fa-lg o_switch_view o_{{ view.type }} {{ view.icon }}"
+        t-att-class="{ active: props.viewType === view.type }"
         t-attf-aria-label="View {{view.type}}"
-        t-att-data-view-type="view.type"
         t-attf-title="View {{view.type}}"
         data-toggle="tooltip"
         tabindex="-1"

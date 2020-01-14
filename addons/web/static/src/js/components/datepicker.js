@@ -1,17 +1,19 @@
-odoo.define('web.datepicker_owl', function (require) {
+odoo.define('web.DatePickerOwl', function (require) {
     "use strict";
 
     const field_utils = require('web.field_utils');
     const time = require('web.time');
 
     const { Component, hooks } = owl;
-    const { useExternalListener, useRef, useState,  } = hooks;
+    const { useExternalListener, useRef, useState } = hooks;
 
     let datePickerId = 0;
 
     class DatePicker extends Component {
         constructor() {
             super(...arguments);
+
+            this.typeOfDate = 'date';
             // tempusdominus doesn't offer any elegant way to check whether the
             // datepicker is open or not, so we have to listen to hide/show events
             // and manually keep track of the 'open' state
@@ -25,7 +27,7 @@ odoo.define('web.datepicker_owl', function (require) {
                 warning: false,
             });
 
-            useExternalListener(window, 'scroll', this._onScroll);
+            useExternalListener(window, 'scroll', this._onWindowScroll);
         }
 
         mounted() {
@@ -37,7 +39,6 @@ odoo.define('web.datepicker_owl', function (require) {
 
             if ('value' in this.props || 'defaultValue' in this.props) {
                 this.value = this.props.value || moment(...this.props.defaultValue);
-                this.trigger('datetime-changed', this.value);
             }
         }
 
@@ -45,12 +46,12 @@ odoo.define('web.datepicker_owl', function (require) {
             this._datetimepicker(this.props);
         }
 
-        async willUnmount() {
+        willUnmount() {
             this._datetimepicker('destroy');
         }
 
         //--------------------------------------------------------------------------
-        // Properties
+        // Getters
         //--------------------------------------------------------------------------
 
         /**
@@ -70,22 +71,22 @@ odoo.define('web.datepicker_owl', function (require) {
         }
 
         //--------------------------------------------------------------------------
-        // Public
+        // Private
         //--------------------------------------------------------------------------
 
         /**
          * set datetime value
          */
-        changeDatetime() {
+        _changeDatetime() {
             const currentDate = moment().format('YYYY-MM-DD');
             if (this.__libInput > 0) {
                 this.state.warning = this.props.warn_future &&
                     this.value &&
                     this.value.format('YYYY-MM-DD') > currentDate;
-                return this.trigger('datetime-changed', this.value);
+                return this.trigger('datetime-changed', { value: this.value });
             }
             const oldValue = this.value;
-            if (this.isValid()) {
+            if (this._isValid()) {
                 this._setValueFromUi();
                 const newValue = this.value;
                 let hasChanged = Boolean(oldValue) !== Boolean(newValue);
@@ -100,7 +101,7 @@ odoo.define('web.datepicker_owl', function (require) {
                     this.state.warning = this.props.warn_future &&
                         newValue &&
                         newValue.format('YYYY-MM-DD') > currentDate;
-                    this.trigger('datetime-changed', this.value);
+                    this.trigger('datetime-changed', { value: this.value });
                 }
             } else {
                 const formattedValue = oldValue ? this._formatClient(oldValue) : null;
@@ -109,18 +110,11 @@ odoo.define('web.datepicker_owl', function (require) {
         }
 
         /**
-         * Library clears the wrong date format so just ignore error
-         */
-        _onDateTimePickerError() {
-            return false;
-        }
-
-        /**
          * Focuses the datepicker input. This function must be called in order to
          * prevent 'input' events triggered by the lib to bubble up, and to cause
          * unwanted effects (like triggering 'field_changed' events)
          */
-        focus() {
+        _focus() {
             this.__libInput ++;
             this.inputRef.el.focus();
             this.__libInput --;
@@ -129,7 +123,7 @@ odoo.define('web.datepicker_owl', function (require) {
         /**
          * @returns {boolean}
          */
-        isValid() {
+        _isValid() {
             const value = this.inputRef.el.value;
             if (value === "") {
                 return true;
@@ -144,24 +138,6 @@ odoo.define('web.datepicker_owl', function (require) {
         }
 
         /**
-         * @returns {Moment|false} value
-         */
-        maxDate(date) {
-            this._datetimepicker('maxDate', date || null);
-        }
-
-        /**
-         * @returns {Moment|false} value
-         */
-        minDate(date) {
-            this._datetimepicker('minDate', date || null);
-        }
-
-        //--------------------------------------------------------------------------
-        // Private
-        //--------------------------------------------------------------------------
-
-        /**
          * Handles bootstrap datetimepicker calls.
          * @param {any} arguments anything that will be passed to the datetimepicker function.
          */
@@ -173,25 +149,24 @@ odoo.define('web.datepicker_owl', function (require) {
 
         /**
          * @private
-         * @param {Moment} v
+         * @param {Moment} value
          * @returns {string}
          */
-        _formatClient(v) {
-            return field_utils.format[this.props.type_of_date](v, null, { timezone: false });
+        _formatClient(value) {
+            return field_utils.format[this.typeOfDate](value, null, { timezone: false });
         }
 
         /**
          * @private
-         * @param {string|false} v
+         * @param {string|false} value
          * @returns {Moment}
          */
-        _parseClient(v) {
-            return field_utils.parse[this.props.type_of_date](v, null, { timezone: false });
+        _parseClient(value) {
+            return field_utils.parse[this.typeOfDate](value, null, { timezone: false });
         }
 
         /**
-         * set the value from the input value
-         *
+         * Set the value from the input value
          * @private
          */
         _setValueFromUi() {
@@ -204,26 +179,32 @@ odoo.define('web.datepicker_owl', function (require) {
         //--------------------------------------------------------------------------
 
         /**
+         * Library clears the wrong date format so just ignore error.
+         * @private
+         */
+        _onDateTimePickerError() {
+            return false;
+        }
+
+        /**
          * Reacts to the datetimepicker being hidden
          * Used to unbind the scroll event from the datetimepicker
-         *
          * @private
          */
         _onDateTimePickerHide() {
             this.__isOpen = false;
-            this.changeDatetime();
+            this._changeDatetime();
         }
 
         /**
          * Reacts to the datetimepicker being shown
          * Could set/verify our widget value
          * And subsequently update the datetimepicker
-         *
          * @private
          */
         _onDateTimePickerShow() {
             this.__isOpen = true;
-            if (this.inputRef.el.value.length !== 0 && this.isValid()) {
+            if (this.inputRef.el.value.length !== 0 && this._isValid()) {
                 this.inputRef.el.select();
             }
         }
@@ -239,7 +220,7 @@ odoo.define('web.datepicker_owl', function (require) {
                     // like leaving the edition of a row in editable list view
                     ev.stopImmediatePropagation();
                     this._datetimepicker('hide');
-                    this.focus();
+                    this._focus();
                 }
             }
         }
@@ -248,9 +229,8 @@ odoo.define('web.datepicker_owl', function (require) {
          * Prevents 'input' events triggered by the library to bubble up, as they
          * might have unwanted effects (like triggering 'field_changed' events in
          * the context of field widgets)
-         *
          * @private
-         * @param {Event} ev
+         * @param {InputEvent} ev
          */
         _onInput(ev) {
             if (this.__libInput > 0) {
@@ -263,10 +243,13 @@ odoo.define('web.datepicker_owl', function (require) {
          */
         _onInputClicked() {
             this._datetimepicker('toggle');
-            this.focus();
+            this._focus();
         }
 
-        _onScroll() {
+        /**
+         * @private
+         */
+        _onWindowScroll(ev) {
             if (ev.target !== this.inputRef.el) {
                 this._datetimepicker('hide');
             }
@@ -297,12 +280,16 @@ odoo.define('web.datepicker_owl', function (require) {
         locale: moment.locale(),
         maxDate: moment({ y: 9999, M: 11, d: 31 }),
         minDate: moment({ y: 1900 }),
-        type_of_date: 'date',
         useCurrent: false,
         widgetParent: 'body',
     };
 
-    class DateTimePicker extends DatePicker { }
+    class DateTimePicker extends DatePicker {
+        constructor() {
+            super(...arguments);
+            this.typeOfDate = 'datetime';
+        }
+    }
 
     DateTimePicker.defaultProps = Object.assign({}, DatePicker.defaultProps, {
         buttons: {
@@ -311,7 +298,6 @@ odoo.define('web.datepicker_owl', function (require) {
             showToday: false,
         },
         format: time.getLangDatetimeFormat(),
-        type_of_date: 'datetime',
     });
 
     return {

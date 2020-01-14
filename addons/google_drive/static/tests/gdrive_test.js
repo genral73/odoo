@@ -1,166 +1,146 @@
 odoo.define('google_drive.gdrive_integration', function (require) {
-"use strict";
-//rebuild
-var FormView = require('web.FormView');
-var testUtils = require('web.test_utils');
-var GoogleDriveSideBar = require('google_drive.sidebar');
+    "use strict";
 
-var createView = testUtils.createView;
+    const FormView = require('web.FormView');
+    const testUtils = require('web.test_utils');
+    const GoogleDriveMenu = require('google_drive.Sidebar');
 
-/*
- * @override
- * Avoid breaking other tests because of the new route
- * that the module introduces
- */
-var _addGoogleDocItemsOriginal = GoogleDriveSideBar.prototype._addGoogleDocItems;
+    const { getHelpers: getCPHelpers } = testUtils.controlPanel;
 
-var _addGoogleDocItemsMocked = function (model, resID) {
-    return Promise.resolve();
-};
+    /*
+     * @override
+     * Avoid breaking other tests because of the new route
+     * that the module introduces
+     */
+    const _getGoogleDocItemsOriginal = GoogleDriveMenu.prototype._getGoogleDocItems;
+    GoogleDriveMenu.prototype._getGoogleDocItems = async () => [];
 
-GoogleDriveSideBar.prototype._addGoogleDocItems = _addGoogleDocItemsMocked;
+    QUnit.module('Google Drive Integration', {
+        beforeEach() {
+            // For our test to work, the _getGoogleDocItems function needs to be the original
+            GoogleDriveMenu.prototype._getGoogleDocItems = _getGoogleDocItemsOriginal;
 
-QUnit.module('gdrive_integration', {
-    beforeEach: function () {
-        // For our test to work, the _addGoogleDocItems function needs to be the original
-        GoogleDriveSideBar.prototype._addGoogleDocItems = _addGoogleDocItemsOriginal;
-
-        this.data = {
-            partner: {
-                fields: {
-                    display_name: {string: "Displayed name", type: "char", searchable: true},
+            this.data = {
+                partner: {
+                    fields: {
+                        display_name: { string: "Displayed name", type: "char", searchable: true },
+                    },
+                    records: [
+                        { id: 1, display_name: "Locomotive Breath" },
+                        { id: 2, display_name: "Hey Macarena" },
+                    ],
                 },
-                records: [{
-                    id: 1,
-                    display_name: "Locomotive Breath",
-                }, {
-                    id: 2,
-                    display_name: "Hey Macarena",
-                }],
-            },
-            'google.drive.config': {
-                fields: {
-                    model_id: {string: 'Model', type: 'int'},
-                    name: {string: 'Name', type: 'char'},
-                    google_drive_resource_id: {string: 'Resource ID', type: 'char'},
+            };
+        },
+
+        afterEach() {
+            GoogleDriveMenu.prototype._getGoogleDocItems = async () => [];
+        },
+    }, function () {
+        QUnit.module('Google Drive Sidebar');
+
+        QUnit.test('rendering of the google drive attachments in Sidebar', async function (assert) {
+            assert.expect(3);
+
+            const form = await testUtils.createView({
+                arch:
+                    `<form string="Partners">
+                        <field name="display_name"/>
+                    </form>`,
+                data: this.data,
+                async mockRPC(route, args) {
+                    switch (route) {
+                        case '/web/dataset/call_kw/google.drive.config/get_google_drive_config':
+                            assert.deepEqual(args.args, ['partner', 1],
+                                'The route to get google drive config should have been called');
+                            return [{
+                                id: 27,
+                                name: 'Cyberdyne Systems',
+                            }];
+                        case '/web/dataset/call_kw/google.drive.config/search_read':
+                            return [{
+                                google_drive_resource_id: "T1000",
+                                google_drive_client_id: "cyberdyne.org",
+                                id: 1,
+                            }];
+                        case '/web/dataset/call_kw/google.drive.config/get_google_drive_url':
+                            assert.deepEqual(args.args, [27, 1, 'T1000'],
+                                'The route to get the Google url should have been called');
+                            return; // do not return anything or it will open a new tab.
+                    }
                 },
-                records: [{
-                    id: 27,
-                    name: 'Cyberdyne Systems',
-                    model_id: 1,
-                    google_drive_resource_id: 'T1000',
-                }],
-            },
-            'ir.attachment': {
-                fields: {
-                    name: {string: 'Name', type:'char'}
+                model: 'partner',
+                res_id: 1,
+                View: FormView,
+                viewOptions: {
+                    hasSidebar: true,
                 },
-                records: [],
-            }
-        };
-    },
+            });
+            const cpHelpers = getCPHelpers(form.el);
 
-    afterEach: function() {
-        GoogleDriveSideBar.prototype._addGoogleDocItems = _addGoogleDocItemsMocked;
-    }
+            await cpHelpers.toggleSideBar();
 
-}, function () {
-    QUnit.module('Google Drive Sidebar');
+            assert.containsOnce(form, '.oe_share_gdoc_item',
+                "The button to the google action should be present");
 
-    QUnit.test('rendering of the google drive attachments in Sidebar', async function (assert) {
-        assert.expect(3);
+            await cpHelpers.toggleMenuItem("Cyberdyne Systems");
 
-        var form = await createView({
-            View: FormView,
-            model: 'partner',
-            data: this.data,
-            arch: '<form string="Partners">' +
-                    '<field name="display_name"/>' +
-                '</form>',
-            res_id: 1,
-            viewOptions: {hasSidebar: true},
-            mockRPC: function (route, args) {
-                if (route === '/web/dataset/call_kw/google.drive.config/get_google_drive_config') {
-                    assert.deepEqual(args.args, ['partner', 1],
-                        'The route to get google drive config should have been called');
-                    return Promise.resolve([{id: 27, name: 'Cyberdyne Systems'}]);
-                }
-                if (route === '/web/dataset/call_kw/google.drive.config/search_read'){
-                    return Promise.resolve([{google_drive_resource_id: "T1000",
-                                    google_drive_client_id: "cyberdyne.org",
-                                    id: 1}]);
-                }
-                if (route === '/web/dataset/call_kw/google.drive.config/get_google_drive_url') {
-                    assert.deepEqual(args.args, [27, 1, 'T1000'],
-                        'The route to get the Google url should have been called');
-                    // We don't return anything useful, otherwise it will open a new tab
-                    return Promise.resolve();
-                }
-                return this._super.apply(this, arguments);
-            },
+            form.destroy();
         });
 
-        var $googleAction = form.sidebar.$('.oe_share_gdoc');
+        QUnit.test('click on the google drive attachments after switching records', async function (assert) {
+            assert.expect(4);
 
-        assert.strictEqual($googleAction.length, 1,
-            'The button to the google action should be present');
+            let currentID;
+            const form = await testUtils.createView({
+                arch:
+                    `<form string="Partners">
+                        <field name="display_name"/>
+                    </form>`,
+                data: this.data,
+                async mockRPC(route, args) {
+                    switch (route) {
+                        case '/web/dataset/call_kw/google.drive.config/get_google_drive_config':
+                            assert.deepEqual(args.args, ['partner', currentID],
+                                'The route to get google drive config should have been called');
+                            return [{
+                                id: 27,
+                                name: 'Cyberdyne Systems',
+                            }];
+                        case '/web/dataset/call_kw/google.drive.config/search_read':
+                            return [{
+                                google_drive_resource_id: "T1000",
+                                google_drive_client_id: "cyberdyne.org",
+                                id: 1,
+                            }];
+                        case '/web/dataset/call_kw/google.drive.config/get_google_drive_url':
+                            assert.deepEqual(args.args, [27, currentID, 'T1000'],
+                                'The route to get the Google url should have been called');
+                            return; // do not return anything or it will open a new tab.
+                    }
+                },
+                model: 'partner',
+                res_id: 1,
+                View: FormView,
+                viewOptions: {
+                    hasSidebar: true,
+                    ids: [1, 2],
+                    index: 0,
+                },
+            });
+            const cpHelpers = getCPHelpers(form.el);
 
-        // click on gdrive sidebar item
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click($googleAction);
+            currentID = 1;
+            await cpHelpers.toggleSideBar();
+            await cpHelpers.toggleMenuItem("Cyberdyne Systems");
 
-        form.destroy();
-    });
+            await cpHelpers.pagerNext();
 
-    QUnit.test('click on the google drive attachments after switching records', async function (assert) {
-        assert.expect(3);
+            currentID = 2;
+            await cpHelpers.toggleSideBar();
+            await cpHelpers.toggleMenuItem("Cyberdyne Systems");
 
-        var currentID;
-        var form = await createView({
-            View: FormView,
-            model: 'partner',
-            data: this.data,
-            arch: '<form string="Partners">' +
-                    '<field name="display_name"/>' +
-                '</form>',
-            res_id: 1,
-            viewOptions: {
-                hasSidebar: true,
-                ids: [1, 2],
-                index: 0,
-            },
-            mockRPC: function (route, args) {
-                if (route === '/web/dataset/call_kw/google.drive.config/get_google_drive_config') {
-                    assert.deepEqual(args.args, ['partner', 1],
-                        'The route to get google drive config should have been called');
-                    return Promise.resolve([{id: 27, name: 'Cyberdyne Systems'}]);
-                }
-                if (route === '/web/dataset/call_kw/google.drive.config/search_read'){
-                    return Promise.resolve([{google_drive_resource_id: "T1000",
-                                    google_drive_client_id: "cyberdyne.org",
-                                    id: 1}]);
-                }
-                if (route === '/web/dataset/call_kw/google.drive.config/get_google_drive_url') {
-                    assert.deepEqual(args.args, [27, currentID, 'T1000'],
-                        'The route to get the Google url should have been called');
-                    // We don't return anything useful, otherwise it will open a new tab
-                    return Promise.resolve();
-                }
-                return this._super.apply(this, arguments);
-            },
+            form.destroy();
         });
-
-        currentID = 1;
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(form.sidebar.$('.oe_share_gdoc'));
-
-        await testUtils.dom.click(form.pager.$('.o_pager_next'));
-        currentID = 2;
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(form.sidebar.$('.oe_share_gdoc'));
-
-        form.destroy();
     });
-});
-
 });

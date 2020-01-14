@@ -4,6 +4,7 @@ odoo.define('web.search_tests', function (require) {
 var testUtils = require('web.test_utils');
 
 var createActionManager = testUtils.createActionManager;
+const { getHelpers: getCPHelpers } = testUtils.controlPanel;
 
 QUnit.module('Mobile Search view Screen', {
     beforeEach: function () {
@@ -74,13 +75,9 @@ QUnit.module('Mobile Search view Screen', {
         searchRPCFlag = true;
 
         // use quick search input
-        $('.o_searchview_input')
-            .val("A")
-            .trigger($.Event('keypress', { which: 65, keyCode: 65 }));
-        await testUtils.nextTick();
-        actionManager.$('.o_searchview_input')
-            .trigger($.Event('keydown', { which: $.ui.keyCode.ENTER, keyCode: $.ui.keyCode.ENTER }));
-        await testUtils.nextTick();
+        const cpHelpers = getCPHelpers(actionManager.el);
+        await cpHelpers.editSearch("A");
+        await cpHelpers.validateSearch();
 
         // close quick search
         await testUtils.dom.click($('button.o_enable_searchview.fa-close'));
@@ -93,7 +90,7 @@ QUnit.module('Mobile Search view Screen', {
     });
 
     QUnit.test('can activate a filter with mobile search view in full screen mode', async function (assert) {
-        assert.expect(4);
+        assert.expect(3);
 
         var filterActiveFlag = false;
 
@@ -112,26 +109,27 @@ QUnit.module('Mobile Search view Screen', {
 
         await actionManager.doAction(1);
 
-        assert.ok(!$('.o_mobile_search').is(':visible'),
-            'mobile search view is not visible');
+        const cpHelpers = getCPHelpers(actionManager.el);
+
+        assert.containsNone(actionManager, '.o_mobile_search');
 
         // open the search view
-        await testUtils.dom.click($('button.o_enable_searchview'));
+        await testUtils.dom.click(actionManager.el.querySelector('button.o_enable_searchview'));
         // open it in full screen
-        await testUtils.dom.click($('.o_toggle_searchview_full'));
-        assert.ok($('.o_mobile_search').is(':visible'),
-            'mobile search view is visible');
+        await testUtils.dom.click(actionManager.el.querySelector('.o_toggle_searchview_full'));
 
-        // open filter sub menu
-        await testUtils.dom.click($('button.o_dropdown_toggler_btn').first());
-        filterActiveFlag = true;
-        // click on Active filter
-        await testUtils.dom.click($('.o_filters_menu a:contains(Active)'));
+        assert.containsOnce(actionManager, '.o_mobile_search');
+
+        await cpHelpers.toggleFilterMenu();
+        await cpHelpers.toggleMenuItem('Active');
 
         // closing search view
-        await testUtils.dom.click($('.o_mobile_search_close'));
-        assert.ok(!$('.o_mobile_search').is(':visible'),
-            'mobile search view is not visible');
+        await testUtils.dom.click(
+            [...actionManager.el.querySelectorAll('.o_mobile_search_button')].find(
+                e => e.innerText.trim() === "FILTER"
+            )
+        );
+        assert.containsNone(actionManager, '.o_mobile_search');
 
         actionManager.destroy();
     });

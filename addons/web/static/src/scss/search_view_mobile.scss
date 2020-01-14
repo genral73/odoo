@@ -16,7 +16,7 @@
         .o_mobile_search_header {
             background-color: $o-brand-odoo;
             display: flex;
-            height: 46px;
+            min-height: 46px;
             justify-content: space-between;
             margin-bottom: 10px;
             width: 100%;
@@ -100,10 +100,6 @@
 
                 .divider {
                     margin: 0px;
-                }
-
-                > li > a  {
-                    padding: 10px 26px;
                 }
             }
         }

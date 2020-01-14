@@ -2,15 +2,12 @@ odoo.define('web.DropdownMenuItem', function (require) {
     "use strict";
 
     const { Component, useState, hooks } = owl;
-    const { useDispatch, useRef } = hooks;
+    const { useRef } = hooks;
 
     class DropdownMenuItem extends Component {
         constructor() {
             super(...arguments);
 
-            if (this.env.controlPanelStore) {
-                this.dispatch = useDispatch(this.env.controlPanelStore);
-            }
             this.fallbackFocusRef = useRef('fallback-focus');
             this.state = useState({ open: false });
         }

@@ -5,6 +5,7 @@ odoo.define('web.ControlPanelMobile', function (require) {
     const { device } = require('web.config');
     const utils = require('web.utils');
 
+    // TODO(jum): perhaps this all should be moved to web_mobile ?
     if (!device.isMobile) {
         return;
     }
@@ -20,10 +21,16 @@ odoo.define('web.ControlPanelMobile', function (require) {
     utils.patch(ControlPanel, 'ControlPanel.mobile', {
 
         //--------------------------------------------------------------------------
-        // Getters
+        // Private
         //--------------------------------------------------------------------------
 
-        get initialState() {
+        /**
+         * @override
+         */
+        _getInitialState() {
+            if (this.env.controlPanelModel) {
+                this.dispatch = owl.hooks.useDispatch(this.env.controlPanelModel);
+            }
             return Object.assign(this._super(), {
                 isSearching: false,
                 viewSwitcherOpen: false,

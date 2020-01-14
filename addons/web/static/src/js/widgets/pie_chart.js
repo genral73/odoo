@@ -42,6 +42,7 @@ var PieChart = Widget.extend({
         this.subViewParams = {
             modelName: record.model,
             withControlPanel: false,
+            withSearchPanel: false,
             isEmbedded: true,
             mode: 'pie',
         };

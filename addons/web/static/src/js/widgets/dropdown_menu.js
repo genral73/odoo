@@ -4,7 +4,7 @@ odoo.define('web.DropdownMenu', function (require) {
     const DropdownMenuItem = require('web.DropdownMenuItem');
 
     const { Component, hooks } = owl;
-    const { useExternalListener, useDispatch, useGetters, useRef, useState } = hooks;
+    const { useExternalListener, useRef, useState } = hooks;
 
     // Used to provide unique ids to its template elements.
     let dropdownId = 0;
@@ -13,13 +13,10 @@ odoo.define('web.DropdownMenu', function (require) {
         constructor() {
             super(...arguments);
 
-            this.id = dropdownId ++;
+            this.id = dropdownId++;
             this.dropdownMenu = useRef('dropdown');
-            if ('controlPanelStore' in this.env) {
-                this.dispatch = useDispatch(this.env.controlPanelStore);
-                this.getters = useGetters(this.env.controlPanelStore);
-            }
             this.state = useState({ open: false });
+
             useExternalListener(window, 'click', this._onWindowClick);
             useExternalListener(window, 'keydown', this._onWindowKeydown);
 
@@ -47,6 +44,21 @@ odoo.define('web.DropdownMenu', function (require) {
         }
 
         //--------------------------------------------------------------------------
+        // Private
+        //--------------------------------------------------------------------------
+
+        /**
+         * Ensure every item is given a unique key.
+         * @private
+         * @param {Object[]} list
+         */
+        _assignKeys(list) {
+            return list.map((item, index) =>
+                Object.assign({ key: 'id' in item ? item.id : `item-${index}` }, item)
+            );
+        }
+
+        //--------------------------------------------------------------------------
         // Handlers
         //--------------------------------------------------------------------------
 
@@ -69,16 +81,9 @@ odoo.define('web.DropdownMenu', function (require) {
         }
 
         /**
+         * We define the target on mousedown to avoid closing the dropdown with
+         * a drag-&-drop initiated inside of it.
          * @private
-         * @param {MouseEvent} ev
-         */
-        _onItemSelected(ev) {
-            this.trigger('item_selected', ev.detail);
-        }
-
-        /**
-         * @private
-         * @param {Event} ev
          */
         _onWindowClick(ev) {
             if (this.state.open && !this.el.contains(ev.target)) {
@@ -98,9 +103,7 @@ odoo.define('web.DropdownMenu', function (require) {
     }
 
     DropdownMenu.components = { DropdownMenuItem };
-    DropdownMenu.defaultProps = {
-        items: [],
-    };
+    DropdownMenu.defaultProps = { items: [] };
     DropdownMenu.props = {
         icon: { type: String, optional: 1 },
         items: {

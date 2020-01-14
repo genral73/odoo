@@ -1,8 +1,3 @@
-@mixin o-search-options-dropdown-custom-item {
-    max-width: 250px;
-    width: auto;
-}
-
 .o_searchview {
     align-items: flex-end;
     padding: 0 20px 1px 0;
@@ -95,14 +90,128 @@
     }
 }
 
-.o_favorite_edit_dialog {
+$filter-editor-spacing: 4px;
 
-    label {
-        font-weight: bold;
+.o_filter_editor {
+    display: flex;
+    flex-flow: column wrap;
+
+    .o_section {
+        display: flex;
+        flex: 1 1;
+        flex-flow: row wrap;
+
+        &.o_main_section .o_section_content > *:not(:first-child) {
+            margin-top: $filter-editor-spacing;
+        }
+
+        &:not(:first-child) {
+            margin-top: 16px;
+        }
+
+        .o_section_header {
+            flex: 1;
+            font-weight: bold;
+        }
+
+        .o_section_content {
+            flex: 5;
+
+            > .o_input {
+                width: 100%;
+            }
+        }
+
+        .o_fieldname_cells {
+            align-items: center;
+            display: flex;
+            flex-flow: row wrap;
+
+            > :not(:first-child) {
+                margin-left: $filter-editor-spacing;
+            }
+
+            .o_group_by_separator {
+                display: inline-block;
+                text-align: center;
+            }
+
+            .o_fieldname_cell {
+                background: $o-brand-lightsecondary;
+                border: 1px solid darken($o-brand-lightsecondary, 10%);
+                cursor: pointer;
+                display: flex;
+                flex-flow: row wrap;
+                min-width: 100px;
+                padding: 2px $filter-editor-spacing;
+
+                .o_fieldname {
+                    font-weight: 700;
+                }
+
+                > select {
+                    flex: 2;
+                }
+
+                > select + select {
+                    flex: 1;
+                }
+
+                > * {
+                    border: none;
+                    display: inline-block;
+                    flex: 1;
+
+                    &:not(:first-child) {
+                        margin-left: $filter-editor-spacing;
+                    }
+                }
+
+                .fa,
+                .o_direction {
+                    align-items: center;
+                    display: flex;
+                    flex: 0;
+                }
+            }
+        }
+    }
+}
+
+.o_context_editor {
+
+    .o_context {
+        align-items: center;
+        display: flex;
+        flex-flow: row wrap;
+
+        &.o_invalid {
+            color: theme-color('danger');
+        }
+
+        .o_input {
+            flex: 1;
+            color: inherit;
+
+            &.o_key {
+                margin-right: 10px;
+            }
+
+            &.o_value {
+                margin: 0 10px;
+            }
+        }
+
+        .fa-remove {
+            align-items: center;
+            cursor: pointer;
+            display: flex;
+            flex: 0;
+        }
     }
 
-    .modal-body > div:not(:first-child) {
-        margin-top: 16px;
+    > *:not(:first-child) {
+        margin-top: $filter-editor-spacing;
     }
 }
 
@@ -139,6 +248,10 @@
     }
 
     .o_dropdown_menu {
+
+        ul.o_embed_menu {
+            padding: 0;
+        }
 
         a.dropdown-item {
             align-items: center;
@@ -189,8 +302,7 @@
 }
 
 // Filters
-.o_filter_menu {
-    @include o-search-options-dropdown-custom-item;
+.o_filters_menu {
 
     .o_filter_condition {
         margin-bottom: 8px;
@@ -200,18 +312,18 @@
             @include o-position-absolute($top: 3px, $left: 4px);
         }
 
-        .o_menu_generator_operator {
+        .o_generator_menu_operator {
             margin: 3px 0px; // vertical gap between selects
         }
 
-        .o_menu_generator_value { // date fields: datepicker position
+        .o_generator_menu_value { // date fields: datepicker position
             .datepickerbutton {
                 cursor: pointer;
                 @include o-position-absolute(3px, -20px);
             }
         }
 
-        .o_menu_generator_delete { // delete condition button position
+        .o_generator_menu_delete { // delete condition button position
             cursor: pointer;
             @include o-position-absolute($top: 6px, $right: 4px);
         }
@@ -225,26 +337,22 @@
 
 
 // Favorites
-.o_favorite_menu {
+.o_favorites_menu {
 
-    .o-searchview-custom-public a:after {
-        content: "\f0c0";
-        font-family: FontAwesome;
-        font-weight: normal;
-        margin-left: 5px;
-    }
-
-    .o_save_name { // save button
-        display: none; // hidden by default
-        @include o-search-options-dropdown-custom-item;
-    }
 }
 
 // Time Ranges
 .o_time_range_menu {
 
-    .dropdown-item-text > label,
-    .custom-control-label {
+}
+
+.o_time_range_editor {
+
+    label {
         font-weight: bold;
+    }
+
+    .o_time_range_section:not(:first-child) {
+        padding-top: 0.5rem;
     }
 }

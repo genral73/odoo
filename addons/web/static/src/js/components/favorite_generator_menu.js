@@ -1,29 +1,28 @@
-odoo.define('web.AddNewFavoriteMenu', function (require) {
+odoo.define('web.FavoriteGeneratorMenu', function (require) {
     "use strict";
 
     const DropdownMenuItem = require('web.DropdownMenuItem');
+    const FavoriteMenuRegistry = require('web.FavoriteMenuRegistry');
     const { useFocusOnUpdate } = require('web.custom_hooks');
 
-    const { useDispatch, useRef, useState } = owl.hooks;
+    const { useDispatch, useGetters, useRef, useState } = owl.hooks;
 
     let favoriteId = 0;
 
-    class AddNewFavoriteMenu extends DropdownMenuItem {
-
-        /**
-         * @param {Object} props
-         * @param {Object} [props.actionName]
-         * @param {Object} props.favorites
-         */
+    class FavoriteGeneratorMenu extends DropdownMenuItem {
         constructor() {
             super(...arguments);
 
+            const favId = favoriteId++;
+            this.useByDefaultId = `o_favorite_use_by_default_${favId}`;
+            this.shareAllUsersId = `o_favorite_share_all_users_${favId}`;
+
             this.descriptionRef = useRef('description');
-            this.dispatch = useDispatch(this.env.controlPanelStore);
-            this.favId = favoriteId++;
+            this.dispatch = useDispatch(this.env.controlPanelModel);
+            this.getters = useGetters(this.env.controlPanelModel);
             this.interactive = true;
             this.state = useState({
-                description: this.props.actionName || "",
+                description: this.env.action.name || "",
                 isDefault: false,
                 isShared: false,
                 open: false,
@@ -34,56 +33,28 @@ odoo.define('web.AddNewFavoriteMenu', function (require) {
         }
 
         //--------------------------------------------------------------------------
-        // Getters
-        //--------------------------------------------------------------------------
-
-        get useByDefaultId() {
-            return `o_favorite_use_by_default_${this.favId}`;
-
-        }
-
-        get shareAllUsersId() {
-            return `o_favorite_share_all_users_${this.favId}`;
-        }
-
-        //--------------------------------------------------------------------------
         // Private
         //--------------------------------------------------------------------------
-
-        /**
-         * @private
-         * @param {string} title
-         * @param {string} message
-         */
-        _doWarn(title, message) {
-            return new Promise(resolve => {
-                this.env.bus.trigger('call_service', {
-                    data: {
-                        args: [{ title, message, type: 'danger' }],
-                        callback: resolve,
-                        method: 'notify',
-                        service: 'notification',
-                    },
-                });
-            });
-        }
 
         /**
          * @private
          */
         _saveFavorite() {
             if (!this.state.description.length) {
-                this._doWarn(
-                    this.env._t("Error"),
-                    this.env._t("A name for your favorite is required.")
-                );
+                this.env.services.notification.notify({
+                    title: this.env._t("Error"),
+                    message: this.env._t("A name for your favorite is required."),
+                    type: 'danger',
+                });
                 return this.descriptionRef.el.focus();
             }
-            if (this.props.favorites.some(f => f.description === this.state.description)) {
-                this._doWarn(
-                    this.env._t("Error"),
-                    this.env._t("Filter with same name already exists.")
-                );
+            const favorites = this.getters.getFiltersOfType('favorite');
+            if (favorites.some(f => f.description === this.state.description)) {
+                this.env.services.notification.notify({
+                    title: this.env._t("Error"),
+                    message: this.env._t("Filter with same name already exists."),
+                    type: 'danger',
+                });
                 return this.descriptionRef.el.focus();
             }
             this.dispatch('createNewFavorite', {
@@ -92,7 +63,13 @@ odoo.define('web.AddNewFavoriteMenu', function (require) {
                 isDefault: this.state.isDefault,
                 isShared: this.state.isShared,
             });
-            this.state.open = false;
+            // Reset state
+            Object.assign(this.state, {
+                description: this.env.action.name || "",
+                isDefault: false,
+                isShared: false,
+                open: false,
+            });
         }
 
         /**
@@ -131,14 +108,6 @@ odoo.define('web.AddNewFavoriteMenu', function (require) {
 
         /**
          * @private
-         * @param {InputEvent} ev
-         */
-        _onInput(ev) {
-            this.state.description = ev.target.value;
-        }
-
-        /**
-         * @private
          * @param {jQueryEvent} ev
          */
         _onInputKeydown(ev) {
@@ -156,11 +125,17 @@ odoo.define('web.AddNewFavoriteMenu', function (require) {
         }
     }
 
-    AddNewFavoriteMenu.props = {
-        actionName: String,
-        favorites: Array,
-    };
-    AddNewFavoriteMenu.template = 'AddNewFavoriteMenu';
+    FavoriteGeneratorMenu.template = 'FavoriteGeneratorMenu';
 
-    return AddNewFavoriteMenu;
+    FavoriteMenuRegistry.add('favorite-generator-menu', {
+        Component: FavoriteGeneratorMenu,
+        getProps() {
+            return {};
+        },
+        validate() {
+            return true;
+        },
+    }, 0);
+
+    return FavoriteGeneratorMenu;
 });

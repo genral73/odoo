@@ -287,6 +287,9 @@ function addMockEnvironment(widget, params) {
             views = _.mapObject(views, function (viewParams) {
                 return fieldsViewGet(mockServer, viewParams);
             });
+            if ('search' in views && params.favoriteFilters) {
+                views.search.favoriteFilters = params.favoriteFilters;
+            }
             event.data.on_success(views);
         });
     });
@@ -368,21 +371,28 @@ function fieldsViewGet(server, params) {
  * @param {Object} [params.archs] this archs given to the mock server
  * @param {Object} [params.data] the business data given to the mock server
  * @param {boolean} [params.debug]
+ * @param {Object} [params.env]
  * @param {function} [params.mockRPC]
+ * @param {function} [params.server] an already instantiated server to avoid
+ *      creating another one.
  * @returns {Object}
  */
-function getMockedOwlEnv(params) {
-    params = params || {};
-    let Server = MockServer;
-    if (params.mockRPC) {
-        Server = MockServer.extend({ _performRpc: params.mockRPC });
+function getMockedOwlEnv(params = {}) {
+    let server;
+    if (params.server) {
+        server = params.server;
+    } else {
+        let Server = MockServer;
+        if (params.mockRPC) {
+            Server = MockServer.extend({ _performRpc: params.mockRPC });
+        }
+        server = new Server(params.data, {
+            actions: params.actions,
+            archs: params.archs,
+            debug: params.debug,
+        });
     }
-    const server = new Server(params.data, {
-        actions: params.actions,
-        archs: params.archs,
-        debug: params.debug,
-    });
-    const env = {
+    const env = Object.assign({
         dataManager: {
             load_action: (actionID, context) => {
                 return server.performRpc('/web/action/load', {
@@ -416,7 +426,7 @@ function getMockedOwlEnv(params) {
             },
         },
         session: params.session || {},
-    };
+    }, params.env);
     return makeTestEnvironment(env, server.performRpc.bind(server));
 }
 

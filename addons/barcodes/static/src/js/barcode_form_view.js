@@ -88,59 +88,60 @@ FormController.include({
     /**
      * @private
      */
-    _barcodePagerFirst: function () {
-        var self = this;
-        return this.mutex.exec(function () {}).then(function () {
-            if (!self.pager) {
-                self.do_warn(_t('Error: Pager not available'));
-                return;
-            }
-            self.pager.updateState({
-                current_min: 1,
-            }, {notifyChange: true});
-        });
+    _barcodePagerFirst: async function () {
+        await this.mutex.exec(() => {});
+        const state = this.model.get(this.handle, { raw: true });
+        const pagerProps = this._getPagerProps(state);
+        if (!pagerProps) {
+            return this.do_warn(_t('Error: Pager not available'));
+        }
+        pagerProps.currentMinimum = 1;
+        return this._reloadPagerProps(pagerProps);
     },
     /**
      * @private
      */
-    _barcodePagerLast: function () {
-        var self = this;
-        return this.mutex.exec(function () {}).then(function () {
-            if (!self.pager) {
-                self.do_warn(_t('Error: Pager not available'));
-                return;
-            }
-            var state = self.model.get(self.handle, {raw: true});
-            self.pager.updateState({
-                current_min: state.count,
-            }, {notifyChange: true});
-        });
+    _barcodePagerLast: async function () {
+        await this.mutex.exec(() => {});
+        const state = this.model.get(this.handle, { raw: true });
+        const pagerProps = this._getPagerProps(state);
+        if (!pagerProps) {
+            return this.do_warn(_t('Error: Pager not available'));
+        }
+        pagerProps.currentMinimum = state.count;
+        return this._reloadPagerProps(pagerProps);
     },
     /**
      * @private
      */
-    _barcodePagerNext: function () {
-        var self = this;
-        return this.mutex.exec(function () {}).then(function () {
-            if (!self.pager) {
-                self.do_warn(_t('Error: Pager not available'));
-                return;
-            }
-            self.pager.next();
-        });
+    _barcodePagerNext: async function () {
+        await this.mutex.exec(() => {});
+        const state = this.model.get(this.handle, { raw: true });
+        const pagerProps = this._getPagerProps(state);
+        if (!pagerProps) {
+            return this.do_warn(_t('Error: Pager not available'));
+        }
+        pagerProps.currentMinimum++;
+        if (pagerProps.currentMinimum > state.count) {
+            pagerProps.currentMinimum = 1;
+        }
+        return this._reloadPagerProps(pagerProps);
     },
     /**
      * @private
      */
-    _barcodePagerPrevious: function () {
-        var self = this;
-        return this.mutex.exec(function () {}).then(function () {
-            if (!self.pager) {
-                self.do_warn(_t('Error: Pager not available'));
-                return;
-            }
-            self.pager.previous();
-        });
+    _barcodePagerPrevious: async function () {
+        await this.mutex.exec(() => {});
+        const state = this.model.get(this.handle, { raw: true });
+        const pagerProps = this._getPagerProps(state);
+        if (!pagerProps) {
+            return this.do_warn(_t('Error: Pager not available'));
+        }
+        pagerProps.currentMinimum--;
+        if (pagerProps.currentMinimum < 1) {
+            pagerProps.currentMinimum = state.count;
+        }
+        return this._reloadPagerProps(pagerProps);
     },
     /**
      * Returns true iff the given barcode matches the given record (candidate).
