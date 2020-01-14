@@ -1,0 +1,574 @@
+odoo.define('web.favorite_menu_tests', function (require) {
+    "use strict";
+
+    const testUtils = require('web.test_utils');
+
+    const { createControlPanel, mock } = testUtils;
+    const { patchDate } = mock;
+
+    const searchMenuTypes = ['favorite'];
+
+    QUnit.module('FavoriteMenu', {
+        beforeEach: function () {
+            this.fields = {
+                bar: { string: "Bar", type: "many2one", relation: 'partner' },
+                birthday: { string: "Birthday", type: "date", store: true, sortable: true },
+                date_field: { string: "Date", type: "date", store: true, sortable: true },
+                float_field: { string: "Float", type: "float", group_operator: 'sum' },
+                foo: { string: "Foo", type: "char", store: true, sortable: true },
+            };
+        },
+    }, function () {
+
+        QUnit.test('simple rendering with no favorite', async function (assert) {
+            assert.expect(8);
+
+            const params = {
+                cpStoreConfig: { searchMenuTypes },
+                cpProps: { fields: this.fields, searchMenuTypes, action: { name: "Action Name" } },
+            };
+            const { parent, el, helpers } = await createControlPanel(params);
+
+            assert.containsOnce(el, 'div.o_favorite_menu > button i.fa.fa-star');
+            assert.strictEqual(el.querySelector('div.o_favorite_menu > button span').innerText, 'Favorites');
+
+            await helpers.toggleFavoriteMenu();
+            assert.containsNone(el, '.dropdown-divider');
+            assert.containsOnce(el, '.o_add_favorite');
+            assert.strictEqual(el.querySelector('.o_add_favorite > button').innerText,
+                'Save Current Search');
+
+            await helpers.toggleSaveFilter();
+            assert.strictEqual(
+                el.querySelector('.o_add_favorite input[type="text"]').value,
+                'Action Name'
+            );
+            assert.containsN(el, '.o_add_favorite .custom-checkbox input[type="checkbox"]', 2);
+            const labelEls = el.querySelectorAll('.o_add_favorite .custom-checkbox label');
+            assert.deepEqual(
+                [...labelEls].map(e => e.innerText),
+                ['Use by default', 'Share with all users ']
+            );
+
+            parent.destroy();
+        });
+
+        QUnit.test('favorites use by default and share are exclusive', async function (assert) {
+            assert.expect(11);
+
+            const params = {
+                cpStoreConfig: {
+                    viewInfo: { fields: this.fields },
+                    searchMenuTypes
+                },
+                cpProps: {
+                    fields: this.fields,
+                    searchMenuTypes,
+                    action: {},
+                },
+            };
+            const { parent, el, helpers } = await createControlPanel(params);
+
+            await helpers.toggleFavoriteMenu();
+            await helpers.toggleSaveFilter();
+            const checkboxes = el.querySelectorAll('input[type="checkbox"]');
+
+            assert.strictEqual(checkboxes.length, 2, '2 checkboxes are present');
+
+            assert.notOk(checkboxes[0].checked, 'Start: None of the checkboxes are checked (1)');
+            assert.notOk(checkboxes[1].checked, 'Start: None of the checkboxes are checked (2)');
+
+            await testUtils.dom.click(checkboxes[0]);
+            assert.ok(checkboxes[0].checked, 'The first checkbox is checked');
+            assert.notOk(checkboxes[1].checked, 'The second checkbox is not checked');
+
+            await testUtils.dom.click(checkboxes[1]);
+            assert.notOk(checkboxes[0].checked,
+                'Clicking on the second checkbox checks it, and unchecks the first (1)');
+            assert.ok(checkboxes[1].checked,
+                'Clicking on the second checkbox checks it, and unchecks the first (2)');
+
+            await testUtils.dom.click(checkboxes[0]);
+            assert.ok(checkboxes[0].checked,
+                'Clicking on the first checkbox checks it, and unchecks the second (1)');
+            assert.notOk(checkboxes[1].checked,
+                'Clicking on the first checkbox checks it, and unchecks the second (2)');
+
+            await testUtils.dom.click(checkboxes[0]);
+            assert.notOk(checkboxes[0].checked, 'End: None of the checkboxes are checked (1)');
+            assert.notOk(checkboxes[1].checked, 'End: None of the checkboxes are checked (2)');
+
+            parent.destroy();
+        });
+
+        QUnit.test('save filter', async function (assert) {
+            assert.expect(1);
+
+            const params = {
+                cpStoreConfig: {
+                    viewInfo: { fields: this.fields },
+                    searchMenuTypes
+                },
+                cpProps: {
+                    fields: this.fields,
+                    searchMenuTypes,
+                    action: {},
+                },
+                handlers: {
+                    _onGetOwnedQueryParams: function (callback) {
+                        callback({
+                            orderedBy: [
+                                { asc: true, name: 'foo' },
+                                { asc: false, name: 'bar' }
+                            ]
+                        });
+                    }
+                },
+                env: {
+                    dataManager: {
+                        create_filter: async function (filter) {
+                            assert.strictEqual(filter.sort, '["foo","bar desc"]',
+                                'The right format for the string "sort" should be sent to the server'
+                            );
+                        }
+                    }
+                },
+            };
+
+            const { parent, helpers } = await createControlPanel(params);
+
+            await helpers.toggleFavoriteMenu();
+            await helpers.toggleSaveFilter();
+            await helpers.editFavoriteName('aaa');
+            await helpers.saveFavorite();
+
+            parent.destroy();
+        });
+
+        QUnit.test('dynamic filters are saved dynamic', async function (assert) {
+            assert.expect(3);
+
+            const arch = `
+            <search>
+                <filter string="Float" name="positive" domain="[('date_field', '>=', (context_today() + relativedelta()).strftime('%Y-%m-%d'))]"/>
+            </search>
+        `;
+            const params = {
+                cpStoreConfig: {
+                    viewInfo: { fields: {}, arch },
+                    searchMenuTypes,
+                    actionContext: {
+                        search_default_positive: true,
+                    }
+                },
+                cpProps: {
+                    fields: {},
+                    searchMenuTypes,
+                    action: {},
+                },
+                handlers: {
+                    _onGetOwnedQueryParams: function (callback) { callback(); },
+                },
+                env: {
+                    dataManager: {
+                        create_filter: async function (filter) {
+                            assert.strictEqual(
+                                filter.domain,
+                                "[(\"date_field\", \">=\", (context_today() + relativedelta()).strftime(\"%Y-%m-%d\"))]"
+                            );
+                            return 1; // serverSideId
+                        }
+                    }
+                },
+            };
+            const { parent, helpers } = await createControlPanel(params);
+
+            assert.deepEqual(helpers.getFacetTexts(), ['Float']);
+
+            await helpers.toggleFavoriteMenu();
+            await helpers.toggleSaveFilter();
+            await helpers.editFavoriteName('My favorite');
+            await helpers.saveFavorite();
+
+            assert.deepEqual(helpers.getFacetTexts(), ['My favorite']);
+
+            parent.destroy();
+        });
+
+        QUnit.test('save filters created via autocompletion works', async function (assert) {
+            assert.expect(4);
+
+            const arch = `<search> <field name="foo"/> </search>`;
+            const params = {
+                cpStoreConfig: {
+                    viewInfo: { fields: this.fields, arch },
+                    searchMenuTypes,
+                },
+                cpProps: {
+                    fields: this.fields,
+                    searchMenuTypes,
+                    action: {},
+                },
+                handlers: {
+                    _onGetOwnedQueryParams: function (callback) { callback(); },
+                },
+                env: {
+                    dataManager: {
+                        create_filter: async function (filter) {
+                            assert.strictEqual(
+                                filter.domain,
+                                `[["foo", "ilike", "a"]]`
+                            );
+                            return 1; // serverSideId
+                        }
+                    }
+                },
+            };
+            const { parent, helpers } = await createControlPanel(params);
+
+            assert.deepEqual(helpers.getFacetTexts(), []);
+
+            await helpers.editSearch("a");
+            await helpers.validateSearch();
+
+            assert.deepEqual(helpers.getFacetTexts(), ["Foo\na"]);
+
+            await helpers.toggleFavoriteMenu();
+            await helpers.toggleSaveFilter();
+            await helpers.editFavoriteName('My favorite');
+            await helpers.saveFavorite();
+
+            assert.deepEqual(helpers.getFacetTexts(), ['My favorite']);
+
+            parent.destroy();
+        });
+
+        QUnit.test('delete an active favorite remove it both in list of favorite and in search bar', async function (assert) {
+            assert.expect(6);
+
+            const favoriteFilters = [{
+                context: "{}",
+                domain: "[['foo', '=', 'qsdf']]",
+                id: 7,
+                is_default: true,
+                name: "My favorite",
+                sort: "[]",
+                user_id: [2, "Mitchell Admin"],
+            }];
+            const params = {
+                cpStoreConfig: { viewInfo: { favoriteFilters }, searchMenuTypes },
+                cpProps: { searchMenuTypes, action: {} },
+                handlers: {
+                    _onSearch: function (ev) {
+                        const { domain } = ev.detail;
+                        assert.deepEqual(domain, []);
+                    }
+                },
+                env: {
+                    dataManager: {
+                        delete_filter: function () {
+                            return Promise.resolve();
+                        }
+                    }
+                },
+            };
+            const { parent, el, helpers } = await createControlPanel(params);
+
+            await helpers.toggleFavoriteMenu();
+
+            const { domain } = helpers.getQuery();
+            assert.deepEqual(domain, [["foo", "=", "qsdf"]]);
+            assert.deepEqual(helpers.getFacetTexts(), ['My favorite']);
+            assert.hasClass(el.querySelector('.o_favorite_menu .o_menu_item > a'), 'selected');
+
+            await helpers.deleteFavorite(0);
+            // confirm deletion
+            await testUtils.dom.click(document.querySelector('div.o_dialog footer button'));
+            assert.deepEqual(helpers.getFacetTexts(), []);
+            const itemEls = el.querySelectorAll('.o_favorite_menu .o_menu_item');
+            assert.deepEqual([...itemEls].map(e => e.innerText), ['Save Current Search']);
+
+            parent.destroy();
+        });
+
+        QUnit.test('default favorite is not activated if key search_disable_custom_filters is set to true', async function (assert) {
+            assert.expect(2);
+
+            const favoriteFilters = [{
+                context: "{}",
+                domain: "",
+                id: 7,
+                is_default: true,
+                name: "My favorite",
+                sort: "[]",
+                user_id: [2, "Mitchell Admin"],
+            }];
+            const params = {
+                cpStoreConfig: {
+                    viewInfo: { favoriteFilters },
+                    searchMenuTypes,
+                    actionContext: { search_disable_custom_filters: true }
+                },
+                cpProps: { searchMenuTypes, action: {} },
+            };
+            const { parent, helpers } = await createControlPanel(params);
+
+            await helpers.toggleFavoriteMenu();
+
+            const { domain } = helpers.getQuery();
+            assert.deepEqual(domain, []);
+            assert.deepEqual(helpers.getFacetTexts(), []);
+
+            parent.destroy();
+        });
+
+        QUnit.test('toggle favorite correctly clears filter, groupbys, time ranges and field "options"', async function (assert) {
+            assert.expect(8);
+
+            const unpatchDate = patchDate(2019, 6, 31, 13, 43, 0);
+
+            const favoriteFilters = [{
+                context: "{'group_by': ['foo'], 'time_ranges': {'field': 'birthday', 'range': 'this_year'}}",
+                domain: "['!', ['foo', '=', 'qsdf']]",
+                id: 7,
+                is_default: false,
+                name: "My favorite",
+                sort: "[]",
+                user_id: [2, "Mitchell Admin"],
+            }];
+            const arch = `
+            <search>
+                <field string="Foo" name="foo"/>
+                <filter string="Date Field Filter" name="positive" date="date_field"/>
+                <filter string="Date Field Groupby" name="coolName" context="{'group_by': 'date_field'}"/>
+            </search>
+        `;
+            const searchMenuTypes = ['filter', 'groupBy', 'timeRange', 'favorite'];
+            const params = {
+                cpStoreConfig: {
+                    viewInfo: { favoriteFilters, arch, fields: this.fields },
+                    searchMenuTypes,
+                    actionContext: {
+                        search_default_positive: true,
+                        search_default_coolName: true,
+                        search_default_foo: "a",
+                        time_ranges: { field: 'date_field', range: 'today', comparisonRange: 'previous_period' }
+                    }
+                },
+                cpProps: { searchMenuTypes, action: {}, fields: this.fields },
+                handlers: {
+                    _onSearch: function (ev) {
+                        const { domain, groupBy, timeRanges } = ev.detail;
+                        assert.deepEqual(domain, ['!', ['foo', '=', 'qsdf']]);
+                        assert.deepEqual(groupBy, ['foo']);
+                        assert.deepEqual(timeRanges, {
+                            fieldDescription: "Birthday",
+                            fieldName: "birthday",
+                            range: [
+                                "&", ["birthday", ">=", "2019-01-01"], ["birthday", "<", "2020-01-01"]
+                            ],
+                            rangeDescription: "This Year",
+                            rangeId: "this_year"
+                        });
+                    }
+                },
+            };
+            const { parent, helpers } = await createControlPanel(params);
+
+            const { domain, groupBy, timeRanges } = helpers.getQuery();
+            assert.deepEqual(domain, [
+                "&",
+                ["foo", "=", "a"],
+                "&",
+                ["date_field", ">=", "2019-07-01"],
+                ["date_field", "<=", "2019-07-31"]
+            ]);
+            assert.deepEqual(groupBy, ['date_field:month']);
+            assert.deepEqual(timeRanges, {
+                comparisonRange: [
+                    "&", ["date_field", ">=", "2019-07-30"], ["date_field", "<", "2019-07-31"]
+                ],
+                comparisonRangeDescription: "Previous Period",
+                comparisonRangeId: "previous_period",
+                fieldDescription: "Date",
+                fieldName: "date_field",
+                range: [
+                    "&", ["date_field", ">=", "2019-07-31"], ["date_field", "<", "2019-08-01"]
+                ],
+                rangeDescription: "Today",
+                rangeId: "today"
+            });
+
+            assert.deepEqual(
+                helpers.getFacetTexts(),
+                [
+                    'Foo\na',
+                    'Date Field Filter: July 2019',
+                    'Date Field Groupby: Month',
+                    'Date: Today / Previous Period'
+                ]
+            );
+
+            await helpers.toggleFavoriteMenu();
+            await helpers.toggleMenuItem(0);
+
+            assert.deepEqual(
+                helpers.getFacetTexts(),
+                ['My favorite']
+            );
+
+            parent.destroy();
+            unpatchDate();
+        });
+
+        QUnit.test('favorites have unique descriptions (the submenus of the favorite menu are correctly updated)', async function (assert) {
+            assert.expect(5);
+
+            const favoriteFilters = [{
+                context: "{}",
+                domain: "[]",
+                id: 1,
+                is_default: false,
+                name: "My favorite",
+                sort: "[]",
+                user_id: [2, "Mitchell Admin"],
+            }];
+            const params = {
+                cpStoreConfig: { viewInfo: { favoriteFilters }, searchMenuTypes },
+                cpProps: { searchMenuTypes, action: {} },
+                handlers: {
+                    _onCallService: function (ev) {
+                        const { args, service } = ev.detail;
+                        assert.deepEqual(args, [
+                            {
+                                title: "Error",
+                                message: "Filter with same name already exists.",
+                                type: "danger"
+                            }]);
+                        assert.strictEqual(service, 'notification');
+                    },
+                    _onGetOwnedQueryParams: function (callback) { callback(); },
+                },
+                env: {
+                    session: { uid: 4 },
+                    dataManager: {
+                        create_filter: async function (irFilter) {
+                            assert.deepEqual(irFilter, {
+                                "action_id": undefined,
+                                "context": { "group_by": [] },
+                                "domain": "[]",
+                                "is_default": false,
+                                "model_id": undefined,
+                                "name": "My favorite 2",
+                                "sort": "[]",
+                                "user_id": 4,
+                            });
+                            return 2; // serverSideId
+                        }
+                    }
+                },
+            };
+            const { parent, helpers } = await createControlPanel(params);
+
+            await helpers.toggleFavoriteMenu();
+            await helpers.toggleSaveFilter();
+
+            // first try: should fail
+            await helpers.editFavoriteName('My favorite');
+            await helpers.saveFavorite();
+
+            // second try: should succeed
+            await helpers.editFavoriteName('My favorite 2');
+            await helpers.saveFavorite();
+            await helpers.toggleSaveFilter();
+
+            // third try: should fail
+            await helpers.editFavoriteName('My favorite 2');
+            await helpers.saveFavorite();
+
+            parent.destroy();
+        });
+
+        QUnit.test('save search filter in modal', async function (assert) {
+            assert.expect(5);
+            const data = {
+                partner: {
+                    fields: {
+                        date_field: { string: "Date", type: "date", store: true, sortable: true, searchable: true },
+                        birthday: { string: "Birthday", type: "date", store: true, sortable: true },
+                        foo: { string: "Foo", type: "char", store: true, sortable: true },
+                        bar: { string: "Bar", type: "many2one", relation: 'partner' },
+                        float_field: { string: "Float", type: "float", group_operator: 'sum' },
+                    },
+                    records: [
+                        { id: 1, display_name: "First record", foo: "yop", bar: 2, date_field: "2017-01-25", birthday: "1983-07-15", float_field: 1 },
+                        { id: 2, display_name: "Second record", foo: "blip", bar: 1, date_field: "2017-01-24", birthday: "1982-06-04", float_field: 2 },
+                        { id: 3, display_name: "Third record", foo: "gnap", bar: 1, date_field: "2017-01-13", birthday: "1985-09-13", float_field: 1.618 },
+                        { id: 4, display_name: "Fourth record", foo: "plop", bar: 2, date_field: "2017-02-25", birthday: "1983-05-05", float_field: -1 },
+                        { id: 5, display_name: "Fifth record", foo: "zoup", bar: 2, date_field: "2016-01-25", birthday: "1800-01-01", float_field: 13 },
+                        { id: 7, display_name: "Partner 6", },
+                        { id: 8, display_name: "Partner 7", },
+                        { id: 9, display_name: "Partner 8", },
+                        { id: 10, display_name: "Partner 9", }
+                    ],
+                },
+            };
+            const form = await createView({
+                arch: `
+                <form string="Partners">
+                    <sheet>
+                        <group>
+                            <field name="bar"/>
+                        </group>
+                    </sheet>
+                </form>`,
+                archs: {
+                    'partner,false,list': '<tree><field name="display_name"/></tree>',
+                    'partner,false,search': '<search><field name="date_field"/></search>',
+                },
+                data,
+                model: 'partner',
+                res_id: 1,
+                View: FormView,
+            });
+            owl.Component.env = makeTestEnvironment({
+                dataManager: {
+                    create_filter(filter) {
+                        assert.strictEqual(filter.name, "Awesome Test Customer Filter",
+                            "filter name should be correct");
+                    },
+                }
+            });
+
+            await testUtils.form.clickEdit(form);
+
+            await testUtils.fields.many2one.clickOpenDropdown('bar');
+            await testUtils.fields.many2one.clickItem('bar', 'Search');
+
+            assert.containsN(document.body, 'tr.o_data_row', 9, "should display 9 records");
+
+            const cpHelpers = testUtils.controlPanel.getHelpers(document.querySelector('.modal .o_control_panel'));
+
+            await cpHelpers.toggleFilterMenu();
+            await cpHelpers.toggleAddCustomFilter();
+            assert.strictEqual(document.querySelector('.o_filter_condition select.o_menu_generator_field').value,
+                'date_field',
+                "date field should be selected");
+            await testUtils.dom.click(document.querySelector('.o_apply_filter'));
+
+            assert.containsNone(document.body, 'tr.o_data_row', "should display 0 records");
+
+            // Save this search
+            await cpHelpers.toggleFavoriteMenu();
+            await cpHelpers.toggleSaveFilter();
+
+            const filterNameInput = document.querySelector('.o_add_favorite input[type="text"]');
+            assert.isVisible(filterNameInput, "should display an input field for the filter name");
+
+            await testUtils.fields.editInput(filterNameInput, 'Awesome Test Customer Filter');
+            await testUtils.dom.click(document.querySelector('.o_add_favorite button.btn-primary'));
+
+            form.destroy();
+        });
+    });
+});

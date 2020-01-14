@@ -292,7 +292,7 @@ var Discuss = AbstractAction.extend({
         this._throttledUpdateThreads = _.throttle(
             this._updateThreads.bind(this), 100, { leading: false });
 
-        this.controlPanelParams.modelName = 'mail.message';
+        this.controlPanelProps.modelName = 'mail.message';
         this.call('mail_service', 'getMailBus').on('messaging_ready', this, this._onMessagingReady);
     },
     /**
@@ -332,6 +332,7 @@ var Discuss = AbstractAction.extend({
      * @override
      */
     on_attach_callback: function () {
+        this._super.apply(this);
         this.call('mail_service', 'getMailBus').trigger('discuss_open', true);
         if (this._thread) {
             this._threadWidget.scrollToPosition(this._threadsScrolltop[this._thread.getID()]);
@@ -342,6 +343,7 @@ var Discuss = AbstractAction.extend({
      * @override
      */
     on_detach_callback: function () {
+        this._super.apply(this);
         this.call('mail_service', 'getMailBus').trigger('discuss_open', false);
         this._threadsScrolltop[this._thread.getID()] = this._threadWidget.getScrolltop();
     },
@@ -970,8 +972,7 @@ var Discuss = AbstractAction.extend({
 
             // Update control panel before focusing the composer, otherwise
             // focus is on the searchview
-            self._setTitle('#' + self._thread.getName());
-            self._updateControlPanel();
+            self._updateControlPanel({ title: '#' + self._thread.getName()});
             self._updateControlPanelButtons(self._thread);
 
             // Display and focus the adequate composer, and unselect possibly
@@ -1100,12 +1101,10 @@ var Discuss = AbstractAction.extend({
     /**
      * @private
      */
-    _updateControlPanel: function () {
-        this.updateControlPanel({
-            cp_content: {
-                $buttons: this.$buttons,
-            },
-        });
+    _updateControlPanel: function (newProps) {
+        this._super(Object.assign(newProps, {
+            buttons: this.$buttons,
+        }));
     },
     /**
      * Updates the control panel buttons visibility based on thread type

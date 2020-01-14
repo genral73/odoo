@@ -30,7 +30,7 @@ var QtyTagWidget = Widget.extend({
 
     /**
      * Add a quantity when add(+) button clicked.
-     * 
+     *
      * @private
      */
     _onClickAddQty: function () {
@@ -171,11 +171,9 @@ var GeneratePriceList = AbstractAction.extend(StandaloneFieldManagerMixin, {
      * @override
      */
     update_cp: function () {
-        this.updateControlPanel({
-            cp_content: {
-                $buttons: this.$buttonPrint,
-                $searchview_buttons: this.$searchView,
-            },
+        this._updateControlPanel({
+            buttons: this.$buttonPrint,
+            searchViewButtons: this.$searchView,
         });
     },
 

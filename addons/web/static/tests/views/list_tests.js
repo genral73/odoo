@@ -787,7 +787,7 @@ QUnit.module('Views', {
             },
         });
 
-        await testUtils.dom.click(list.$('.o_control_panel .o_search_options button.o_favorites_menu_button'));
+        await testUtils.dom.click(list.$('.o_control_panel .o_search_options button.o_favorite_menu button'));
         await testUtils.dom.click(list.$('.o_control_panel .o_search_options .o_favorites_menu .o_menu_item').eq(1));
         list.destroy();
     });

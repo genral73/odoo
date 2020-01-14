@@ -8,35 +8,6 @@ odoo.define('web.test_env', async function (require) {
     const session = require('web.session');
 
     /**
-     * Wrap the target object in a Proxy, giving it a generic getter that will
-     * throw an error instead of returning `undefined` in case the property has
-     * not been set.
-     *
-     * @param {Object} target
-     * @param {string} name
-     * @returns {Proxy}
-     */
-    function _proxify(target, name) {
-        for (const prop in target) {
-            if (
-                target.hasOwnProperty(prop) &&
-                typeof target[prop] === 'object' &&
-                target[prop] !== null
-            ) {
-                target[prop] = _proxify(target[prop], `${name}.${prop}`);
-            }
-        }
-        return new Proxy(target, {
-            get(object, property) {
-                if (typeof property === 'string' && !(property in object)) {
-                    throw new Error(`Property "${property}" not implemented in "${name}".`);
-                }
-                return object[property];
-            },
-        });
-    }
-
-    /**
      * Creates a test environment with the given environment object.
      * Any access to a key that has not been explicitly defined in the given environment object
      * will result in an error.
@@ -46,14 +17,26 @@ odoo.define('web.test_env', async function (require) {
      * @returns {Proxy}
      */
     function makeTestEnvironment(env = {}, providedRPC = null) {
-        const proxiedEnv = _proxify(env, 'env');
         const RamStorageService = AbstractStorageService.extend({
             storage: new RamStorage(),
         });
+        const databaseParams = {
+            code: "en_US",
+            date_format: '%m/%d/%Y',
+            decimal_point: ".",
+            direction: 'ltr',
+            grouping: [],
+            thousands_sep: ",",
+            time_format: '%H:%M:%S',
+        };
         let testEnv = {};
         const defaultEnv = {
-            _t: env._t || (s => s),
-            _lt: env._lt || (s => s),
+            _t: env._t || Object.assign((s => s), {
+                database: { parameters: databaseParams },
+            }),
+            _lt: env._lt || Object.assign((s => s), {
+                database: { parameters: databaseParams },
+            }),
             bus: new Bus(),
             device: Object.assign({
                 isMobile: false,
@@ -87,7 +70,7 @@ odoo.define('web.test_env', async function (require) {
                 },
             }, env.session),
         };
-        testEnv = Object.assign(proxiedEnv, defaultEnv);
+        testEnv = Object.assign(env, defaultEnv);
         return testEnv;
     }
 

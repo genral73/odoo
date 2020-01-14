@@ -3480,7 +3480,7 @@ QUnit.module('ActionManager', {
             'record should be in descending order as default_order applies');
 
         // apply favorite filter
-        await testUtils.dom.click(actionManager.$('.o_favorites_menu_button'));
+        await testUtils.dom.click(actionManager.$('.o_favorite_menu button'));
         await testUtils.dom.click(actionManager.$('.o_menu_item a:contains("favorite filter")'));
         assert.strictEqual(actionManager.$('.o_control_panel .o_facet_values').text().trim(),
             'favorite filter', 'favorite filter should be applied');

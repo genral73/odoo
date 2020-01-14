@@ -393,7 +393,7 @@ QUnit.test('activity view: no group_by_menu and no time_range_menu', async funct
         "only two elements should be available in view search");
     assert.isVisible(actionManager.$('.o_search_options .o_dropdown button.o_filters_menu_button'),
         "filter should be available in view search");
-    assert.isVisible(actionManager.$('.o_search_options .o_dropdown button.o_favorites_menu_button'),
+    assert.isVisible(actionManager.$('.o_search_options .o_dropdown button.o_favorite_menu button'),
         "favorites should be available in view search");
     actionManager.destroy();
 });

@@ -77,6 +77,29 @@ function _checkVisible(w, shouldBeVisible, msg) {
     QUnit.assert.ok(condition, msg);
 }
 
+/**
+ * Helper function, to check if a given element is the active element (focused)
+ *
+ * @private
+ * @param {Widget|jQuery|HTMLElement|owl.Component} w
+ * @param {boolean} shouldBeActive
+ * @param {string} [msg]
+ */
+function _checkActivity(w, shouldBeActive, msg) {
+    if (w instanceof jQuery && w.length !== 1) {
+        const assertion = shouldHaveClass ? 'hasClass' : 'doesNotHaveClass';
+        QUnit.assert.ok(false, `Assertion '${assertion} ${className}' targets ${w.length} elements instead of 1`);
+    }
+
+    const el = w instanceof Widget || w instanceof owl.Component ? w.el :
+            w instanceof jQuery ? w[0] : w;
+
+    msg = msg || `target should ${shouldBeActive ? '' : 'not'} be focused`;
+    const isActive = el === document.activeElement;
+    const condition = shouldBeActive ? isActive : !isActive;
+    QUnit.assert.ok(condition, msg);
+}
+
 //------------------------------------------------------------------------------
 // Public functions
 //------------------------------------------------------------------------------
@@ -221,6 +244,14 @@ function isNotVisible(w, msg) {
     _checkVisible(w, false, msg);
 }
 
+function isActive(w, msg) {
+    _checkActivity(w, true, msg);
+}
+
+function isNotActive(w, msg) {
+    _checkActivity(w, false, msg);
+}
+
 //------------------------------------------------------------------------------
 // Exposed API
 //------------------------------------------------------------------------------
@@ -237,4 +268,6 @@ QUnit.assert.hasAttrValue = hasAttrValue;
 QUnit.assert.isVisible = isVisible;
 QUnit.assert.isNotVisible = isNotVisible;
 
+QUnit.assert.isActive = isActive;
+QUnit.assert.isNotActive = isNotActive;
 });

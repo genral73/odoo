@@ -807,7 +807,7 @@ QUnit.test('save two searches to dashboard', async function (assert) {
     actionManager.$('.o_searchview_extended_prop_value .o_input').val('a');
     await testUtils.dom.click(actionManager.$('.o_apply_filter'));
     // Add it to dashboard
-    await testUtils.dom.click(actionManager.$('.o_favorites_menu_button'));
+    await testUtils.dom.click(actionManager.$('.o_favorite_menu button'));
     $('.o_search_options .dropdown-menu.o_favorites_menu').one('click', function (ev) {
         // This handler is on the webClient
         // But since the test suite doesn't have one
@@ -825,7 +825,7 @@ QUnit.test('save two searches to dashboard', async function (assert) {
     actionManager.$('.o_searchview_extended_prop_value .o_input').val('b');
     await testUtils.dom.click(actionManager.$('.o_apply_filter'));
     // Add it to dashboard
-    await testUtils.dom.click(actionManager.$('.o_favorites_menu_button'));
+    await testUtils.dom.click(actionManager.$('.o_favorite_menu button'));
     $('.o_search_options .dropdown-menu.o_favorites_menu').one('click', function (ev) {
         // This handler is on the webClient
         // But since the test suite doesn't have one
@@ -878,7 +878,7 @@ QUnit.test('save a action domain to dashboard', async function (assert) {
     actionManager.$('.o_searchview_extended_prop_value .o_input').val('b');
     await testUtils.dom.click(actionManager.$('.o_apply_filter'));
     // Add it to dashboard
-    await testUtils.dom.click(actionManager.$('.o_favorites_menu_button'));
+    await testUtils.dom.click(actionManager.$('.o_favorite_menu button'));
     await testUtils.dom.click(actionManager.$('.o_add_to_board'));
     await testUtils.dom.click(actionManager.$('.o_add_to_board_confirm_button'));
 

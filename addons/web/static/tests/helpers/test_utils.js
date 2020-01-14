@@ -11,11 +11,11 @@ odoo.define('web.test_utils', function (require) {
  */
 
 var ajax = require('web.ajax');
-var concurrency = require('web.concurrency');
 var core = require('web.core');
 var relationalFields = require('web.relational_fields');
 var session = require('web.session');
 var testUtilsCreate = require('web.test_utils_create');
+var testUtilsCreateControlPanel = require('web.test_utils_create_control_panel');
 var testUtilsDom = require('web.test_utils_dom');
 var testUtilsFields = require('web.test_utils_fields');
 var testUtilsFile = require('web.test_utils_file');
@@ -129,6 +129,9 @@ return Promise.all([
             fieldsViewGet: testUtilsMock.fieldsViewGet,
             patchSetTimeout: testUtilsMock.patchSetTimeout,
         },
+        controlPanel: {
+            getHelpers: testUtilsCreateControlPanel.getHelpers,
+        },
         dom: {
             triggerKeypressEvent: testUtilsDom.triggerKeypressEvent,
             triggerMouseEvent: testUtilsDom.triggerMouseEvent,
@@ -191,7 +194,8 @@ return Promise.all([
         createDebugManager: testUtilsCreate.createDebugManager,
         createAsyncView: testUtilsCreate.createView,
         createCalendarView: testUtilsCreate.createCalendarView,
-        createControlPanel: testUtilsCreate.createControlPanel,
+        setUpControlPanelEnvironment: testUtilsCreate.setUpControlPanelEnvironment,
+        createControlPanel: testUtilsCreateControlPanel.createControlPanel,
         createView: testUtilsCreate.createView,
         createModel: testUtilsCreate.createModel,
         createParent: testUtilsCreate.createParent,

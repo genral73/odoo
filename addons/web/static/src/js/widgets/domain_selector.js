@@ -1,11 +1,625 @@
 odoo.define("web.DomainSelector", function (require) {
+    "use strict";
+
+    const { _lt } = require('web.core');
+    const config = require('web.config');
+    const { DatePicker, DateTimePicker } = require('web.datepicker_owl');
+    const Domain = require('web.Domain');
+    const field_utils = require('web.field_utils');
+    const ModelFieldSelector = require('web.ModelFieldSelector');
+    const pyUtils = require('web.py_utils');
+    const { ComponentAdapter } = require('web.OwlCompatibility');
+
+    const { Component, hooks } = owl;
+    const { useRef, useState } = hooks;
+    const DEFAULT_DOMAIN = ['id', '=', 1];
+    const OPERATOR_MAPPING = {
+        '=': '=',
+        '!=': _lt("is not ="),
+        '>': '>',
+        '<': '<',
+        '>=': '>=',
+        '<=': '<=',
+        'ilike': _lt("contains"),
+        'not ilike': _lt("does not contain"),
+        'in': _lt("in"),
+        'not in': _lt("not in"),
+
+        'child_of': _lt("child of"),
+        'parent_of': _lt("parent of"),
+        'like': 'like',
+        'not like': 'not like',
+        '=like': '=like',
+        '=ilike': '=ilike',
+
+        // custom
+        'set': _lt("is set"),
+        'not set': _lt("is not set"),
+    };
+
+    function arrayToString(domain) {
+        if (typeof domain === 'string') {
+            return domain;
+        }
+        Domain.prototype.normalizeArray(domain);
+        return pyUtils.unformatDomain(Domain.prototype.arrayToString(domain));
+    }
+
+    function stringToArray(domain) {
+        let arrayDomain = domain;
+        if (!Array.isArray(domain)) {
+            arrayDomain = Domain.prototype.stringToArray(pyUtils.formatDomain(domain));
+        }
+        Domain.prototype.normalizeArray(arrayDomain);
+        return arrayDomain;
+    }
+
+    function isEqual(a, b) {
+        if (Array.isArray(a)) {
+            if (a.length !== b.length) {
+                return false;
+            }
+            return a.reduce((equal, el, i) => equal && isEqual(el, b[i]), true);
+        }
+        if (typeof a === 'object') {
+            if (Object.keys(a).length !== Object.keys(b).length) {
+                return false;
+            }
+            for (const key in a) {
+                if (!isEqual(a[key], b[key])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return a === b;
+    }
+
+    class DomainNode extends Component {
+
+        get domain() {
+            return this.props.domain;
+        }
+
+        //--------------------------------------------------------------------------
+        // Handlers
+        //--------------------------------------------------------------------------
+
+        _onButtonMouseenter(buttonType) {
+            let className;
+            switch (buttonType) {
+                case 'delete':
+                    className = 'o_hover_btns';
+                    break;
+                case 'add-node':
+                    className = 'o_hover_add_node';
+                    break;
+                case 'add-branch':
+                    className = 'o_hover_add_inset_node';
+                    break;
+            }
+            this.el.classList.add(className);
+        }
+
+        _onButtonMouseleave() {
+            this.el.classList.remove(
+                'o_hover_btns',
+                'o_hover_add_node',
+                'o_hover_add_inset_node'
+            );
+        }
+    }
+    DomainNode.defaultProps = {
+        readonly: true,
+    };
+    DomainNode.props = {
+        domain: Array,
+        model: String,
+        readonly: Boolean,
+    };
+    DomainNode.template = 'DomainNode';
+
+    class DomainLeaf extends DomainNode {
+        constructor() {
+            super(...arguments);
+
+            this.ModelFieldSelector = ModelFieldSelector;
+            this.OPERATOR_MAPPING = OPERATOR_MAPPING;
+
+            this.fieldSelectorRef = useRef('field-selector');
+        }
+
+        async willStart() {
+            if (!this.props.readonly) {
+                const chain = this.splittedChain;
+                const model = this.props.model;
+                return this._loadSelectedField(chain, model);
+            }
+        }
+
+        async willUpdateProps(nextProps) {
+            if (
+                (nextProps.hasOwnProperty('domain') && !isEqual(this.props.domain, nextProps.domain)) ||
+                (nextProps.hasOwnProperty('model') && !isEqual(this.props.model, nextProps.model)) ||
+                (nextProps.hasOwnProperty('readonly') && !isEqual(this.props.readonly, nextProps.readonly))
+            ) {
+                const props = Object.assign({}, this.props, nextProps);
+                if (!props.readonly) {
+                    const chain = (props.domain[0][0] && props.domain[0][0].split('.')) || [];
+                    const model = props.model;
+                    return this._loadSelectedField(chain, model);
+                }
+            }
+        }
+
+        mounted() {
+            if (!this.props.readonly && this.valueWidget) {
+                this.el.querySelector('.o_domain_leaf_value_input').appendChild(this.valueWidget.el);
+            }
+        }
+
+        get chain() {
+            return this.domain[0][0];
+        }
+
+        get splittedChain() {
+            return (this.chain && this.chain.split('.')) || [];
+        }
+
+        get operator() {
+            return this.domain[0][1];
+        }
+
+        get value() {
+            return this.domain[0][2];
+        }
+
+        //--------------------------------------------------------------------------
+        // Private
+        //--------------------------------------------------------------------------
+
+        async _loadSelectedField(chain, model) {
+            const selectedField = await ModelFieldSelector.getField(chain, model, this.rpc.bind(this));
+            // Set list of operators according to field type
+            this.operators = this._getOperatorsFromType(selectedField.type);
+            if (['child_of', 'parent_of', 'like', 'not like', '=like', '=ilike'].includes(this.operator)) {
+                // In case user entered manually or from demo data
+                this.operators[this.operator] = OPERATOR_MAPPING[this.operator];
+            } else if (!this.operators[this.operator]) {
+                // In case the domain uses an unsupported operator for the
+                // field type
+                this.operators[this.operator] = '?';
+            }
+
+            // Set list of values according to field type
+            this.selectionChoices = null;
+            if (selectedField.type === 'boolean') {
+                this.selectionChoices = [
+                    ['1', this.env._t("set (true)")],
+                    ['0', this.env._t("not set (false)")]
+                ];
+            } else if (selectedField.type === 'selection') {
+                this.selectionChoices = selectedField.selection;
+            }
+
+            // Adapt display value and operator for rendering
+            this.displayValue = this.value;
+            if (selectedField && !selectedField.relation && !Array.isArray(this.value)) {
+                try {
+                    this.displayValue = field_utils.format[selectedField.type](this.value, selectedField);
+                } catch (err) { }
+            }
+            this.displayOperator = this.operator;
+            if (selectedField.type === 'boolean') {
+                this.displayValue = this.value ? '1' : '0';
+            } else if ((this.operator === '!=' || this.operator === '=') && this.value === false) {
+                this.displayOperator = this.operator === '!=' ? 'set' : 'not set';
+            }
+
+            // TODO the value could be a m2o input, etc...
+            if (['date', 'datetime'].includes(selectedField.type)) {
+                const constructor = selectedField.type === 'datetime' ? DateTimePicker : DatePicker;
+                this.valueWidget = new constructor(this, {});
+                // In edit mode, place the value widget if any
+                await this.valueWidget.mount(document.createDocumentFragment());
+                this.valueWidget.setValue(moment(this.value));
+                this.valueWidget.el.classList.add('o_domain_leaf_value_input');
+                this.valueWidget.el.addEventListener('datetime-changed', () => {
+                    this._changeValue(this.valueWidget.getValue());
+                });
+            }
+        }
+
+        async _changeFieldChain(chain, silent) {
+            this.chain = chain.join(".");
+            await this.fieldSelector.widget.setChain(chain);
+            if (!this.fieldSelector.widget.isValid()) {
+                return;
+            }
+
+            const selectedField = this.fieldSelector.widget.getSelectedField() || {};
+            const operators = this._getOperatorsFromType(selectedField.type);
+            if (operators[this.operator] === undefined) {
+                this._changeOperator("=", true);
+            }
+            this._changeValue(this.value, true);
+
+            if (!silent) {
+                this.trigger('domain-change', { child: this });
+            }
+        }
+
+        _changeOperator(operator, silent) {
+            this.operator = operator;
+
+            if (["set", "not set"].includes(this.operator)) {
+                this.operator = this.operator === "not set" ? "=" : "!=";
+                this.value = false;
+            } else if (["in", "not in"].includes(this.operator)) {
+                this.value = Array.isArray(this.value) ? this.value : this.value ? ("" + this.value).split(",") : [];
+            } else {
+                if (Array.isArray(this.value)) {
+                    this.value = this.value.join(",");
+                }
+                this._changeValue(this.value, true);
+            }
+            if (!silent) {
+                this.trigger('domain-change', { child: this });
+            }
+        }
+
+        _changeValue(value, silent) {
+            let couldNotParse = false;
+            const selectedField = this.fieldSelector.widget.getSelectedField() || {};
+            try {
+                this.value = field_utils.parse[selectedField.type](value, selectedField);
+            } catch (err) {
+                this.value = value;
+                couldNotParse = true;
+            }
+
+            if (selectedField.type === 'boolean') {
+                if (typeof this.value !== 'boolean') { // Convert boolean-like value to boolean
+                    this.value = !!parseFloat(this.value);
+                }
+            } else if (selectedField.type === 'selection') {
+                if (!selectedField.selection.some(option => option[0] === this.value)) {
+                    this.value = selectedField.selection[0][0];
+                }
+            } else if (['date', 'datetime'].includes(selectedField.type)) {
+                if (couldNotParse || typeof this.value === 'boolean') {
+                    const formatter = field_utils.parse[selectedField.type];
+                    this.value = formatter(field_utils.format[selectedField.type](moment())).toJSON(); // toJSON to get date with server format
+                } else {
+                    this.value = this.value.toJSON(); // toJSON to get date with server format
+                }
+            } else {
+                // Never display 'true' or 'false' strings from boolean value
+                if (typeof this.value === 'boolean') {
+                    this.value = "";
+                } else if (typeof this.value === 'object' && !Array.isArray(this.value)) { // Can be object if parsed to x2x representation
+                    this.value = this.value.id || value || "";
+                }
+            }
+
+            if (!silent) {
+                this.trigger('domain-change', { child: this });
+            }
+        }
+
+        _getOperatorsFromType(type) {
+            const operators = {};
+            let keys = [];
+
+            switch (type) {
+                case 'boolean':
+                    Object.assign(operators, {
+                        '=': this.env._t("is"),
+                        '!=': this.env._t("is not"),
+                    });
+                    break;
+
+                case 'char':
+                case 'text':
+                case 'html':
+                    keys = ['=', '!=', 'ilike', 'not ilike', 'set', 'not set', 'in', 'not in'];
+                    break;
+
+                case 'many2many':
+                case 'one2many':
+                case 'many2one':
+                    keys = ['=', '!=', 'ilike', 'not ilike', 'set', 'not set'];
+                    break;
+
+                case 'integer':
+                case 'float':
+                case 'monetary':
+                    keys = ['=', '!=', '>', '<', '>=', '<=', 'ilike', 'not ilike', 'set', 'not set'];
+                    break;
+
+                case 'selection':
+                    keys = ['=', '!=', 'set', 'not set'];
+                    break;
+
+                case 'date':
+                case 'datetime':
+                    keys = ['=', '!=', '>', '<', '>=', '<=', 'set', 'not set'];
+                    break;
+
+                default:
+                    keys = Object.keys(OPERATOR_MAPPING);
+                    break;
+            }
+            keys.forEach(key => {
+                operators[key] = OPERATOR_MAPPING[key];
+            });
+            Object.assign(operators, this.props.operators);
+            return operators;
+        }
+
+        //--------------------------------------------------------------------------
+        // Handlers
+        //--------------------------------------------------------------------------
+
+        _onOperatorSelectChange(ev) {
+            this._changeOperator(ev.currentTarget.value);
+        }
+        _onValueInputChange(ev) {
+            if (ev.currentTarget !== ev.target) {
+                return;
+            }
+            this._changeValue(ev.currentTarget.value);
+        }
+        _onFieldChainChange(ev) {
+            this._changeFieldChain(ev.data.chain);
+        }
+        on_add_tag(ev) {
+            if (ev.type === "keyup" && ev.key !== 'Enter') {
+                return;
+            }
+            if (!["not in", "in"].includes(this.operator)) {
+                return;
+            }
+
+            const values = Array.isArray(this.value) ? this.value.slice() : [];
+
+            const input = this.el.querySelector('.o_domain_leaf_value_tags input');
+            const val = input.value.trim();
+            if (val && values.indexOf(val) < 0) {
+                values.push(val);
+                setTimeout(() => this._changeValue(values), 0);
+                input.focus();
+            }
+        }
+        on_remove_tag(ev) {
+            const values = Array.isArray(this.value) ? this.value.slice() : [];
+            const val = ev.currentTarget.dataset.value;
+
+            const index = values.indexOf(val);
+            if (index >= 0) {
+                values.splice(index, 1);
+                setTimeout(() => this._changeValue(values), 0);
+            }
+        }
+    }
+    DomainLeaf.components = { ComponentAdapter };
+    DomainLeaf.props = Object.assign({}, DomainNode.props, {
+        operators: { type: Array, optional: 1 },
+    });
+    DomainLeaf.template = 'DomainLeaf';
+
+    class DomainTree extends DomainNode {
+
+        /**
+         * @returns {Array[]}
+         */
+        get childNodes() {
+            const nodes = [];
+            if (this.domain.length > 1) {
+                // Add flattened children by search the appropriate number of children
+                // in the rest of the domain (after the operator)
+                let nbLeafsToFind = 1;
+                for (let i = 1; i < this.domain.length; i++) {
+                    if (this.domain[i] === "&" || this.domain[i] === "|") {
+                        nbLeafsToFind++;
+                    } else if (this.domain[i] !== "!") {
+                        nbLeafsToFind--;
+                    }
+
+                    if (!nbLeafsToFind) {
+                        const partLeft = this.domain.slice(1, i + 1);
+                        const partRight = this.domain.slice(i + 1);
+                        if (partLeft.length) {
+                            nodes.push(partLeft);
+                        }
+                        if (partRight.length) {
+                            nodes.push(partRight);
+                        }
+                        break;
+                    }
+                }
+                this._isValid = (nbLeafsToFind === 0);
+
+                // Mark "!" tree children so that they do not allow to add other
+                // children around them
+                if (this.operator === "!") {
+                    nodes[0].noControlPanel = true;
+                }
+            }
+            return nodes;
+        }
+
+        get operator() {
+            return this.domain[0];
+        }
+
+        //--------------------------------------------------------------------------
+        // Public
+        //--------------------------------------------------------------------------
+
+        isValid() {
+            for (let i = 0; i < this.children.length; i++) {
+                const cValid = this.children[i].isValid();
+                if (!cValid) {
+                    return cValid;
+                }
+            }
+            return this._isValid;
+        }
+
+        getDomain() {
+            let childDomains = [];
+            let nbChildren = 0;
+            this.children.forEach(child => {
+                const childDomain = child.getDomain();
+                if (childDomain.length) {
+                    nbChildren++;
+                    childDomains = childDomains.concat(child.getDomain());
+                }
+            });
+            const nbChildRequired = this.operator === '!' ? 1 : 2;
+            const operators = new Array(nbChildren - nbChildRequired + 1).fill().map(() => this.operator);
+            return operators.concat(childDomains);
+        }
+
+        //--------------------------------------------------------------------------
+        // Private
+        //--------------------------------------------------------------------------
+
+        _updateDomain(nodes) {
+            const amountOfOperators = nodes.length - 1;
+            const domain = nodes.reduce((acc, node) => [...acc, ...node]);
+
+            for (let i = 0; i < amountOfOperators; i++) {
+                domain.unshift(this.operator);
+            }
+
+            this.trigger('domain-change', { domain });
+        }
+
+        _addChild(index, node) {
+            const nodes = this.childNodes;
+
+            nodes.splice(index + 1, 0, node);
+
+            this._updateDomain(nodes);
+        }
+
+        _removeChild(index) {
+            const nodes = this.childNodes;
+
+            nodes.splice(index, 1);
+
+            this._updateDomain(nodes);
+        }
+
+        //--------------------------------------------------------------------------
+        // Handlers
+        //--------------------------------------------------------------------------
+
+        _onAddBranch(index) {
+            this._addChild(index, [
+                this.operator === "&" ? "|" : "&",
+                DEFAULT_DOMAIN,
+                DEFAULT_DOMAIN,
+            ]);
+        }
+
+        _onAddNode(index) {
+            this._addChild(index, [DEFAULT_DOMAIN]);
+        }
+
+        _onDeleteNode(index) {
+            this._removeChild(index);
+        }
+
+        _onDomainChange(index, ev) {
+            const nodes = this.childNodes;
+
+            nodes.splice(index, 1, ev.detail.domain);
+
+            this._updateDomain(nodes);
+        }
+    }
+    DomainTree.components = { DomainLeaf, DomainTree };
+    DomainTree.props = Object.assign({}, DomainNode.props, {
+        previousOp: String,
+    });
+    DomainTree.template = 'DomainTree';
+
+    class DomainSelector extends DomainTree {
+
+        constructor() {
+            super(...arguments);
+            window.top.ds = this;
+        }
+
+        get debug() {
+            return this.props.forceCodeEditor || this.env.isDebug();
+        }
+
+        get domain() {
+            // Check if the domain starts with implicit "&" operators and make them
+            // explicit. As the DomainSelector is a specialization of a DomainTree,
+            // it is waiting for a tree and not a leaf. So [] and [A] will be made
+            // explicit with ["&"], ["&", A] so that tree parsing is made correctly.
+            // Note: the domain is considered to be a valid one
+            const domainArray = stringToArray(this.props.domain);
+            if (domainArray.length <= 1) {
+                domainArray.unshift('&');
+            }
+            return domainArray;
+        }
+
+        //--------------------------------------------------------------------------
+        // Handlers
+        //--------------------------------------------------------------------------
+
+        async _onDebugInputChange(ev) {
+            try {
+                const formattedDomain = pyUtils.formatDomain(ev.target.value);
+                this.trigger('domain-change', { domain: formattedDomain });
+            } catch (err) {
+                // this._doWarn();
+            }
+        }
+
+        _onDomainChange(index, ev) {
+            const nodes = this.childNodes;
+
+            nodes.splice(index, 1, ev.detail.domain);
+
+            const domain = nodes.reduce((acc, node) => [...acc, ...node]);
+            domain.unshift(this.operator);
+
+            const finalDomain = arrayToString(domain);
+            console.log({ finalDomain });
+
+            this.trigger('domain-change', { domain: finalDomain });
+        }
+    }
+    DomainSelector.defaultProps = Object.assign({}, DomainNode.defaultProps, {
+        forceCodeEditor: false,
+    });
+    DomainSelector.props = Object.assign({}, DomainNode.props, {
+        domain: String,
+        forceCodeEditor: Boolean,
+    });
+    DomainSelector.template = 'DomainSelector';
+
+    return DomainSelector;
+});
+
+odoo.define("web._DomainSelector", function (require) {
 "use strict";
 
+var config = require("web.config");
 var core = require("web.core");
 var datepicker = require("web.datepicker");
 var Domain = require("web.Domain");
-var field_utils = require ("web.field_utils");
+var field_utils = require("web.field_utils");
 var ModelFieldSelector = require("web.ModelFieldSelector");
+var pyUtils = require("web.py_utils");
 var Widget = require("web.Widget");
 
 var _t = core._t;
@@ -74,7 +688,7 @@ var DomainNode = Widget.extend({
         this.options = _.extend({
             readonly: true,
             operators: null,
-            debugMode: false,
+            debugMode: config.isDebug(),
         }, options || {});
 
         this.readonly = this.options.readonly;
@@ -92,7 +706,7 @@ var DomainNode = Widget.extend({
      * @abstract
      * @returns {boolean}
      */
-    isValid: function () {},
+    isValid: function () { },
     /**
      * Should return the prefix domain the widget is currently representing
      * (an array).
@@ -100,7 +714,7 @@ var DomainNode = Widget.extend({
      * @abstract
      * @returns {Array}
      */
-    getDomain: function () {},
+    getDomain: function () { },
 
     //--------------------------------------------------------------------------
     // Handlers
@@ -115,7 +729,7 @@ var DomainNode = Widget.extend({
     _onAddButtonClick: function (e) {
         e.preventDefault();
         e.stopPropagation();
-        this.trigger_up("add_node_clicked", {newBranch: !!$(e.currentTarget).data("branch"), child: this});
+        this.trigger_up("add_node_clicked", { newBranch: !!$(e.currentTarget).data("branch"), child: this });
     },
     /**
      * Called when the delete button is clicked -> trigger_up an event to ask
@@ -126,7 +740,7 @@ var DomainNode = Widget.extend({
     _onDeleteButtonClick: function (e) {
         e.preventDefault();
         e.stopPropagation();
-        this.trigger_up("delete_node_clicked", {child: this});
+        this.trigger_up("delete_node_clicked", { child: this });
     },
     /**
      * Called when a "controlpanel" button is hovered -> add classes to the
@@ -181,7 +795,7 @@ var DomainTree = DomainNode.extend({
      */
     init: function (parent, model, domain) {
         this._super.apply(this, arguments);
-        var parsedDomain = this._parseDomain(domain);
+        const parsedDomain = this._parseDomain(domain);
         if (parsedDomain) {
             this._initialize(parsedDomain);
         }
@@ -194,7 +808,7 @@ var DomainTree = DomainNode.extend({
         this._postRender();
         return Promise.all([
             this._super.apply(this, arguments),
-            this._renderChildrenTo(this.$childrenContainer)
+            this._renderChildren()
         ]);
     },
 
@@ -207,7 +821,7 @@ var DomainTree = DomainNode.extend({
      * @returns {boolean}
      */
     isValid: function () {
-        for (var i = 0 ; i < this.children.length ; i++) {
+        for (var i = 0; i < this.children.length; i++) {
             var cValid = this.children[i].isValid();
             if (!cValid) {
                 return cValid;
@@ -254,8 +868,8 @@ var DomainTree = DomainNode.extend({
         var i = afterNode ? _.indexOf(this.children, afterNode) : this.children.length;
         if (i < 0) return false;
 
-        this.children.splice(i+1, 0, instantiateNode(this, this.model, domain, this.options));
-        this.trigger_up("domain_changed", {child: this});
+        this.children.splice(i + 1, 0, instantiateNode(this, this.model, domain, this.options));
+        this.trigger_up("domain_changed", { child: this });
         return true;
     },
     /**
@@ -293,7 +907,7 @@ var DomainTree = DomainNode.extend({
      */
     _changeOperator: function (operator, silent) {
         this.operator = operator;
-        if (!silent) this.trigger_up("domain_changed", {child: this});
+        if (!silent) this.trigger_up("domain_changed", { child: this });
     },
     /**
      * @see DomainTree.init
@@ -310,7 +924,7 @@ var DomainTree = DomainNode.extend({
         // Add flattened children by search the appropriate number of children
         // in the rest of the domain (after the operator)
         var nbLeafsToFind = 1;
-        for (var i = 1 ; i < domain.length ; i++) {
+        for (var i = 1; i < domain.length; i++) {
             if (domain[i] === "&" || domain[i] === "|") {
                 nbLeafsToFind++;
             } else if (domain[i] !== "!") {
@@ -318,8 +932,8 @@ var DomainTree = DomainNode.extend({
             }
 
             if (!nbLeafsToFind) {
-                var partLeft = domain.slice(1, i+1);
-                var partRight = domain.slice(i+1);
+                var partLeft = domain.slice(1, i + 1);
+                var partRight = domain.slice(i + 1);
                 if (partLeft.length) {
                     this._addFlattenedChildren(partLeft);
                 }
@@ -360,7 +974,7 @@ var DomainTree = DomainNode.extend({
 
         this.children[i].destroy();
         this.children.splice(i, 1);
-        this.trigger_up("domain_changed", {child: this});
+        this.trigger_up("domain_changed", { child: this });
         return true;
     },
     /**
@@ -371,36 +985,28 @@ var DomainTree = DomainNode.extend({
      * synchronous.
      *
      * @private
-     * @param {jQuery} $to - the jQuery node to which the children must be added
      * @returns {Promise}
      */
-    _renderChildrenTo: function ($to) {
-        var $div = $("<div/>");
-        return Promise.all(_.map(this.children, (function (child) {
-            return child.appendTo($div);
-        }).bind(this))).then((function () {
-            _.each(this.children, function (child) {
-                child.$el.appendTo($to); // Forced to do it this way so that the
-                                         // children are not misordered
-            });
-        }).bind(this));
+    _renderChildren: async function () {
+        await Promise.all(this.children.map(
+            child => child.appendTo(document.createDocumentFragment())
+        ));
+        this.children.forEach(child => {
+            if (!child.isDestroyed()) {
+                this.$childrenContainer.append(child.el);
+            }
+        });
     },
     /**
      * @param {string} domain
      * @returns {Array[]}
      */
     _parseDomain: function (domain) {
-        var parsedDomain = false;
-        try {
-            parsedDomain = Domain.prototype.stringToArray(domain);
-            this.invalidDomain = false;
-        } catch (err) {
-            // TODO: domain could contain `parent` for example, which is
-            // currently not handled by the DomainSelector
-            this.invalidDomain = true;
-            this.children = [];
-        }
-        return parsedDomain;
+        const formatted = pyUtils.formatDomain(domain);
+        const raw = pyUtils.unformatDomain(domain);
+        this.rawDomain = raw;
+        this.invalidDomain = false;
+        return Domain.prototype.stringToArray(formatted);
     },
 
     //--------------------------------------------------------------------------
@@ -488,15 +1094,19 @@ var DomainSelector = DomainTree.extend({
      * does nothing.
      *
      * @param {string} domain
+     * @param {Object} [options={}]
+     * @param {Object} [options.force] will redraw the el even if the domain is invalid
      * @returns {Promise} resolved when the rerendering is finished
      */
-    setDomain: function (domain) {
-        if (domain === Domain.prototype.arrayToString(this.getDomain())) {
+    setDomain: async function (domain, options = {}) {
+        if (domain === Domain.prototype.arrayToString(this.getDomain()) && !this.invalidDomain) {
             return Promise.resolve();
         }
         var parsedDomain = this._parseDomain(domain);
         if (parsedDomain) {
             return this._redraw(parsedDomain);
+        } else if (options.force) {
+            this.el.innerHTML = _t("This domain is not supported.");
         }
     },
 
@@ -530,7 +1140,7 @@ var DomainSelector = DomainTree.extend({
         // Display technical domain if in debug mode
         this.$debugInput = this.$(".o_domain_debug_input");
         if (this.$debugInput.length) {
-            this.$debugInput.val(Domain.prototype.arrayToString(this.getDomain()));
+            this.$debugInput.val(this.rawDomain);
         }
 
         // Warn the user if the domain is not valid after rendering
@@ -548,14 +1158,14 @@ var DomainSelector = DomainTree.extend({
      * @returns {Promise}
      */
     _redraw: function (domain) {
-        var oldChildren = this.children.slice();
-        this._initialize(domain || this.getDomain());
-        return this._renderChildrenTo($("<div/>")).then((function () {
-            _.each(oldChildren, function (child) { child.destroy(); });
-            this.renderElement();
-            this._postRender();
-            _.each(this.children, (function (child) { child.$el.appendTo(this.$childrenContainer); }).bind(this));
-        }).bind(this));
+        if (!domain) {
+            domain = this.getDomain();
+        }
+        this.children.forEach(child => child.destroy());
+        this._initialize(domain);
+        this.renderElement();
+        this._postRender();
+        return this._renderChildren();
     },
 
     //--------------------------------------------------------------------------
@@ -579,16 +1189,15 @@ var DomainSelector = DomainTree.extend({
         // When the debug input changes, the string prefix domain is read. If it
         // is syntax-valid the widget is re-rendered and notifies the parents.
         // If not, a warning is shown to the user and the input is ignored.
-        var domain;
-        try {
-            domain = Domain.prototype.stringToArray($(e.currentTarget).val());
-        } catch (err) { // If there is a syntax error, just ignore the change
+        const domain = this._parseDomain(e.target.value);
+        if (this.invalidDomain) {
             this.do_warn(_t("Syntax error"), _t("The domain you entered is not properly formed"));
             return;
         }
-        this._redraw(domain).then((function () {
-            this.trigger_up("domain_changed", {child: this, alreadyRedrawn: true});
-        }).bind(this));
+        this._redraw(domain).then(() => this.trigger('domain-changed', {
+            alreadyRedrawn: true,
+            child: this,
+        }));
     },
     /**
      * Called when a (child's) domain has changed -> redraw the entire tree
@@ -599,9 +1208,12 @@ var DomainSelector = DomainTree.extend({
     _onDomainChange: function (e) {
         // If a subdomain notifies that it underwent some modifications, the
         // DomainSelector catches the message and performs a full re-rendering.
+        const domain = Domain.prototype.arrayToString(this.getDomain());
+        const parsedDomain = this._parseDomain(domain);
         if (!e.data.alreadyRedrawn) {
-            this._redraw();
+            this._redraw(parsedDomain);
         }
+        e.data.domain = this.rawDomain;
     },
 });
 
@@ -685,7 +1297,7 @@ var DomainLeaf = DomainNode.extend({
                     if (selectedField && !selectedField.relation && !_.isArray(this.value)) {
                         this.displayValue = field_utils.format[selectedField.type](this.value, selectedField);
                     }
-                } catch (err) {/**/}
+                } catch (err) {/**/ }
                 this.displayOperator = this.operator;
                 if (selectedField.type === "boolean") {
                     this.displayValue = this.value ? "1" : "0";
@@ -772,7 +1384,7 @@ var DomainLeaf = DomainNode.extend({
             }
             this._changeValue(this.value, true);
 
-            if (!silent) this.trigger_up("domain_changed", {child: this});
+            if (!silent) this.trigger_up("domain_changed", { child: this });
         }).bind(this));
     },
     /**
@@ -801,7 +1413,7 @@ var DomainLeaf = DomainNode.extend({
             this._changeValue(this.value, true);
         }
 
-        if (!silent) this.trigger_up("domain_changed", {child: this});
+        if (!silent) this.trigger_up("domain_changed", { child: this });
     },
     /**
      * Handles a formatted value change in the domain. In that case, the value
@@ -847,7 +1459,7 @@ var DomainLeaf = DomainNode.extend({
             }
         }
 
-        if (!silent) this.trigger_up("domain_changed", {child: this});
+        if (!silent) this.trigger_up("domain_changed", { child: this });
     },
     /**
      * Returns the mapping of "technical operator" to "display operator value"

@@ -403,11 +403,9 @@ var Dashboard = AbstractAction.extend({
         var $buttons = $(QWeb.render("website.GoToButtons"));
         $buttons.on('click', this.on_go_to_website.bind(this));
 
-        this.updateControlPanel({
-            cp_content: {
-                $searchview: this.$searchview,
-                $buttons: $buttons,
-            },
+        this._updateControlPanel({
+            buttons: $buttons,
+            searchView: this.$searchview,
         });
     },
 

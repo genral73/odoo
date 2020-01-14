@@ -6,6 +6,9 @@ var core = require('web.core');
 var _t = core._t;
 var py = window.py; // to silence linters
 
+const formatDomainString = string => `%(${string})s`;
+const formatDomainRegex = /^%\([a-zA-Z_]\w*\)s$/;
+
 // recursively wraps JS objects passed into the context to attributedicts
 // which jsonify back to JS objects
 function wrap(value) {
@@ -540,14 +543,52 @@ function _normalizeDomainAST(domain) {
     return domain;
 }
 
+function _applyFormatting(astNode) {
+    if (astNode.first) {
+        for (const value of astNode.first) {
+            _applyFormatting(value);
+        }
+    } else if (astNode.id === '(name)') {
+        astNode.value = formatDomainString(astNode.value);
+        astNode.id = '(string)';
+    }
+    return astNode;
+}
+
+function _removeFormatting(astNode) {
+    if (astNode.first) {
+        for (const value of astNode.first) {
+            _removeFormatting(value);
+        }
+    } else if (astNode.id === '(string)') {
+        if (formatDomainRegex.test(astNode.value)) {
+            astNode.value = astNode.value.slice(2, -1);
+            astNode.id = '(name)';
+        }
+    }
+    return astNode;
+}
+
+function formatDomain(rawDoamin) {
+    const formattedAST = _applyFormatting(_getPyJSAST(rawDoamin));
+    return _formatAST(formattedAST);
+}
+
+function unformatDomain(formattedDomain) {
+    const unformattedAST = _removeFormatting(_getPyJSAST(formattedDomain));
+    return _formatAST(unformattedAST);
+}
+
 return {
+    assembleDomains: assembleDomains,
     context: pycontext,
     ensure_evaluated: ensure_evaluated,
     eval: pyeval,
     eval_domains_and_contexts: eval_domains_and_contexts,
-    py_eval: py_eval,
+    formatDomain: formatDomain,
     normalizeDomain: normalizeDomain,
-    assembleDomains: assembleDomains,
+    py_eval: py_eval,
+    unformatDomain: unformatDomain,
     _getPyJSAST: _getPyJSAST,
     _formatAST: _formatAST,
     _normalizeDomainAST: _normalizeDomainAST,

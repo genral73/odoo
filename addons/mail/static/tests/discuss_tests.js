@@ -1985,7 +1985,7 @@ QUnit.test('save filter discuss', async function (assert) {
     $('.o_searchview_input').trigger($.Event('keydown', { which: $.ui.keyCode.ENTER }));
     await testUtils.nextTick();
 
-    await testUtils.dom.click(discuss.$('.o_favorites_menu_button'));
+    await testUtils.dom.click(discuss.$('.o_favorite_menu button'));
     await testUtils.dom.click(discuss.$('.o_add_favorite'));
 
     await testUtils.fields.editInput(discuss.$('.o_favorite_name input'), 'War');

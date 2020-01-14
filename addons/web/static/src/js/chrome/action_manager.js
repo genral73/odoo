@@ -881,7 +881,8 @@ var ActionManager = Widget.extend({
      */
     _onBreadcrumbClicked: function (ev) {
         ev.stopPropagation();
-        this._restoreController(ev.data.controllerID);
+        const detail = ev.detail || ev.data;
+        this._restoreController(detail.controllerID);
     },
     /**
      * Goes back in the history: if a controller is opened in a dialog, closes

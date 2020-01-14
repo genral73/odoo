@@ -2587,7 +2587,7 @@ QUnit.module('basic_fields', {
             'The modal should have opened');
         assert.verifySteps(["The dialog's image should have been fetched"]);
 
-        form.destroy();
+        // form.destroy();
     });
 
     QUnit.test('image fields in x2many list are loaded correctly', async function (assert) {

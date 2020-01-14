@@ -98,13 +98,11 @@ var MrpBomReport = stock_report_generic.extend({
           });
     },
     update_cp: function () {
-        var status = {
-            cp_content: {
-                $buttons: this.$buttonPrint,
-                $searchview_buttons: this.$searchView
-            },
+        const newProps = {
+            buttons: this.$buttonPrint,
+            searchViewButtons: this.$searchView,
         };
-        return this.updateControlPanel(status);
+        return this._updateControlPanel(newProps);
     },
     renderSearch: function () {
         this.$buttonPrint = $(QWeb.render('mrp.button'));
@@ -132,7 +130,7 @@ var MrpBomReport = stock_report_generic.extend({
         var action = {
             'type': 'ir.actions.report',
             'report_type': 'qweb-pdf',
-            'report_name': reportname,                                
+            'report_name': reportname,
             'report_file': 'mrp.report_bom_structure',
         };
         return this.do_action(action).then(function (){

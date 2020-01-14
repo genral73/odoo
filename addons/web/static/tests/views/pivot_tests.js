@@ -3,7 +3,6 @@ odoo.define('web.pivot_tests', function (require) {
 
 var core = require('web.core');
 var PivotView = require('web.PivotView');
-var PivotRenderer = require('web.PivotRenderer');
 var testUtils = require('web.test_utils');
 var testUtilsDom = require('web.test_utils_dom');
 
@@ -11,6 +10,23 @@ var _t = core._t;
 var createActionManager = testUtils.createActionManager;
 var createView = testUtils.createView;
 var patchDate = testUtils.mock.patchDate;
+
+
+async function toggleTimeRangeMenu() {
+    await testUtils.dom.click($('div.o_control_panel div.o_time_range_menu > button'));
+}
+async function selectRange(range) {
+    await testUtils.fields.editSelect(
+        $('div.o_control_panel div.o_time_range_section select').eq(1),
+        range
+    );
+}
+async function toggleTimeRangeMenuBox() {
+    await testUtils.dom.click($('div.o_control_panel div.o_time_range_section input'));
+}
+async function applyTimeRange() {
+    await testUtils.dom.click($('div.o_control_panel .o_time_range_menu ul button'));
+}
 
 /**
  * Helper function that returns, given a pivot instance, the values of the
@@ -388,10 +404,9 @@ QUnit.module('Views', {
 
         var unpatchDate = patchDate(2016, 11, 20, 1, 0, 0);
         var context = {
-            timeRangeMenuData: {
-                timeRange: ["&",["date",">=","2016-12-01"],["date","<","2017-01-01"]],
-                timeRangeDescription: 'This Month',
-                comparisonTimeRange: [],
+            time_ranges: {
+                field: 'date',
+                range: 'this_month'
             }
         };
         var pivot = await createView({
@@ -411,7 +426,7 @@ QUnit.module('Views', {
             viewOptions: {
                 context: context,
                 title: 'Partners',
-            }
+            },
         });
 
         assert.hasClass(pivot.$('table'), 'o_enable_linking',
@@ -433,11 +448,10 @@ QUnit.module('Views', {
         this.data.partner.records[3].date = '2016-11-03';
 
         var context = {
-            timeRangeMenuData: {
-                timeRange: ["&",["date",">=","2016-12-01"],["date","<","2017-01-01"]],
-                timeRangeDescription: 'This Month',
-                comparisonTimeRange: ["&",["date",">=","2016-11-01"],["date","<","2017-12-01"]],
-                comparisonTimeRangeDescription: 'Previous Period'
+            time_ranges: {
+                field: 'date',
+                range: 'this_month',
+                comparisonRange: 'previous_period',
             }
         };
 
@@ -470,7 +484,7 @@ QUnit.module('Views', {
             viewOptions: {
                 context: context,
                 title: 'Partners',
-            }
+            },
         });
         assert.hasClass(pivot.$('table'), 'o_enable_linking',
             "root node should have classname 'o_enable_linking'");
@@ -1966,31 +1980,34 @@ QUnit.module('Views', {
             viewOptions: {
                 additionalMeasures: ['product_id'],
             },
-            intercepts: {
-                create_filter: function (ev) {
-                    var data = ev.data;
-                    assert.deepEqual(data.filter.context.timeRangeMenuData, {
-                        timeRange: ["&", ["date", ">=", "2016-12-01"], ["date", "<", "2017-01-01"]],
-                        timeRangeDescription: 'This Month',
-                        comparisonTimeRange: ["&", ["date", ">=", "2016-11-01"], ["date", "<", "2016-12-01"]],
-                        comparisonTimeRangeDescription: 'Previous Period',
-                    });
-                }
-            },
+            mockRPC: function () {
+                return this._super.apply(this, arguments);
+            }
+            // intercepts: {
+            //     create_filter: function (ev) {
+            //         var data = ev.data;
+            //         assert.deepEqual(data.filter.context.timeRangeMenuData, {
+            //             timeRange: ["&", ["date", ">=", "2016-12-01"], ["date", "<", "2017-01-01"]],
+            //             timeRangeDescription: 'This Month',
+            //             comparisonTimeRange: ["&", ["date", ">=", "2016-11-01"], ["date", "<", "2016-12-01"]],
+            //             comparisonTimeRangeDescription: 'Previous Period',
+            //         });
+            //     }
+            // },
         });
 
+
         // with no data
-        await testUtils.dom.click(pivot.$('.o_time_range_menu_button'));
-        await testUtils.dom.click(pivot.$('.o_time_range_menu .o_comparison_checkbox'));
-        pivot.$('.o_time_range_selector').val('today');
-        await testUtils.dom.click(pivot.$('.o_time_range_menu .o_apply_range'));
+        await toggleTimeRangeMenu();
+        await toggleTimeRangeMenuBox();
+        await selectRange('today');
+        await applyTimeRange();
 
         assert.strictEqual(pivot.$('.o_pivot p.o_view_nocontent_empty_folder').length, 1);
 
         // with data, no row groupby
-        await testUtils.dom.click(pivot.$('.o_time_range_menu_button'));
-        pivot.$('.o_time_range_selector').val('this_month');
-        await testUtils.dom.click(pivot.$('.o_time_range_menu .o_apply_range'));
+        await selectRange('this_month');
+        await applyTimeRange();
         assert.containsN(pivot, '.o_pivot thead tr:last th', 9,
             "last header row should contains 9 cells (3*[This month, Previous Period, Variation]");
         var values = [
@@ -2094,13 +2111,13 @@ QUnit.module('Views', {
         });
 
         // open time range menu
-        await testUtils.dom.click(pivot.$('.o_control_panel .o_time_range_menu_button'));
+        await toggleTimeRangeMenu();
         // select 'Today' as range
-        pivot.$('.o_control_panel .o_time_range_selector').val('today');
+        await selectRange('today');
         // check checkbox 'Compare To'
-        await testUtils.dom.click(pivot.$('.o_control_panel .o_time_range_menu .o_comparison_checkbox'));
+        await toggleTimeRangeMenuBox();
         // Click on 'Apply' button
-        await testUtils.dom.click(pivot.$('.o_control_panel .o_time_range_menu .o_apply_range'));
+        await applyTimeRange();
 
         // the time range menu configuration is by now: Date, Today, checkbox checked, Previous Period
         // With the data above, the time ranges contain no record.
@@ -2109,13 +2126,11 @@ QUnit.module('Views', {
         // are deactivated (exception: the 'Measures' button).
         assert.ok(pivot.$('.o_control_panel button.o_pivot_download').prop('disabled'));
 
-        // open time range menu
-        await testUtils.dom.click(pivot.$('.o_control_panel .o_time_range_menu_button'));
         // select 'This Month' as date range
-        pivot.$('.o_control_panel .o_time_range_selector').val('this_month');
+        await selectRange('this_month');
 
         // Click on 'Apply' button
-        await testUtils.dom.click(pivot.$('.o_control_panel .o_time_range_menu .o_apply_range'));
+        await applyTimeRange();
         // the time range menu configuration is by now: Date, This Month, checkbox checked, Previous Period
         // With the data above, the time ranges contain some records.
         // export data. Should execute 'get_file'
@@ -2178,10 +2193,10 @@ QUnit.module('Views', {
         mockMock = true;
 
         // activate 'This Month' and 'Previous Period' in time range menu
-        await testUtils.dom.click(pivot.$('.o_control_panel .o_time_range_menu_button'));
-        pivot.$('.o_control_panel .o_time_range_selector').val('this_month');
-        await testUtils.dom.click(pivot.$('.o_control_panel .o_time_range_menu .o_comparison_checkbox'));
-        await testUtils.dom.click(pivot.$('.o_control_panel .o_time_range_menu .o_apply_range'));
+        await toggleTimeRangeMenu();
+        await selectRange('this_month');
+        await toggleTimeRangeMenuBox()
+        await applyTimeRange();
 
         var values = [
             "4", "0", "100%",
@@ -2220,15 +2235,10 @@ QUnit.module('Views', {
         });
 
         // enable comparison mode
-        var $cp = pivot.$('.o_control_panel');
-        // open time range menu
-        await testUtils.dom.click($cp.find('.o_time_range_menu_button'));
-        // select 'This month' as range
-        await testUtils.fields.editInput($cp.find('.o_time_range_selector'), 'this_month');
-        // check checkbox 'Compare To'
-        await testUtils.dom.click($cp.find('.o_time_range_menu .o_comparison_checkbox'));
-        // click on 'Apply' button
-        await testUtils.dom.click($cp.find('.o_time_range_menu .o_apply_range'));
+        await toggleTimeRangeMenu();
+        await selectRange('this_month');
+        await toggleTimeRangeMenuBox()
+        await applyTimeRange();
 
         // initial sanity check
         var values = [
@@ -2303,6 +2313,15 @@ QUnit.module('Views', {
         assert.expect(16);
         // create an action manager to test the interactions with the search view
         var readGroupCount = 0;
+
+
+        const env_t = s => s;
+        env_t.database = {
+            parameters: {
+                decimal_point: 1,
+            },
+        };
+
         var actionManager = await createActionManager({
             data: this.data,
             archs: {
@@ -2324,7 +2343,7 @@ QUnit.module('Views', {
                     assert.step('read_group');
                     var domain = args.kwargs.domain;
                     if ([0,1].indexOf(readGroupCount) !== -1) {
-                        assert.deepEqual(domain, [], 'initial domain empty');
+                        assert.deepEqual(domain, [], 'domain empty');
                     } else if ([2,3,4,5].indexOf(readGroupCount) !== -1) {
                         assert.deepEqual(domain, [['foo', '=', 12]],
                             'domain conserved when back with breadcrumbs');
@@ -2338,7 +2357,8 @@ QUnit.module('Views', {
                         'list domain is correct');
                 }
                 return this._super.apply(this, arguments);
-            }
+            },
+            env: { _t: env_t }
         });
 
         await actionManager.doAction({
@@ -2347,14 +2367,16 @@ QUnit.module('Views', {
             views: [[false, 'pivot']],
         });
 
-        await testUtilsDom.click(actionManager.$('.o_filters_menu_button'));
-        await testUtilsDom.click(actionManager.$('.o_menu_item:contains("Bayou")'));
+        await testUtilsDom.click(actionManager.$('div.o_filter_menu button'));
+        await testUtilsDom.click(actionManager.$('div.o_filter_menu ul li.o_menu_item > a'));
+        await testUtils.nextTick();
 
         await testUtilsDom.click(actionManager.$('.o_pivot_cell_value:nth(1)'))
+        await testUtils.nextTick();
 
         assert.containsOnce(actionManager, '.o_list_view');
 
-        await testUtilsDom.click(actionManager.$('.o_control_panel .breadcrumb-item:first() a'));
+        await testUtilsDom.click(actionManager.$('.o_control_panel ol.breadcrumb li.breadcrumb-item').eq(0));
 
         assert.verifySteps([
             'read_group', 'read_group',
@@ -2388,15 +2410,10 @@ QUnit.module('Views', {
         });
 
         // enable comparison mode
-        var $cp = pivot.$('.o_control_panel');
-        // open time range menu
-        await testUtils.dom.click($cp.find('.o_time_range_menu_button'));
-        // select 'This month' as range
-        await testUtils.fields.editInput($cp.find('.o_time_range_selector'), 'this_month');
-        // check checkbox 'Compare To'
-        await testUtils.dom.click($cp.find('.o_time_range_menu .o_comparison_checkbox'));
-        // click on 'Apply' button
-        await testUtils.dom.click($cp.find('.o_time_range_menu .o_apply_range'));
+        await toggleTimeRangeMenu();
+        await selectRange('this_month');
+        await toggleTimeRangeMenuBox()
+        await applyTimeRange();
 
         // initial sanity check
         var values = [
@@ -2490,15 +2507,10 @@ QUnit.module('Views', {
         );
 
         // enable comparison mode
-        var $cp = pivot.$('.o_control_panel');
-        // open time range menu
-        await testUtils.dom.click($cp.find('.o_time_range_menu_button'));
-        // select 'This month' as range
-        await testUtils.fields.editInput($cp.find('.o_time_range_selector'), 'this_month');
-        // check checkbox 'Compare To'
-        await testUtils.dom.click($cp.find('.o_time_range_menu .o_comparison_checkbox'));
-        // click on 'Apply' button
-        await testUtils.dom.click($cp.find('.o_time_range_menu .o_apply_range'));
+        await toggleTimeRangeMenu();
+        await selectRange('this_month');
+        await toggleTimeRangeMenuBox()
+        await applyTimeRange();
 
         assert.strictEqual(
             pivot.$('th').slice(0, 7).text(),
@@ -2625,10 +2637,11 @@ QUnit.module('Views', {
         );
 
         var $cp = pivot.$('.o_control_panel');
+
         // open group by menu and add new groupby
-        await testUtils.dom.click($cp.find('button span.fa-bars'));
-        await testUtils.dom.click($cp.find('button.o_add_custom_group'));
-        await testUtils.dom.click($cp.find('button.o_apply_group'));
+        await testUtils.dom.click($cp.find('div.o_group_by_menu > button'));
+        await testUtils.dom.click($cp.find('div.o_group_by_menu ul div.o_menu_generator > button'));
+        await testUtils.dom.click($cp.find('div.o_group_by_menu ul div.o_menu_generator button.o_apply_group'));
 
         assert.strictEqual(
             pivot.$('th').slice(0, 2).text(),
@@ -2670,10 +2683,10 @@ QUnit.module('Views', {
             "The row headers should be as expected"
         );
 
-        // open group by menu and add new groupby
-        await testUtils.dom.click($cp.find('button span.fa-bars'));
-        await testUtils.dom.click($cp.find('button.o_add_custom_group'));
-        await testUtils.dom.click($cp.find('button.o_apply_group'));
+        // open groupby menu generator and add a new groupby
+        await testUtils.dom.click($cp.find('div.o_group_by_menu ul div.o_menu_generator > button'));
+        await testUtils.fields.editSelect($('div.o_group_by_menu div.o_menu_generator select'), 'bar');
+        await testUtils.dom.click($cp.find('div.o_group_by_menu ul div.o_menu_generator button.o_apply_group'));
 
         assert.strictEqual(
             pivot.$('th').slice(0, 2).text(),

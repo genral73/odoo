@@ -62,17 +62,19 @@ var KanbanController = BasicController.extend({
      * @returns {Promise}
      */
     renderButtons: function ($node) {
-        if (this.hasButtons && this.is_action_enabled('create')) {
-            this.$buttons = $(qweb.render(this.buttons_template, {
-                btnClass: 'btn-primary',
-                widget: this,
-            }));
-            this.$buttons.on('click', 'button.o-kanban-button-new', this._onButtonNew.bind(this));
-            this.$buttons.on('keydown', this._onButtonsKeyDown.bind(this));
-            this._updateButtons();
-            return Promise.resolve(this.$buttons.appendTo($node));
+        if (!this.hasButtons || !this.is_action_enabled('create')) {
+            return;
         }
-        return Promise.resolve();
+        this.$buttons = $(qweb.render(this.buttons_template, {
+            btnClass: 'btn-primary',
+            widget: this,
+        }));
+        this.$buttons.on('click', 'button.o-kanban-button-new', this._onButtonNew.bind(this));
+        this.$buttons.on('keydown', this._onButtonsKeyDown.bind(this));
+        this._updateButtons();
+        if ($node) {
+            this.$buttons.appendTo($node);
+        }
     },
 
     //--------------------------------------------------------------------------
@@ -100,9 +102,11 @@ var KanbanController = BasicController.extend({
      * @override
      * @private
      */
-    _isPagerVisible: function () {
-        var state = this.model.get(this.handle, {raw: true});
-        return !!(state.count && !state.groupedBy.length);
+    _getPagerProps: function (state) {
+        if (!(state.count && !state.groupedBy.length)) {
+            return null;
+        }
+        return this._super(...arguments);
     },
     /**
      * @private
@@ -185,19 +189,7 @@ var KanbanController = BasicController.extend({
      */
     _resequenceRecords: function (column_id, ids) {
         var self = this;
-        return this.model.resequence(this.modelName, ids, column_id).then(function () {
-            self._updateEnv();
-        });
-    },
-    /**
-     * Overrides to update the control panel buttons when the state is updated.
-     *
-     * @override
-     * @private
-     */
-    _update: function () {
-        this._updateButtons();
-        return this._super.apply(this, arguments);
+        return this.model.resequence(this.modelName, ids, column_id);
     },
     /**
      * In grouped mode, set 'Create' button as btn-secondary if there is no column
@@ -389,7 +381,6 @@ var KanbanController = BasicController.extend({
         this.model.loadMore(column.db_id).then(function (db_id) {
             var data = self.model.get(db_id);
             self.renderer.updateColumn(db_id, data);
-            self._updateEnv();
         });
     },
     /**
@@ -412,7 +403,6 @@ var KanbanController = BasicController.extend({
         // function that updates the kanban view once the record has been added
         // it receives the local id of the created record in arguments
         var update = function (db_id) {
-            self._updateEnv();
 
             var columnState = self.model.getColumn(db_id);
             var state = self.model.get(self.handle);
@@ -459,9 +449,7 @@ var KanbanController = BasicController.extend({
      */
     _onResequenceColumn: function (ev) {
         var self = this;
-        this._resequenceColumns(ev.data.ids).then(function () {
-            self._updateEnv();
-        });
+        this._resequenceColumns(ev.data.ids);
     },
     /**
      * @private
@@ -481,7 +469,6 @@ var KanbanController = BasicController.extend({
                 return self.renderer.updateColumn(db_id, data, options);
             })
             .then(function () {
-                self._updateEnv();
                 if (ev.data.onSuccess) {
                     ev.data.onSuccess();
                 }
@@ -520,7 +507,6 @@ var KanbanController = BasicController.extend({
             prom.then(function (dbID) {
                 var data = self.model.get(dbID);
                 self.renderer.updateColumn(dbID, data);
-                self._updateEnv();
             });
         }
     },

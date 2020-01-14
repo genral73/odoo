@@ -1,106 +1,85 @@
 odoo.define('web.TimeRangeMenu', function (require) {
-"use strict";
+    "use strict";
 
-var config = require('web.config');
-var controlPanelViewParameters = require('web.controlPanelViewParameters');
-var Widget = require('web.Widget');
+    const { DEFAULT_TIMERANGE } = require('web.controlPanelParameters');
+    const DropdownMenu = require('web.DropdownMenu');
+    const TimeRangeEditor = require('web.TimeRangeEditor');
 
-var COMPARISON_TIME_RANGE_OPTIONS = controlPanelViewParameters.COMPARISON_TIME_RANGE_OPTIONS;
-var PERIOD_OPTIONS = controlPanelViewParameters.PERIOD_OPTIONS;
+    const { useDispatch, useGetters, useState } = owl.hooks;
 
-var TimeRangeMenu = Widget.extend({
-    template: 'web.TimeRangeMenu',
-    events: {
-        'click .o_apply_range': '_onApplyButtonClick',
-        'click .o_comparison_checkbox': '_onCheckBoxClick',
-    },
-    /**
-     * @override
-     * @param {Widget} parent
-     * @param {Object[]} timeRanges
-     *
-     */
-    init: function (parent, timeRanges) {
-        this._super.apply(this, arguments);
-        // determine header style
-        this.isMobile = config.device.isMobile;
-        this.symbol = this.isMobile ? 'fa fa-chevron-right float-right mt4' : 'caret';
-        // fixed parameters
-        this.periodOptions = PERIOD_OPTIONS;
-        this.comparisonTimeRangeOptions = COMPARISON_TIME_RANGE_OPTIONS;
-        this.periodGroups = _.uniq(PERIOD_OPTIONS.map(function (option) {
-            return option.groupId;
-        }));
-        // variable parameters
-        this.timeRanges = timeRanges;
-        this.configuration = {
-            comparisonIsSelected: false,
-            comparisonTimeRangeId: false,
-            id: false,
-            timeRangeId: false,
-        };
-        this._configure();
-    },
+    class TimeRangeMenu extends DropdownMenu {
+        constructor() {
+            super(...arguments);
 
-    //--------------------------------------------------------------------------
-    // Public
-    //--------------------------------------------------------------------------
+            this.dispatch = useDispatch(this.env.controlPanelStore);
+            this.getters = useGetters(this.env.controlPanelStore);
 
-    /**
-     * @param {Object[]} timeRanges
-     */
-    update: function (timeRanges) {
-        this.timeRanges = timeRanges;
-        this._configure();
-        this.renderElement();
-    },
+            this.fields = Object.keys(this.props.fields).reduce((acc, fieldName) => {
+                const { sortable, string, type } = this.props.fields[fieldName];
+                if (
+                    ['date', 'datetime'].includes(type) && sortable &&
+                    !acc.some(f => f.value === fieldName)
+                ) {
+                    acc.push({
+                        value: fieldName,
+                        description: string || fieldName,
+                    });
+                }
+                return acc;
+            }, []);
 
-    //--------------------------------------------------------------------------
-    // Handlers
-    //--------------------------------------------------------------------------
+            const activeTimeRange = this.getters.getFiltersOfType('timeRange').find(
+                timeRange => timeRange.isActive
+            );
+            const state = activeTimeRange ? {
+                    comparisonRangeId: activeTimeRange.comparisonRangeId,
+                    fieldName: activeTimeRange.fieldName,
+                    rangeId: activeTimeRange.rangeId,
+                } : {
+                    comparisonRangeId: false,
+                    fieldName: this.fields[0] && this.fields[0].value,
+                    rangeId: DEFAULT_TIMERANGE,
+                };
 
-    /**
-     * @private
-     */
-    _configure: function () {
-        this.configuration = this.timeRanges.find(function (timeRange) {
-            return timeRange.isActive;
-        }) || this.configuration;
-        this.configuration.comparisonIsSelected = !!this.configuration.comparisonTimeRangeId;
-    },
-
-    //--------------------------------------------------------------------------
-    // Handlers
-    //--------------------------------------------------------------------------
-
-    /**
-     * @private
-     */
-    _onApplyButtonClick: function () {
-        var id = this.$('.o_date_field_selector').val();
-        var timeRangeId = this.$('.o_time_range_selector').val();
-        var comparisonTimeRangeId = false;
-        if (this.configuration.comparisonIsSelected) {
-            comparisonTimeRangeId = this.$('.o_comparison_time_range_selector').val();
+            this.state = useState(state);
         }
-        this.trigger_up('activate_time_range', {
-            id: id,
-            timeRangeId: timeRangeId,
-            comparisonTimeRangeId: comparisonTimeRangeId
-        });
-    },
-    /**
-     * @private
-     * @param {MouseEvent} ev
-     */
-    _onCheckBoxClick: function (ev) {
-        ev.stopPropagation();
-        this.configuration.comparisonIsSelected = this.$('.o_comparison_checkbox').prop('checked');
-        this.$('.o_comparison_time_range_selector').toggleClass('o_hidden');
-        this.$el.addClass('open');
-    }
-});
 
-return TimeRangeMenu;
+        //--------------------------------------------------------------------------
+        // Handlers
+        //--------------------------------------------------------------------------
+
+        /**
+         * @private
+         */
+        _onApply() {
+            this.dispatch('activateTimeRange',
+                this.state.fieldName,
+                this.state.rangeId,
+                this.state.comparisonRangeId
+            );
+        }
+
+        /**
+         * @private
+         * @param {OwlEvent} ev
+         */
+        _onTimeRangeChange(ev) {
+            Object.assign(this.state, ev.detail);
+        }
+    }
+
+    TimeRangeMenu.components = Object.assign({}, DropdownMenu.components, {
+        TimeRangeEditor,
+    });
+    TimeRangeMenu.defaultProps = Object.assign({}, DropdownMenu.defaultProps, {
+        icon: 'fa fa-calendar',
+        title: "Time Ranges",
+    });
+    TimeRangeMenu.props = Object.assign({}, DropdownMenu.props, {
+        fields: Object,
+    });
+    TimeRangeMenu.template = 'TimeRangeMenu';
+
+    return TimeRangeMenu;
 
 });
