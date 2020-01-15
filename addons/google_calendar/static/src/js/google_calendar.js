@@ -14,6 +14,43 @@ CalendarController.include({
         syncCalendar: '_onSyncCalendar',
     }),
 
+    /**
+     * @override
+     * @returns {Promise}
+     */
+    async start() {
+        await this._super(...arguments);
+        try {
+            const timeoutPromise = new Promise(resolve => {
+                const timeout = setTimeout(() => {
+                    clearTimeout(timeout)
+                    resolve({status: 'timeout'})
+                }, 1000);
+            });
+            const {status} = await Promise.race([timeoutPromise, this._syncCalendar(true)]);
+            if (status === 'need_refresh') {
+                return this.reload();
+            }
+        } catch (error) {
+            if (error.event) {
+                error.event.preventDefault();
+            }
+            console.error("Could not synchronize Google events now.", error);
+        }
+    },
+
+    _syncCalendar(shadow = false) {
+        var context = this.getSession().user_context;
+        return this._rpc({
+            route: '/google_calendar/sync_data',
+            params: {
+                model: this.modelName,
+                fromurl: window.location.href,
+                local_context: context, // LUL TODO remove this local_context
+            }
+        }, {shadow});
+    },
+
     //--------------------------------------------------------------------------
     // Handlers
     //--------------------------------------------------------------------------
@@ -28,16 +65,8 @@ CalendarController.include({
      */
     _onSyncCalendar: function (event) {
         var self = this;
-        var context = this.getSession().user_context;
 
-        this._rpc({
-            route: '/google_calendar/sync_data',
-            params: {
-                model: this.modelName,
-                fromurl: window.location.href,
-                local_context: context,
-            }
-        }).then(function (o) {
+        return this._syncCalendar().then(function (o) {
             if (o.status === "need_auth") {
                 Dialog.alert(self, _t("You will be redirected to Google to authorize access to your calendar!"), {
                     confirm_callback: function() {
@@ -60,34 +89,6 @@ CalendarController.include({
                 }
             } else if (o.status === "need_refresh") {
                 self.reload();
-            } else if (o.status === "need_reset") {
-                var confirmText1 = _t("The account you are trying to synchronize (%s) is not the same as the last one used (%s)!");
-                var confirmText2 = _t("In order to do this, you first need to disconnect all existing events from the old account.");
-                var confirmText3 = _t("Do you want to do this now?");
-                var text = _.str.sprintf(confirmText1 + "\n" + confirmText2 + "\n\n" + confirmText3, o.info.new_name, o.info.old_name);
-                Dialog.confirm(self, text, {
-                    confirm_callback: function() {
-                        self._rpc({
-                                route: '/google_calendar/remove_references',
-                                params: {
-                                    model: self.state.model,
-                                    local_context: context,
-                                },
-                            })
-                            .then(function(o) {
-                                if (o.status === "OK") {
-                                    Dialog.alert(self, _t("All events have been disconnected from your previous account. You can now restart the synchronization"), {
-                                        title: _t('Event disconnection success'),
-                                    });
-                                } else if (o.status === "KO") {
-                                    Dialog.alert(self, _t("An error occured while disconnecting events from your previous account. Please retry or contact your administrator."), {
-                                        title: _t('Event disconnection error'),
-                                    });
-                                } // else NOP
-                            });
-                    },
-                    title: _t('Accounts'),
-                });
             }
         }).then(event.data.on_always, event.data.on_always);
     }

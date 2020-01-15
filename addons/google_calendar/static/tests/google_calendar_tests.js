@@ -70,7 +70,7 @@ QUnit.module('Google Calendar', {
 }, function () {
 
     QUnit.test('sync google calendar', async function (assert) {
-        assert.expect(6);
+        assert.expect(8);
 
         var calendar = await createCalendarView({
             View: CalendarView,
@@ -100,7 +100,7 @@ QUnit.module('Google Calendar', {
             },
         });
 
-        assert.containsN(calendar, '.fc-event', 2, "should display 2 events on the month");
+        assert.containsN(calendar, '.fc-event', 3, "should display 3 events on the month");
 
         await testUtils.dom.click(calendar.$('.o_google_sync_button'));
 
@@ -108,9 +108,11 @@ QUnit.module('Google Calendar', {
             '/web/dataset/call_kw/calendar.event/search_read',
             '/google_calendar/sync_data',
             '/web/dataset/call_kw/calendar.event/search_read',
+            '/google_calendar/sync_data',
+            '/web/dataset/call_kw/calendar.event/search_read',
         ], 'should do a search_read before and after the call to sync_data');
 
-        assert.containsN(calendar, '.fc-event', 3, "should now display 3 events on the month");
+        assert.containsN(calendar, '.fc-event', 4, "should now display 4 events on the month");
 
         calendar.destroy();
     });
