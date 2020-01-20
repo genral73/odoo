@@ -146,7 +146,7 @@ QUnit.module('Views', {
         assert.containsN($firstSection, '.o_search_panel_category_value', 3);
         assert.containsOnce($firstSection, '.o_search_panel_category_value:first .active');
         assert.strictEqual($firstSection.find('.o_search_panel_category_value').text().replace(/\s/g, ''),
-            'Allasustekagrolait');
+            'Allasustek2agrolait2');
 
         var $secondSection = kanban.$('.o_search_panel_section:nth(1)');
         assert.hasClass($secondSection.find('.o_search_panel_section_header i'), 'fa-filter');
@@ -455,7 +455,7 @@ QUnit.module('Views', {
     });
 
     QUnit.test('store and retrieve active category value', async function (assert) {
-        assert.expect(8);
+        assert.expect(9);
 
         var Storage = RamStorage.extend({
             getItem: function (key) {
@@ -514,8 +514,9 @@ QUnit.module('Views', {
         await testUtils.dom.click(kanban.$('.o_search_panel_category_value:nth(2) header'));
 
         assert.verifySteps([
-            'getItem searchpanel_partner_company_id',
+            'getItem searchpanel_partner_company_id', // get on start
             'setItem searchpanel_partner_company_id to 5',
+            'getItem searchpanel_partner_company_id', // get on reload
         ]);
 
         kanban.destroy();
@@ -867,7 +868,7 @@ QUnit.module('Views', {
 
         assert.strictEqual(kanban.$('.o_search_panel_category_value:contains(agrolait) .o_toggle_fold').length, 1,
             "'agrolait' should be displayed as a parent category value");
-        assert.hasClass(kanban.$('.o_search_panel_category_value:contains(agrolait) .o_toggle_fold'), 'fa-caret-left',
+        assert.hasClass(kanban.$('.o_search_panel_category_value:contains(agrolait) .o_toggle_fold'), 'fa-caret-right',
             "'agrolait' should be folded");
         assert.containsN(kanban, '.o_search_panel_category_value', 3);
 
@@ -879,7 +880,7 @@ QUnit.module('Views', {
 
         // fold agrolait
         await testUtils.dom.click(kanban.$('.o_search_panel_category_value:contains(agrolait) .o_toggle_fold'));
-        assert.hasClass(kanban.$('.o_search_panel_category_value:contains(agrolait) .o_toggle_fold'), 'fa-caret-left',
+        assert.hasClass(kanban.$('.o_search_panel_category_value:contains(agrolait) .o_toggle_fold'), 'fa-caret-right',
             "'agrolait' should be folded");
         assert.containsN(kanban, '.o_search_panel_category_value', 3);
 
@@ -1356,7 +1357,7 @@ QUnit.module('Views', {
     });
 
     QUnit.test('only reload filters when domains change', async function (assert) {
-        assert.expect(11);
+        assert.expect(12);
 
         var kanban = await createView({
             View: KanbanView,
@@ -1381,7 +1382,7 @@ QUnit.module('Views', {
                 'partner,false,search': `
                     <search>
                         <searchpanel>
-                            <field name="state"/>
+                            <field name="state" disable_counters="1"/>
                             <field select="multi" name="company_id"/>
                         </searchpanel>
                     </search>`,
@@ -1392,6 +1393,7 @@ QUnit.module('Views', {
         });
 
         assert.verifySteps([
+            'search_panel_select_range',
             'search_panel_select_multi_range',
             '/web/dataset/search_read',
         ]);
@@ -1416,6 +1418,206 @@ QUnit.module('Views', {
 
         assert.verifySteps([
             'search_panel_select_multi_range',
+            '/web/dataset/search_read',
+        ]);
+
+        kanban.destroy();
+    });
+
+    QUnit.test('categoriy counters', async function (assert) {
+        assert.expect(20);
+
+        var kanban = await createView({
+            View: KanbanView,
+            model: 'partner',
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                if (route === "/web/dataset/call_kw/partner/search_panel_select_range") {
+                    assert.step(args.args[0]);
+                }
+                return this._super.apply(this, arguments);
+            },
+            services: this.services,
+            arch: `
+                <kanban>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div>
+                                <field name="foo"/>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>`,
+            archs: {
+                'partner,false,search': `
+                    <search>
+                        <searchpanel>
+                            <field name="state"/>
+                            <field name="company_id" disable_counters="1"/>
+                        </searchpanel>
+                    </search>`,
+            },
+            viewOptions: {
+                limit: 2,
+            },
+        });
+
+        assert.verifySteps([
+            'search_panel_select_range',
+            'state',
+            'search_panel_select_range',
+            'company_id',
+            '/web/dataset/search_read',
+        ]);
+
+        assert.deepEqual(
+            [...kanban.el.querySelectorAll('.o_search_panel_category_value')].map(
+                e => e.innerText.replace(/\s/g, '')
+            ),
+            [  "All", "ABC1", "DEF1", "GHI2", "All", "asustek?", "agrolait?"]
+        );
+
+        // go to page 2 (the domain doesn't change, so the categories should not be reloaded)
+        await cpHelpers.pagerNext(kanban);
+
+        assert.verifySteps([
+            '/web/dataset/search_read',
+        ]);
+
+        assert.deepEqual(
+            [...kanban.el.querySelectorAll('.o_search_panel_category_value')].map(
+                e => e.innerText.replace(/\s/g, '')
+            ),
+            [  "All", "ABC1", "DEF1", "GHI2", "All", "asustek?", "agrolait?"]
+        );
+
+        // reload with another domain, so the category 'state' should be reloaded
+        await kanban.reload({domain: [['id', '<', 3]]});
+
+        assert.verifySteps([
+            'search_panel_select_range',
+            'state',
+            '/web/dataset/search_read',
+        ]);
+
+        assert.deepEqual(
+            [...kanban.el.querySelectorAll('.o_search_panel_category_value')].map(
+                e => e.innerText.replace(/\s/g, '')
+            ),
+            [  "All", "ABC1", "DEF1", "GHI", "All", "asustek?", "agrolait?"]
+        );
+
+        // change category value, so the category 'state' should be reloaded
+        await testUtils.dom.click(kanban.$('.o_search_panel_category_value:nth(1) header'));
+
+        assert.deepEqual(
+            [...kanban.el.querySelectorAll('.o_search_panel_category_value')].map(
+                e => e.innerText.replace(/\s/g, '')
+            ),
+            [  "All", "ABC1", "DEF1", "GHI", "All", "asustek?", "agrolait?"]
+        );
+
+        assert.verifySteps([
+            'search_panel_select_range',
+            'state',
+            '/web/dataset/search_read',
+        ]);
+
+        kanban.destroy();
+    });
+
+
+    QUnit.test('category selection without counters', async function (assert) {
+        assert.expect(14);
+
+        var kanban = await createView({
+            View: KanbanView,
+            model: 'partner',
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                if (route === "/web/dataset/call_kw/partner/search_panel_select_range") {
+                    assert.step(args.args[0]);
+                }
+                return this._super.apply(this, arguments);
+            },
+            services: this.services,
+            arch: `
+                <kanban>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div>
+                                <field name="foo"/>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>`,
+            archs: {
+                'partner,false,search': `
+                    <search>
+                        <searchpanel>
+                            <field name="state" disable_counters="1"/>
+                        </searchpanel>
+                    </search>`,
+            },
+            viewOptions: {
+                limit: 2,
+            },
+        });
+
+        assert.verifySteps([
+            'search_panel_select_range',
+            'state',
+            '/web/dataset/search_read',
+        ]);
+
+        assert.deepEqual(
+            [...kanban.el.querySelectorAll('.o_search_panel_category_value')].map(
+                e => e.innerText.replace(/\s/g, '')
+            ),
+            [  "All", "ABC?", "DEF?", "GHI?"]
+        );
+
+        // go to page 2 (the domain doesn't change, so the categories should not be reloaded)
+        await cpHelpers.pagerNext(kanban);
+
+        assert.verifySteps([
+            '/web/dataset/search_read',
+        ]);
+
+        assert.deepEqual(
+            [...kanban.el.querySelectorAll('.o_search_panel_category_value')].map(
+                e => e.innerText.replace(/\s/g, '')
+            ),
+            [  "All", "ABC?", "DEF?", "GHI?"]
+        );
+
+        // reload with another domain, so the category 'state' should be reloaded
+        await kanban.reload({domain: [['id', '<', 3]]});
+
+        assert.verifySteps([
+            '/web/dataset/search_read',
+        ]);
+
+        assert.deepEqual(
+            [...kanban.el.querySelectorAll('.o_search_panel_category_value')].map(
+                e => e.innerText.replace(/\s/g, '')
+            ),
+            [  "All", "ABC?", "DEF?", "GHI?"]
+        );
+
+        // change category value, so the category 'state' should be reloaded
+        await testUtils.dom.click(kanban.$('.o_search_panel_category_value:nth(1) header'));
+
+        assert.deepEqual(
+            [...kanban.el.querySelectorAll('.o_search_panel_category_value')].map(
+                e => e.innerText.replace(/\s/g, '')
+            ),
+            [  "All", "ABC?", "DEF?", "GHI?"]
+        );
+
+        assert.verifySteps([
             '/web/dataset/search_read',
         ]);
 
@@ -1924,7 +2126,7 @@ QUnit.module('Views', {
 
         var $firstSection = kanban.$('.o_search_panel_section:first');
         assert.strictEqual($firstSection.find('.o_search_panel_category_value').text().replace(/\s/g, ''),
-            'AllasustekagrolaithighIDlowID');
+            'Allasustek2agrolait2highIDlowID');
         kanban.destroy();
     });
 

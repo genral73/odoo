@@ -212,34 +212,97 @@ class Base(models.AbstractModel):
         return r
 
     @api.model
-    def search_panel_select_range(self, field_name):
+    def search_panel_select_range(self, field_name, **kwargs):
         """
-        Return possible values of the field field_name (case select="one")
-        and the parent field (if any) used to hierarchize them.
+        Return possible values of the field field_name (case select="one"),
+        possibly with counters and the parent field (if any) used to hierarchize them.
 
-        :param field_name: the name of a many2one category field
+        :param field_name: the name of a field;
+            of type many2one or selection.
+        :param search_domain: base domain of search
+        :param disable_counters: whether to count records by value
         :return: {
             'parent_field': parent field on the comodel of field, or False
             'values': array of dictionaries containing some info on the records
                         available on the comodel of the field 'field_name'.
-                        The display name (and possibly parent_field) are fetched.
+                        The display name, the count (how many records with that value)
+                        and possibly parent_field are fetched.
         }
         """
         field = self._fields[field_name]
-        supported_types = ['many2one']
+        supported_types = ['many2one', 'selection']
         if field.type not in supported_types:
             raise UserError(_('Only types %(supported_types)s are supported for category (found type %(field_type)s)') % ({
                             'supported_types': supported_types, 'field_type': field.type}))
 
-        Comodel = self.env[field.comodel_name]
-        fields = ['display_name']
-        parent_name = Comodel._parent_name if Comodel._parent_name in Comodel._fields else False
-        if parent_name:
-            fields.append(parent_name)
-        return {
-            'parent_field': parent_name,
-            'values': Comodel.with_context(hierarchical_naming=False).search_read([], fields),
-        }
+        search_domain = kwargs.get('search_domain', [])
+        disable_counters = kwargs.get('disable_counters', False)
+
+        category_values = []
+
+        # retrieve all possible values, and return them with their label and counter
+        if field.type == 'many2one':
+            def group_id_name(value):
+                return value or (False, _("Not Set"))
+
+            # get counter
+            counters = {}
+            if not disable_counters:
+                groups = self.read_group(search_domain, [field_name], [field_name])
+                counters = {
+                    group_id_name(group[field_name])[0]: group[field_name + '_count']
+                    for group in groups
+                }
+
+            Comodel = self.env[field.comodel_name]
+            parent_name = Comodel._parent_name if Comodel._parent_name in Comodel._fields else False
+            field_names = ['display_name', parent_name] if parent_name else ['display_name']
+
+            records = Comodel.with_context(hierarchical_naming=False).search_read([], field_names)
+
+            for record in records:
+                record_id = record['id']
+                values = {
+                    'id': record_id,
+                    'display_name': record['display_name'],
+                }
+                if parent_name:
+                    parent = record[parent_name]
+                    if parent:
+                        parent_id = parent[0]
+                        values['parent_id'] = parent_id
+                        counters[parent_id] = counters.get(parent_id, 0) + counters.get(record_id, 0)
+                category_values.append(values)
+
+            for values in category_values:
+                values['count'] = counters.get(values['id'], 0)
+
+            return {
+                'parent_field': parent_name,
+                'values': category_values,
+            }
+
+        elif field.type == 'selection':
+            # get counter
+            counters = {}
+            if not disable_counters:
+                groups = self.read_group(search_domain, [field_name], [field_name])
+                counters = {
+                    group[field_name]: group[field_name + '_count']
+                    for group in groups
+                }
+
+            selection = self.fields_get([field_name])[field_name]['selection']
+            for value, label in selection:
+                category_values.append({
+                    'id': value,
+                    'display_name': label,
+                    'count': counters.get(value, 0),
+                })
+
+            return {
+                'values': category_values,
+            }
 
     @api.model
     def search_panel_select_multi_range(self, field_name, **kwargs):
@@ -268,8 +331,6 @@ class Base(models.AbstractModel):
             raise UserError(_('Only types %(supported_types)s are supported for filter (found type %(field_type)s)') % ({
                             'supported_types': supported_types, 'field_type': field.type}))
 
-        Comodel = self.env.get(field.comodel_name)
-
         model_domain = AND([
             kwargs.get('search_domain', []),
             kwargs.get('category_domain', []),
@@ -278,6 +339,8 @@ class Base(models.AbstractModel):
         ])
         comodel_domain = kwargs.get('comodel_domain', [])
         disable_counters = kwargs.get('disable_counters', False)
+
+        Comodel = self.env.get(field.comodel_name)
 
         group_by = kwargs.get('group_by', False)
         if group_by:
@@ -352,7 +415,7 @@ class Base(models.AbstractModel):
                     for group in groups
                 }
             # retrieve all possible values, and return them with their label and counter
-            selection = self.fields_get([field_name])[field_name]
+            selection = self.fields_get([field_name])[field_name]['selection']
             for value, label in selection:
                 filter_values.append({
                     'id': value,
