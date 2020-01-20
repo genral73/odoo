@@ -9,7 +9,13 @@ from odoo.osv.expression import AND
 from odoo.tools import lazy
 from odoo.tools.misc import get_lang
 from odoo.exceptions import UserError
+from collections import defaultdict
 
+class lazymapping(defaultdict):
+    def __missing__(self, key):
+        value = self.default_factory(key)
+        self[key] = value
+        return value
 
 class IrActionsActWindowView(models.Model):
     _inherit = 'ir.actions.act_window.view'
@@ -212,34 +218,112 @@ class Base(models.AbstractModel):
         return r
 
     @api.model
-    def search_panel_select_range(self, field_name):
+    def search_panel_select_range(self, field_name, **kwargs):
         """
-        Return possible values of the field field_name (case select="one")
-        and the parent field (if any) used to hierarchize them.
+        Return possible values of the field field_name (case select="one"),
+        possibly with counters and the parent field (if any) used to hierarchize them.
 
-        :param field_name: the name of a many2one category field
+        :param field_name: the name of a field;
+            of type many2one or selection.
+        :param search_domain: base domain of search
+        :param disable_counters: whether to count records by value
         :return: {
             'parent_field': parent field on the comodel of field, or False
             'values': array of dictionaries containing some info on the records
                         available on the comodel of the field 'field_name'.
-                        The display name (and possibly parent_field) are fetched.
+                        The display name, the count (how many records with that value)
+                        and possibly parent_field are fetched.
         }
         """
         field = self._fields[field_name]
-        supported_types = ['many2one']
+        supported_types = ['many2one', 'selection']
         if field.type not in supported_types:
             raise UserError(_('Only types %(supported_types)s are supported for category (found type %(field_type)s)') % ({
                             'supported_types': supported_types, 'field_type': field.type}))
 
-        Comodel = self.env[field.comodel_name]
-        fields = ['display_name']
-        parent_name = Comodel._parent_name if Comodel._parent_name in Comodel._fields else False
-        if parent_name:
-            fields.append(parent_name)
-        return {
-            'parent_field': parent_name,
-            'values': Comodel.with_context(hierarchical_naming=False).search_read([], fields),
-        }
+        search_domain = kwargs.get('search_domain', [])
+        disable_counters = kwargs.get('disable_counters', False)
+
+        # retrieve all possible values, and return them with their label and counter
+        if field.type == 'many2one':
+            Comodel = self.env[field.comodel_name]
+            parent_name = Comodel._parent_name if Comodel._parent_name in Comodel._fields else False
+            parent_store = Comodel._parent_store
+
+            field_names = ['display_name']
+            if parent_store:
+                field_names.append('parent_path')
+            elif parent_name:
+                field_names.append(parent_name)
+
+            records = Comodel.with_context(hierarchical_naming=False).search_read([], field_names)
+
+            # extract the id from a many2one value
+            def get_id(value):
+                return value and value[0]
+
+            # get counters
+            counters = defaultdict(lambda: 0)
+            if not disable_counters:
+                # get local counters
+                groups = self.read_group(search_domain, [field_name], [field_name])
+                for group in groups:
+                    id = get_id(group[field_name])
+                    counters[id] = group[field_name + '_count']
+
+            category_values = lazymapping(lambda id: {
+                'id': id,
+                'parent_id': False,
+                'children_ids': [],
+                'count': counters[id],
+            })
+            for record in records:
+                record_id = record['id']
+                values = category_values[record_id]
+                values['display_name'] = record['display_name']
+                if parent_name:
+                    parent_id = get_id(record[parent_name])
+                    if parent_id:
+                        values['parent_id'] = parent_id
+                        category_values[parent_id]['children_ids'].append(record_id)
+
+            if not disable_counters and parent_name:
+                def compute_global_count(id):
+                    counts = sum([compute_global_count(child_id) for child_id in category_values[id]['children_ids']])
+                    category_values[id]['count'] += counts
+                    return category_values[id]['count']
+
+                # get global counters
+                for id in category_values:
+                    if not category_values[id]['parent_id']:
+                        compute_global_count(id)
+
+            return {
+                'parent_field': parent_name,
+                'values': [ values for id, values in category_values.items()],
+            }
+
+        elif field.type == 'selection':
+            # get counter
+            counters = defaultdict(lambda: 0)
+            if not disable_counters:
+                groups = self.read_group(search_domain, [field_name], [field_name])
+                for group in groups:
+                    id = group[field_name]
+                    counters[id] = group[field_name + '_count']
+
+            selection = self.fields_get([field_name])[field_name]['selection']
+            category_values = []
+            for value, label in selection:
+                category_values.append({
+                    'id': value,
+                    'display_name': label,
+                    'count': counters[value],
+                })
+
+            return {
+                'values': category_values,
+            }
 
     @api.model
     def search_panel_select_multi_range(self, field_name, **kwargs):
@@ -268,8 +352,6 @@ class Base(models.AbstractModel):
             raise UserError(_('Only types %(supported_types)s are supported for filter (found type %(field_type)s)') % ({
                             'supported_types': supported_types, 'field_type': field.type}))
 
-        Comodel = self.env.get(field.comodel_name)
-
         model_domain = AND([
             kwargs.get('search_domain', []),
             kwargs.get('category_domain', []),
@@ -278,6 +360,8 @@ class Base(models.AbstractModel):
         ])
         comodel_domain = kwargs.get('comodel_domain', [])
         disable_counters = kwargs.get('disable_counters', False)
+
+        Comodel = self.env.get(field.comodel_name)
 
         group_by = kwargs.get('group_by', False)
         if group_by:
@@ -352,7 +436,7 @@ class Base(models.AbstractModel):
                     for group in groups
                 }
             # retrieve all possible values, and return them with their label and counter
-            selection = self.fields_get([field_name])[field_name]
+            selection = self.fields_get([field_name])[field_name]['selection']
             for value, label in selection:
                 filter_values.append({
                     'id': value,

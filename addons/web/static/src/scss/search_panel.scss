@@ -57,6 +57,7 @@ $o-searchpanel-filter-default-color: #D59244;
             span.o_search_panel_label_title {
                 color: $headings-color;
                 @include o-text-overflow;
+                max-width: 85%;
             }
             header.active {
                 background-color: $o-searchpanel-active-bg;
@@ -67,11 +68,7 @@ $o-searchpanel-filter-default-color: #D59244;
             header {
                 margin-top: -4px;
                 margin-bottom: -4px;
-                padding: 4px 7px;
-
-                .o_toggle_fold {
-                    padding-left: 11px;
-                }
+                padding: 4px 6px;
             }
             .o_search_panel_category_value {
                 position: relative;

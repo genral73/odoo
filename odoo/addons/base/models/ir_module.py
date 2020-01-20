@@ -913,8 +913,20 @@ class Module(models.Model):
         }
 
     @api.model
-    def search_panel_select_range(self, field_name):
+    def search_panel_select_range(self, field_name, **kwargs):
         if field_name == 'category_id':
+
+            search_domain = kwargs.get('search_domain', [])
+            disable_counters = kwargs.get('disable_counters', False)
+            # get counter
+            counters = {}
+            if not disable_counters:
+                groups = self.read_group(search_domain, [field_name], [field_name])
+                counters = {
+                    group[field_name][0]: group[field_name + '_count']
+                    for group in groups
+                }
+
             domain = [('module_ids', '!=', False)]
 
             excluded_xmlids = [
@@ -938,11 +950,25 @@ class Module(models.Model):
                 ]])
             categories = self.env['ir.module.category'].search(domain)
             categories = categories | categories.mapped('parent_id')
+
+            category_values = self.env['ir.module.category'].search_read(
+                    [('id', 'in', categories.ids)],
+                    ['display_name', 'parent_id']
+                )
+
+            for values in category_values:
+                parent = values['parent_id']
+                if parent:
+                    parent_id = parent[0]
+                    record_id = values['id']
+                    counters[parent_id] = counters.get(parent_id, 0) + counters.get(record_id, 0)
+
+            for values in category_values:
+                values['count'] = counters.get(values['id'], 0)
+
             return {
                 'parent_field': 'parent_id',
-                'values': self.env['ir.module.category'].search_read(
-                    [('id', 'in', categories.ids)],
-                    ['display_name', 'parent_id']),
+                'values': category_values,
             }
         return super(Module, self).search_panel_select_range(field_name)
 

@@ -538,23 +538,69 @@ var MockServer = Class.extend({
      * @param {Array} args
      * @returns {Object}
      */
-    _mockSearchPanelSelectRange: function (model, args) {
-        var fieldName = args[0];
-        var field = this.data[model].fields[fieldName];
+    _mockSearchPanelSelectRange: function (model, args, kwargs) {
+        const fieldName = args[0];
+        const searchDomain = kwargs.search_domain;
+        const disableCounters = kwargs.disable_counters || false;
+        const field = this.data[model].fields[fieldName];
 
-        if (field.type !== 'many2one') {
-            throw new Error('Only fields of type many2one are handled');
+        if (!['many2one', 'selection'].includes(field.type)) {
+            throw new Error('Only fields of type many2one and selection are handled');
         }
 
-        var fields = ['display_name'];
-        var parentField = this.data[field.relation].fields.parent_id;
-        if (parentField) {
-            fields.push('parent_id');
+        // get counters
+        let groups;
+        const counters = {};
+        if (!disableCounters) {
+            groups = this._mockReadGroup(model, {
+                domain: searchDomain,
+                fields: [fieldName],
+                groupby: [fieldName],
+            });
+            for (const group of groups) {
+                const groupFieldName = group[fieldName];
+                if (groupFieldName){
+                    const groupId = field.type === 'many2one' ? groupFieldName[0] : groupFieldName;
+                    counters[groupId] = group[fieldName + '_count'];
+                }
+            }
         }
-        return {
-            parent_field: parentField ? 'parent_id' : false,
-            values: this._mockSearchRead(field.relation, [[], fields], {}),
-        };
+
+        // get values
+        if (field.type === 'many2one') {
+            const fields = ['display_name'];
+            const parentField = this.data[field.relation].fields.parent_id;
+            if (parentField) {
+                fields.push('parent_id');
+            }
+            const values = this._mockSearchRead(field.relation, [[], fields], {});
+            for (const value of values) {
+                const parentFolder = value.parent_id;
+                if (parentFolder){
+                    const parentId = parentFolder[0];
+                    counters[parentId] = (counters[parentId] || 0) + (counters[value.id] || 0);
+                }
+            }
+            for (const value of values) {
+                value.count = counters[value.id] || 0;
+            }
+            return {
+                parent_field: parentField ? 'parent_id' : false,
+                values: values,
+            };
+        } else if (field.type === 'selection') {
+            const values = [];
+            for (const option of field.selection) {
+                values.push({
+                    count: counters[option[0]] || 0,
+                    id: option[0],
+                    display_name: option[1],
+                });
+            }
+            return {
+                values: values,
+            };
+        }
     },
     /**
      * Simulate a call to the 'search_panel_select_multi_range' method.
