@@ -3,6 +3,7 @@ odoo.define('website.contentMenu', function (require) {
 
 var Class = require('web.Class');
 var core = require('web.core');
+const ColorpickerDialog = require('web.ColorpickerDialog');
 var Dialog = require('web.Dialog');
 var time = require('web.time');
 var weWidgets = require('wysiwyg.widgets');
@@ -794,6 +795,9 @@ var ContentMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
             $('#wrapwrap > header').removeClass(this.value)
                                    .addClass(value);
         },
+        header_inline_color: function (value) {
+            $('#wrapwrap > header').removeProp('background-color').css('backgroundColor', value);
+        },
     },
 
     /**
@@ -966,7 +970,13 @@ var ContentMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
 
         // If not, write on the server page and reload the current location
         var vals = {};
-        vals[params.name] = option.value;
+        if (params.name === 'header_inline_color' || params.name === 'header_color') {
+            let toggle_option = !ColorpickerDialog.isCSSColor(option.value) && 'header_inline_color' || 'header_color';
+            vals[params.name] = option.value;
+            vals[toggle_option] = '';
+        } else {
+            vals[params.name] = option.value;
+        }
         var prom = this._rpc({
             model: 'website.page',
             method: 'write',

@@ -1423,6 +1423,10 @@ options.registry.topMenuTransparency = options.Class.extend({
                     actionName: 'toggle_page_option',
                     params: [{name: 'header_color', value: ''}],
                 });
+                self.trigger_up('action_demand', {
+                    actionName: 'toggle_page_option',
+                    params: [{name: 'header_inline_color', value: ''}],
+                });
             },
         });
     },
@@ -1457,12 +1461,14 @@ options.registry.topMenuColor = options.Class.extend({
     /**
      * @override
      */
-    selectStyle(previewMode, widgetValue, params) {
-        this._super(...arguments);
+    async selectStyle(previewMode, widgetValue, params) {
+        await this._super(...arguments);
         const className = widgetValue ? (params.colorPrefix + widgetValue) : '';
+        const color = _.intersection([className], this.$target[0].classList).join(' ');
+        const toggleOption = color && color.length ? 'header_color' : 'header_inline_color';
         this.trigger_up('action_demand', {
             actionName: 'toggle_page_option',
-            params: [{name: 'header_color', value: className}],
+            params: [{name: toggleOption, value: color  || widgetValue}],
         });
     },
 

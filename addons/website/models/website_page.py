@@ -24,6 +24,7 @@ class Page(models.Model):
     # Page options
     header_overlay = fields.Boolean()
     header_color = fields.Char()
+    header_inline_color = fields.Char()
 
     # don't use mixin website_id but use website_id on ir.ui.view instead
     website_id = fields.Many2one(related='view_id.website_id', store=True, readonly=False, ondelete='cascade')
