@@ -25,9 +25,9 @@ class AccountCashboxLine(models.Model):
         for cashbox_line in self:
             cashbox_line.subtotal = cashbox_line.coin_value * cashbox_line.number
 
-    coin_value = fields.Float(string='Coin/Bill Value', required=True, digits=0)
+    coin_value = fields.Monetary(string='Coin/Bill Value', required=True)
     number = fields.Integer(string='#Coins/Bills', help='Opening Unit Numbers')
-    subtotal = fields.Float(compute='_sub_total', string='Subtotal', digits=0, readonly=True)
+    subtotal = fields.Monetary(compute='_sub_total', string='Subtotal')
     cashbox_id = fields.Many2one('account.bank.statement.cashbox', string="Cashbox")
     currency_id = fields.Many2one('res.currency', related='cashbox_id.currency_id')
 
@@ -165,11 +165,6 @@ class AccountBankStatement(models.Model):
                 if not statement.currency_id.is_zero(line.amount)
             )
 
-    @api.depends('move_line_ids')
-    def _get_move_line_count(self):
-        for payment in self:
-            payment.move_line_count = len(payment.move_line_ids)
-
     @api.model
     def _default_journal(self):
         journal_type = self.env.context.get('journal_type', False)
@@ -243,7 +238,6 @@ class AccountBankStatement(models.Model):
 
     line_ids = fields.One2many('account.bank.statement.line', 'statement_id', string='Statement lines', states={'confirm': [('readonly', True)]}, copy=True)
     move_line_ids = fields.One2many('account.move.line', 'statement_id', string='Entry lines', states={'confirm': [('readonly', True)]})
-    move_line_count = fields.Integer(compute="_get_move_line_count")
 
     all_lines_reconciled = fields.Boolean(compute='_check_lines_reconciled')
     user_id = fields.Many2one('res.users', string='Responsible', required=False, default=lambda self: self.env.user)
