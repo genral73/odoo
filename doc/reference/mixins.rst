@@ -6,6 +6,8 @@
 Mixins and Useful Classes
 =========================
 
+.. todo:: For each mixin, specify clearly needed module(s) before usage.
+
 Odoo implements some useful classes and mixins that make it easy for you to add
 often-used behaviours on your objects. This guide will details most of them, with
 examples and use cases.
@@ -782,10 +784,38 @@ You can find concrete examples of integration in the following models:
 * ``project.task`` in the Project (*poject*) Application
 
 
+.. _reference/mixins/portal:
+
+Portal
+======
+
+.. todo:: DOCUMENT THIS MIXIN
+
+Image
+=====
+
+.. todo:: MIXIN DOCUMENTATION
+
+Phone Validation
+================
+
+.. todo:: phone.validation.mixin
+
+.. phone.validation.mixin & mail.thread.phone
+
+.. integrate in one "notification" section with mails & phones ?
+
+Documents
+=========
+
+.. todo:: documents.mixin ? (enterprise feature)
+
 .. _reference/mixins/website:
 
 Website features
 ================
+
+.. todo:: missing website.multi.mixin and website.published.multi.mixin (multi website mixins)
 
 .. _reference/mixins/website/utm:
 
