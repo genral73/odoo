@@ -395,7 +395,7 @@ how the POS interface works.
 Automated Actions (``ir.cron``)
 ======================================
 
-Actions triggered automatically on a predefined frequency.
+Actions triggered automatically on a predefined frequency (inherits on :class:`~odoo.addons.base.models.ir_actions.IrActionsServer`).
 
 ``name``
     Name of the automated action (Mainly used in log display)
@@ -404,7 +404,7 @@ Actions triggered automatically on a predefined frequency.
     Number of *interval_type* uom between two executions of the action
 
 ``interval_type``
-    Unit of measure of frequency interval (``minutes``, ``hours``, ``days``, ``weeks``, ``months``,
+    Unit of measure of frequency interval (``minutes``, ``hours``, ``days``, ``weeks``, ``months``)
 
 ``numbercall``
     Number of times this action has to be run.
@@ -415,11 +415,11 @@ Actions triggered automatically on a predefined frequency.
     server restarts.
 
 ``model_id``
-    Model on which this action will be called
+    :class:`~odoo.fields.Many2one` linking to the :class:`~odoo.addons.base.models.ir_model.IrModel` on which this action will be called
 
 ``code``
     Code content of the action.
-    Can be a simple call to the model's method :
+    Can be a simple call to a model's method :
 
     .. code-block:: python
 
