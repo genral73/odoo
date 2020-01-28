@@ -53,29 +53,38 @@ of operations defined previously
 Core operations
 ===============
 
+.. todo:: VFE verify all attributes are still supported, at least through import_xml.rng
+
 .. _reference/data/record:
 
 ``record``
 ----------
 
-``record`` appropriately defines or updates a database record, it has the
-following attributes:
+defines or updates a database record, it has the following attributes:
 
-``model`` (required)
-    name of the model to create (or update)
-``id``
-    the :term:`external identifier` for this record. It is strongly
-    recommended to provide one
+* ``model`` (required)
+  name of the model to create (or update)
+* ``id``
+  the :term:`external identifier` for this record. It is strongly
+  recommended to provide one
 
-    * for record creation, allows subsequent definitions to either modify or
-      refer to this record
-    * for record modification, the record to modify
-``context``
-    context to use when creating the record
-``forcecreate``
-    in update mode whether the record should be created if it doesn't exist
+  * for record creation, allows subsequent definitions to either modify or
+    refer to this record
+  * for record modification, the record to modify
 
-    Requires an :term:`external id`, defaults to ``True``.
+.. todo:: documentation on cross module referencing ?
+
+* ``context``
+  context to use when creating the record
+
+.. todo:: Context usage documentation in ORM and link to it?
+
+* ``forcecreate``
+  in *update* mode whether the record should be created if it doesn't exist
+
+  Requires an :term:`external id`, defaults to ``True``.
+
+.. _reference/data/field:
 
 ``field``
 ----------
@@ -87,63 +96,63 @@ values (creation) or do nothing (update).
 A ``field`` has a mandatory ``name`` attribute, the name of the field to set,
 and various methods to define the value itself:
 
-Nothing
-    if no value is provided for the field, an implicit ``False`` will be set
-    on the field. Can be used to clear a field, or avoid using a default value
-    for the field.
-``search``
-    for :ref:`relational fields <reference/fields/relational>`, should be
-    a :ref:`domain <reference/orm/domains>` on the field's model.
+* Nothing
+  if no value is provided for the field, an implicit ``False`` will be set
+  on the field. Can be used to clear a field, or avoid using a default value
+  for the field.
+* ``search``
+  for :ref:`relational fields <reference/fields/relational>`, should be
+  a :ref:`domain <reference/orm/domains>` on the field's model.
 
-    Will evaluate the domain, search the field's model using it and set the
-    search's result as the field's value. Will only use the first result if
-    the field is a :class:`~odoo.fields.Many2one`
-``ref``
-    if a ``ref`` attribute is provided, its value must be a valid
-    :term:`external id`, which will be looked up and set as the field's value.
+  Will evaluate the domain, search the field's model using it and set the
+  search's result as the field's value. Will only use the first result if
+  the field is a :class:`~odoo.fields.Many2one`.
+* ``ref``
+  if a ``ref`` attribute is provided, its value must be a valid
+  :term:`external id`, which will be looked up and set as the field's value.
 
-    Mostly for :class:`~odoo.fields.Many2one` and
-    :class:`~odoo.fields.Reference` fields
-``type``
-    if a ``type`` attribute is provided, it is used to interpret and convert
-    the field's content. The field's content can be provided through an
-    external file using the ``file`` attribute, or through the node's body.
+  Mostly for :class:`~odoo.fields.Many2one` and
+  :class:`~odoo.fields.Reference` fields
+* ``type``
+  if a ``type`` attribute is provided, it is used to interpret and convert
+  the field's content. The field's content can be provided through an
+  external file using the ``file`` attribute, or through the node's body.
 
-    Available types are:
+  Available types are:
 
-    ``xml``, ``html``
-        extracts the ``field``'s children as a single document, evaluates
-        any :term:`external id` specified with the form ``%(external_id)s``.
-        ``%%`` can be used to output actual *%* signs.
-    ``file``
-        ensures that the field content is a valid file path in the current
-        model, saves the pair :samp:`{module},{path}` as the field value
-    ``char``
-        sets the field content directly as the field's value without
-        alterations
-    ``base64``
-        base64_-encodes the field's content, useful combined with the ``file``
-        *attribute* to load e.g. image data into attachments
-    ``int``
-        converts the field's content to an integer and sets it as the field's
-        value
-    ``float``
-        converts the field's content to a float and sets it as the field's
-        value
-    ``list``, ``tuple``
-        should contain any number of ``value`` elements with the same
-        properties as ``field``, each element resolves to an item of a
-        generated tuple or list, and the generated collection is set as the
-        field's value
-``eval``
-    for cases where the previous methods are unsuitable, the ``eval``
-    attributes simply evaluates whatever Python expression it is provided and
-    sets the result as the field's value.
+  * ``xml``, ``html``
+    extracts the ``field``'s children as a single document, evaluates
+    any :term:`external id` specified with the form ``%(external_id)s``.
+    ``%%`` can be used to output actual *%* signs.
+  * ``file``
+    ensures that the field content is a valid file path in the current
+    model, saves the pair :samp:`{module},{path}` as the field value
+  * ``char``
+    sets the field content directly as the field's value without
+    alterations
+  * ``base64``
+    base64_-encodes the field's content, useful combined with the ``file``
+    *attribute* to load e.g. image data into attachments
+  * ``int``
+    converts the field's content to an integer and sets it as the field's
+    value
+  * ``float``
+    converts the field's content to a float and sets it as the field's
+    value
+  * ``list``, ``tuple``
+    should contain any number of ``value`` elements with the same
+    properties as ``field``, each element resolves to an item of a
+    generated tuple or list, and the generated collection is set as the
+    field's value
+* ``eval``
+  for cases where the previous methods are unsuitable, the ``eval``
+  attributes simply evaluates whatever Python expression it is provided and
+  sets the result as the field's value.
 
-    The evaluation context contains various modules (``time``, ``datetime``,
-    ``timedelta``, ``relativedelta``), a function to resolve :term:`external
-    identifiers` (``ref``) and the model object for the current field if
-    applicable (``obj``)
+  The evaluation context contains various modules (``time``, ``datetime``,
+  ``timedelta``, ``relativedelta``), a function to resolve :term:`external
+  identifiers` (``ref``) and the model object for the current field if
+  applicable (``obj``)
 
 ``delete``
 ----------
@@ -151,15 +160,17 @@ Nothing
 The ``delete`` tag can remove any number of records previously defined. It
 has the following attributes:
 
-``model`` (required)
+* ``model`` (required)
     the model in which a specified record should be deleted
-``id``
-    the :term:`external id` of a record to remove
-``search``
-    a :ref:`domain <reference/orm/domains>` to find records of the model to
-    remove
 
-``id`` and ``search`` are exclusive
+After the model specification, two exclusive attributes allows to specify the
+record(s) we want to delete:
+
+* ``id``
+  the :term:`external id` of a record to remove
+* ``search``
+  a :ref:`domain <reference/orm/domains>` to find records of the model to
+  remove
 
 ``function``
 ------------
@@ -193,8 +204,6 @@ values).
       </record>
   </odoo>
 
-.. ignored assert
-
 .. _reference/data/shortcuts:
 
 Shortcuts
@@ -204,33 +213,42 @@ Because some important structural models of Odoo are complex and involved,
 data files provide shorter alternatives to defining them using
 :ref:`record tags <reference/data/record>`:
 
+``act_window``
+--------------
+
+Creates a :ref:`Windows Action <reference/actions/window>` record.
+Like the `<report/>` shortcut, most attributes are just proxies to the
+corresponding fields.
+
 ``menuitem``
 ------------
 
 Defines an ``ir.ui.menu`` record with a number of defaults and fallbacks:
 
-``parent``
-    * If a ``parent`` attribute is set, it should be the :term:`external id`
-      of an other menu item, used as the new item's parent
-    * If no ``parent`` is provided, tries to interpret the ``name`` attribute
-      as a ``/``-separated sequence of menu names and find a place in the menu
-      hierarchy. In that interpretation, intermediate menus are automatically
-      created
-    * Otherwise the menu is defined as a "top-level" menu item (*not* a menu
-      with no parent)
-``name``
-    If no ``name`` attribute is specified, tries to get the menu name from
-    a linked action if any. Otherwise uses the record's ``id``
-``groups``
-    A ``groups`` attribute is interpreted as a comma-separated sequence of
-    :term:`external identifiers` for ``res.groups`` models. If an
-    :term:`external identifier` is prefixed with a minus (``-``), the group
-    is *removed* from the menu's groups
-``action``
-    if specified, the ``action`` attribute should be the :term:`external id`
-    of an action to execute when the menu is open
-``id``
-    the menu item's :term:`external id`
+* ``parent``
+
+  * If a ``parent`` attribute is set, it should be the :term:`external id`
+    of an other menu item, used as the new item's parent.
+  * If no ``parent`` is provided, tries to interpret the ``name`` attribute
+    as a ``/``-separated sequence of menu names and find a place in the menu
+    hierarchy. In that interpretation, intermediate menus are automatically
+    created
+  * Otherwise the menu is defined as a "top-level" menu item (*not* a menu
+    with no parent)
+
+* ``name``
+  If no ``name`` attribute is specified, tries to get the menu name from
+  a linked action if any. Otherwise uses the record's ``id``
+* ``groups``
+  A ``groups`` attribute is interpreted as a comma-separated sequence of
+  :term:`external identifiers` for ``res.groups`` models. If an
+  :term:`external identifier` is prefixed with a minus (``-``), the group
+  is *removed* from the menu's groups.
+* ``action``
+  if specified, the ``action`` attribute should be the :term:`external id`
+  of an action to execute when the menu is open.
+* ``id``
+  the menu item's :term:`external id`
 
 .. _reference/data/template:
 
@@ -240,34 +258,33 @@ Defines an ``ir.ui.menu`` record with a number of defaults and fallbacks:
 Creates a :ref:`QWeb view <reference/views/qweb>` requiring only the ``arch``
 section of the view, and allowing a few *optional* attributes:
 
-``id``
-    the view's :term:`external identifier`
-``name``, ``inherit_id``, ``priority``
-    same as the corresponding field on ``ir.ui.view`` (nb: ``inherit_id``
-    should be an :term:`external identifier`)
-``primary``
-    if set to ``True`` and combined with a ``inherit_id``, defines the view
-    as a primary
-``groups``
-    comma-separated list of group :term:`external identifiers`
-``page``
-    if set to ``"True"``, the template is a website page (linkable to,
-    deletable)
-``optional``
-    ``enabled`` or ``disabled``, whether the view can be disabled (in the
-    website interface) and its default status. If unset, the view is always
-    enabled.
+* ``id``
+  the view's :term:`external identifier`
+* ``name``, ``inherit_id``, ``priority``
+  same as the corresponding field on ``ir.ui.view`` (nb: ``inherit_id``
+  should be an :term:`external identifier`)
+* ``primary``
+  if set to ``True`` and combined with a ``inherit_id``, defines the view
+  as a primary
+* ``groups``
+  comma-separated list of group :term:`external identifiers`
+* ``page``
+  if set to ``"True"``, the template is a website page (linkable to,
+  deletable)
+* ``optional``
+  ``enabled`` or ``disabled``, whether the view can be disabled (in the
+  website interface) and its default status. If unset, the view is always
+  enabled.
 
 ``report``
 ----------
 
-Creates a :ref:`IrActionsReport <reference/actions/report>` record with a few default values.
+Creates a :ref:`IrActionsReport <reference/actions/report>` record
+with a few default values.
 
 Mostly just proxies attributes to the corresponding fields on
 ``ir.actions.report``, but also automatically creates the item in the
 :guilabel:`More` menu of the report's ``model``.
-
-.. ignored url, act_window and ir_set
 
 CSV data files
 ==============

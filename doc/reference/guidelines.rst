@@ -245,6 +245,7 @@ XML files
 
 Format
 ------
+
 To declare a record in XML, the **record** notation (using *<record>*) is recommended:
 
 - Place ``id`` attribute before ``model``
