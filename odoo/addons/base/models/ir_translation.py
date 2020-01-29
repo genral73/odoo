@@ -83,6 +83,16 @@ class IrTranslationImport(object):
         modules = tuple(modules)
         cr = self._cr
 
+        # sanity check, ensure not importing translations for an inactive or
+        # inexistant language code
+        cr.execute(""" SELECT COUNT(id)
+                       FROM res_lang
+                       WHERE active = true
+                         AND code = %s""", (lang,))
+        if not cr.fetchone()[0]:
+            _logger.error("Couldn't read translation for lang '%s', language not found", lang)
+            return False
+
         # Step 1: resolve ir.model.data references to res_ids
         cr.execute(""" UPDATE %s AS ti
                           SET res_id = imd.res_id,

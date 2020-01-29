@@ -1113,11 +1113,6 @@ def trans_load_data(cr, fileobj, fileformat, lang,
     lang = get_iso_codes(lang)
 
     try:
-        # TODO move to transfer method
-        # if not env['res.lang']._lang_get(lang):
-        #     _logger.error("Couldn't read translation for lang '%s', language not found", lang)
-        #     return None
-
         # now, the serious things: we read the language file
         fileobj.seek(0)
         reader = TranslationFileReader(fileobj, fileformat=fileformat)
