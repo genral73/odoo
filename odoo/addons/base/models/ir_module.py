@@ -912,7 +912,8 @@ class Module(models.Model):
 
         update_mods = self.filtered(lambda r: r.state in ('installed', 'to install', 'to upgrade'))
         irt_cursor = self.env['ir.translation']._get_import_cursor()
-        # TODO batch
+        # loading module translations one by one to avoid conflicts during
+        # external id resolution
         for mod in update_mods:
             for lang in filter_lang:
                 # fr_FR -> fr, fr_BE -> fr_BE
