@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import tests
+from odoo import tests, tools
 
 
 @tests.tagged("post_install", "-at_install")
@@ -9,7 +9,7 @@ class TestImport(tests.HttpCase):
         super().setUp()
 
         self.env["ir.config_parameter"].set_param(
-            "i18n.default.server", "http://%s:%s" % (tests.HOST, tests.PORT)
+            "i18n.default.server", "http://%s:%s" % (tests.HOST, tools.config['http_port'])
         )
         self.lang = self.env["res.lang"].create(
             {"name": "Klingon", "code": "tlh", "iso_code": "tlh"}
