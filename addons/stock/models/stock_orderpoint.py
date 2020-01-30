@@ -5,6 +5,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime, time
 from dateutil import relativedelta
+from itertools import groupby
 from json import dumps
 from psycopg2 import OperationalError
 
@@ -79,7 +80,7 @@ class StockWarehouseOrderpoint(models.Model):
     lead_days_date = fields.Date(compute='_compute_lead_days')
     allowed_route_ids = fields.One2many('stock.location.route', compute='_commpute_allowed_route_ids')
     route_id = fields.Many2one(
-        'stock.location.route', string='Prefered Replenishment Method', domain="[('id', 'in', allowed_route_ids)]")
+        'stock.location.route', string='Route', domain="[('id', 'in', allowed_route_ids)]")
     qty_on_hand = fields.Float('On Hand', readonly=True)
     qty_forecast = fields.Float('Forecast', readonly=True)
     qty_to_order = fields.Float('To Order')
@@ -125,6 +126,50 @@ class StockWarehouseOrderpoint(models.Model):
             })
             orderpoint.lead_days_date = lead_days_date
 
+    @api.constrains('product_id')
+    def _check_product_uom(self):
+        ''' Check if the UoM has the same category as the product standard UoM '''
+        if any(orderpoint.product_id.uom_id.category_id != orderpoint.product_uom.category_id for orderpoint in self):
+            raise ValidationError(_('You have to select a product unit of measure that is in the same category than the default unit of measure of the product'))
+
+    @api.onchange('warehouse_id')
+    def _onchange_warehouse_id(self):
+        """ Finds location id for changed warehouse. """
+        if self.warehouse_id:
+            self.location_id = self.warehouse_id.lot_stock_id.id
+
+    @api.onchange('product_id')
+    def _onchange_product_id(self):
+        if self.product_id:
+            self.product_uom = self.product_id.uom_id.id
+
+    @api.onchange('product_id', 'location_id')
+    def _onchange_product_location_id(self):
+        if self.product_id and self.location_id:
+            self._compute_qty()
+
+    @api.onchange('company_id')
+    def _onchange_company_id(self):
+        if self.company_id:
+            self.warehouse_id = self.env['stock.warehouse'].search([
+                ('company_id', '=', self.company_id.id)
+            ], limit=1)
+
+    def write(self, vals):
+        if 'company_id' in vals:
+            for orderpoint in self:
+                if orderpoint.company_id.id != vals['company_id']:
+                    raise UserError(_("Changing the company of this record is forbidden at this point, you should rather archive it and create a new one."))
+        return super().write(vals)
+
+    @api.model
+    def action_view_orderpoints(self):
+        orderpoints = self.env['stock.warehouse.orderpoint'].search([])
+        return orderpoints._get_orderpoint_action()
+
+    def action_replenish(self):
+        self._procure_orderpoint_confirm(company_id=self.env.company)
+
     def _compute_qty(self):
         orderpoints_contexts = defaultdict(lambda: self.env['stock.warehouse.orderpoint'])
         for orderpoint in self:
@@ -148,44 +193,6 @@ class StockWarehouseOrderpoint(models.Model):
                         qty_to_order += orderpoint.qty_multiple - remainder
                 orderpoint.qty_to_order = qty_to_order
 
-    @api.constrains('product_id')
-    def _check_product_uom(self):
-        ''' Check if the UoM has the same category as the product standard UoM '''
-        if any(orderpoint.product_id.uom_id.category_id != orderpoint.product_uom.category_id for orderpoint in self):
-            raise ValidationError(_('You have to select a product unit of measure that is in the same category than the default unit of measure of the product'))
-
-    @api.onchange('warehouse_id')
-    def _onchange_warehouse_id(self):
-        """ Finds location id for changed warehouse. """
-        if self.warehouse_id:
-            self.location_id = self.warehouse_id.lot_stock_id.id
-
-    @api.onchange('product_id')
-    def _onchange_product_id(self):
-        if self.product_id:
-            self.product_uom = self.product_id.uom_id.id
-
-    @api.onchange('company_id')
-    def _onchange_company_id(self):
-        if self.company_id:
-            self.warehouse_id = self.env['stock.warehouse'].search([
-                ('company_id', '=', self.company_id.id)
-            ], limit=1)
-
-    def write(self, vals):
-        if 'company_id' in vals:
-            for orderpoint in self:
-                if orderpoint.company_id.id != vals['company_id']:
-                    raise UserError(_("Changing the company of this record is forbidden at this point, you should rather archive it and create a new one."))
-        return super().write(vals)
-
-    @api.model
-    def action_view_orderpoints(self):
-        return self._get_orderpoint_action()
-
-    def action_replenish(self):
-        self._procure_orderpoint_confirm(company_id=self.env.company)
-
     def _get_product_context(self):
         """Used to call `virtual_available` when running an orderpoint."""
         self.ensure_one()
@@ -194,9 +201,8 @@ class StockWarehouseOrderpoint(models.Model):
             'to_date': datetime.combine(self.lead_days_date, time.max)
         }
 
-    @api.model
-    def _get_orderpoint_action(self, domain):
-        return {
+    def _get_orderpoint_action(self, domain=False):
+        action = {
             'name': _('Reordering Rules'),
             'view_type': 'tree',
             'view_mode': 'list',
@@ -213,6 +219,90 @@ class StockWarehouseOrderpoint(models.Model):
                 </p>
             """
         }
+        self._compute_qty()
+        # Remove previous automatically created orderpoint that has been refilled.
+        to_remove = self.env['stock.warehouse.orderpoint'].search([
+            ('virtual', '=', True),
+            ('qty_to_order', '<=', 0.0)
+        ])
+        to_remove.unlink()
+        self = self - to_remove
+        to_refill = defaultdict(float)
+        qty_by_product_warehouse = self.env['report.stock.quantity'].read_group(
+            [('date', '=', fields.date.today())],
+            ['product_id', 'product_qty', 'warehouse_id'],
+            ['product_id', 'warehouse_id'], lazy=False)
+        for group in qty_by_product_warehouse:
+            warehouse_id = group.get('warehouse_id') and group['warehouse_id'][0]
+            if group['product_qty'] >= 0.0 or not warehouse_id:
+                continue
+            to_refill[(group['product_id'][0], warehouse_id)] = group['product_qty']
+        if not to_refill:
+            return action
+        lot_stock_id_by_warehouse = self.env['stock.warehouse'].search_read([
+            ('id', 'in', [g[1] for g in to_refill.keys()])
+        ], ['lot_stock_id'])
+        lot_stock_id_by_warehouse = {w['id']: w['lot_stock_id'][0] for w in lot_stock_id_by_warehouse}
+        orderpoints_locations = [(o.product_id.id, o.location_id.id) for o in self]
+        to_refill = {(p, w): q for (p, w), q in to_refill.items() if (p, lot_stock_id_by_warehouse[w]) not in orderpoints_locations}
+        if not to_refill:
+            return action
+        # Remove incoming quantity from other otigin than moves (e.g RFQ)
+        product_ids, warehouse_ids = zip(*to_refill)
+        lot_stock_ids = [lot_stock_id_by_warehouse[w] for w in warehouse_ids]
+        qty_by_product_location = self.env['stock.warehouse.orderpoint']._get_quantity_in_progress(product_ids, lot_stock_ids)
+        key_to_remove = []
+        for (product, warehouse), product_qty in to_refill.items():
+            qty_in_progress = qty_by_product_location.get((product, lot_stock_id_by_warehouse[warehouse]))
+            if not qty_in_progress:
+                continue
+            # TODO float_compare
+            if qty_in_progress >= abs(product_qty):
+                key_to_remove.append((product, warehouse))
+            else:
+                to_refill[(product, warehouse)] = product_qty + qty_in_progress
+        for key in key_to_remove:
+            del to_refill[key]
+        # optimize qty_available in order to do only one compute by warehouse
+        product_qty_available = {}
+        for warehouse, group in groupby(sorted(to_refill, key=lambda p_w: p_w[1]), key=lambda p_w: p_w[1]):
+            products = self.env['product.product'].browse([p for p, w in group])
+            products_qty_available_list = products.with_context(location=lot_stock_id_by_warehouse[warehouse]).mapped('qty_available')
+            product_qty_available.update({(p.id, warehouse): q for p, q in zip(products, products_qty_available_list)})
+
+        orderpoint_values_list = []
+        for (product, warehouse), product_qty in to_refill.items():
+            lot_stock_id = lot_stock_id_by_warehouse[warehouse]
+            orderpoint_values = self.env['stock.warehouse.orderpoint']._get_orderpoint_values(product, lot_stock_id)
+            orderpoint_values.update({
+                'warehouse_id': warehouse,
+                'virtual': True,
+                'qty_on_hand': product_qty_available[(product, warehouse)],
+                'qty_forecast': product_qty,
+                'qty_to_order': -product_qty,
+            })
+            orderpoint_values_list.append(orderpoint_values)
+
+        # Remove previous automatically created orderpoint that has been refilled.
+        self.env['stock.warehouse.orderpoint'].search([
+            ('virtual', '=', True),
+            ('qty_to_order', '<=', 0.0)
+        ]).unlink()
+        self.env['stock.warehouse.orderpoint'].create(orderpoint_values_list)
+        return action
+
+    @api.model
+    def _get_orderpoint_values(self, product, location):
+        return {
+            'product_id': product,
+            'location_id': location,
+            'product_max_qty': 0.0,
+            'product_min_qty': 0.0,
+            'trigger': 'manual',
+        }
+
+    def _get_quantity_in_progress(self, product_ids, location_ids):
+        return defaultdict(float)
 
     def _prepare_procurement_values(self, date=False, group=False):
         """ Prepare specific key for moves or other components that will be created from a stock rule
