@@ -5,6 +5,13 @@ class Project(models.Model):
     _name = 'project.project'
     _inherit = ['project.project', 'website.published.mixin']
 
+    def action_view_all_rating(self):
+        """ return the action to see all the rating of the project and activate default filters"""
+        if(self.website_published):
+            return self.open_website_url()
+        else:
+            return super(Project, self).action_view_all_rating()
+
     def open_website_url(self):
         """ return the action to see all the rating of the project, and activate default filters """
         return {

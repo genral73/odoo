@@ -61,11 +61,10 @@ class ProjectTaskType(models.Model):
                 stages = self.filtered(lambda x: x not in shared_stages)
         return super(ProjectTaskType, stages).unlink()
 
-    @api.depends('project_ids','project_ids.rating_active')
+    @api.depends('project_ids', 'project_ids.rating_active')
     def _compute_project_rating_disabled_warning(self):
         for r in self:
-            r.projects_rating_disabled = ''.join(map(lambda p:'- '+str(p.name) + '\n', r.project_ids.search(['&',('rating_active',"=", False),('type_ids',"=",r.id)])))
-
+            r.projects_rating_disabled = '\n'.join(map(lambda p: '- ' + str(p.name), r.project_ids.search(['&', ('rating_active', "=", False), ('type_ids', "=", r.id)])))
 
 
 class Project(models.Model):
@@ -222,8 +221,8 @@ class Project(models.Model):
 
     # rating fields
     rating_request_deadline = fields.Datetime(compute='_compute_rating_request_deadline', store=True)
-    rating_active = fields.Boolean('Customer ratings', default=False)
-    rating_status = fields.Selection([('stage', 'Rating when changing stage'), ('periodic', 'Periodical Rating')], 'Customer Ratings', help="How to get customer feedback?\n"
+    rating_active = fields.Boolean('Customer Ratings', default=False)
+    rating_status = fields.Selection([('stage', 'Rating when changing stage'), ('periodic', 'Periodical Rating')], 'Customer Ratings Status', help="How to get customer feedback?\n"
                     "- Rating when changing stage: an email will be sent when a task is pulled in another stage.\n"
                     "- Periodical Rating: email will be sent periodically.\n\n"
                     "Don't forget to set up the mail templates on the stages for which you want to get the customer's feedbacks.", default="stage", required=True)
@@ -415,14 +414,6 @@ class Project(models.Model):
         action_context['search_default_parent_res_name'] = self.name
         action_context.pop('group_by', None)
         return dict(action, context=action_context)
-
-    def action_website_go_to(self):
-        self.website_id._force()
-        return {
-            'type': 'ir.actions.act_url',
-            'url': '/',
-            'target': 'self',
-        }
 
     # ---------------------------------------------------
     #  Business Methods

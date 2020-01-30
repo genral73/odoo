@@ -149,7 +149,9 @@
                  <div id="wrap" class="row mt4">
                     <div class="oe_structure" id="oe_structure_project_rating_page_1"/>
                     <div class="container o_project o_portal_project_rating">
+                        <br/>
                         <h2 t-esc="project.name"/>
+                        <br/>
                         <div class="row mb32">
                             <div class="col-lg-12">
                                 <div class="o_page_header">

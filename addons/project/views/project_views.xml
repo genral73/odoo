@@ -111,12 +111,12 @@
                                 <field name="name"/>
                                 <field name="mail_template_id"/>
                                 <field name="rating_template_id" groups="project.group_project_rating"/>
-                                <span class="text-danger" colspan='2' attrs="{'invisible': ['|',('rating_template_id','=', False), ('projects_rating_disabled', '=', '')]}">
-                                    Customer Ratings are disabled on the following project(s) :
+                                <div class="alert alert-info" role="alert" colspan='2' attrs="{'invisible': ['|',('rating_template_id','=', False), ('projects_rating_disabled', '=', '')]}">
+                                    <i class="fa fa-warning"/> Customer Ratings are disabled on the following project(s) :
                                     <p>
                                         <field name="projects_rating_disabled" />
                                     </p>
-                                </span>
+                                </div>
                                 <field name="auto_validation_kanban_state" attrs="{'invisible': [('rating_template_id','=', False)]}" groups="project.group_project_rating"/>
                             </group>
                             <group>
@@ -327,7 +327,7 @@
                                             <field name="rating_status" widget="radio" />
                                             <div  attrs="{'required': [('rating_status','=','periodic')], 'invisible': [('rating_status','!=','periodic')]}">
                                                 <label for="rating_status_period"/>
-                                                <field name="rating_status_period"  class="oe_inline"/>
+                                                <field name="rating_status_period"/>
                                             </div>
                                             <div class="content-group">
                                                     <div class="mt8">
@@ -534,14 +534,14 @@
                                             </div>
                                             <div t-if="record.rating_active.raw_value" class="mt8 text-primary" title="Percentage of happy ratings over the past 30 days." groups="project.group_project_rating">
                                                 <b>
-                                                    <t t-if="record.rating_percentage_satisfaction.value == -1">
-                                                        <i class="fa fa-smile-o"/> No rating yet
-                                                    </t>
-                                                    <t t-if="record.rating_percentage_satisfaction.value != -1">
-                                                        <a name="action_view_all_rating" type="object" context="{'search_default_rating_last_30_days':1}">
-                                                            <i class="fa fa-smile-o" role="img" aria-label="Percentage of satisfaction" title="Percentage of satisfaction"/> <t t-esc="record.rating_percentage_satisfaction.value"/>%
-                                                        </a>
-                                                    </t>
+                                                    <a name="action_view_all_rating" type="object" context="{'search_default_rating_last_30_days':1}">
+                                                        <t t-if="record.rating_percentage_satisfaction.value == -1">
+                                                            <i class="fa fa-smile-o"/> No rating yet
+                                                        </t>
+                                                        <t t-if="record.rating_percentage_satisfaction.value != -1">
+                                                                <i class="fa fa-smile-o" role="img" aria-label="Percentage of satisfaction" title="Percentage of satisfaction"/> <t t-esc="record.rating_percentage_satisfaction.value"/>%
+                                                        </t>
+                                                    </a>
                                                 </b>
                                             </div>
                                         </div>
