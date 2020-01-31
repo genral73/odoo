@@ -157,7 +157,7 @@
             <field name="model">project.task.type</field>
             <field name="arch" type="xml">
                 <tree string="Task Stage">
-                    <field name="sequence" widget="handle" groups="base.group_no_one" optional="show"/>
+                    <field name="sequence" widget="handle" optional="show"/>
                     <field name="name"/>
                     <field name="fold" optional="show"/>
                     <field name="mail_template_id" optional="show"/>
