@@ -102,6 +102,7 @@
         'static/src/xml/Screens/ProductScreen/ControlButtons/SetPricelistButton.xml',
         'static/src/xml/Screens/ProductScreen/ControlButtons/SetFiscalPositionButton.xml',
         'static/src/xml/ChromeWidgets/ClientScreenButton.xml',
+        'static/src/xml/MobileOrderWidget.xml',
     ],
     'website': 'https://www.odoo.com/page/point-of-sale-shop',
 }

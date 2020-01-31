@@ -39,7 +39,7 @@
                 </div>
             </div>
             <hr />
-            <div class="paymentlines">
+            <div class="paymentlines" t-if="!env.isMobile || (currentOrder.selected_paymentline &amp;&amp; env.isMobile)">
                 <div class="paymentline heading">
                     <div>Tendered</div>
                     <div>Method</div>

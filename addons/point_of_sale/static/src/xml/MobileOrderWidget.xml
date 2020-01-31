@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="MobileOrderWidget" owl="1">
+        <div class="switchpane">
+            <t t-if="pane === 'right'">
+                <div class="order-info">
+                    <small><t t-esc="items_number"/> item(s) in cart</small>
+                    <h2><t t-esc="total" /></h2>
+                    <small>Taxes: <t t-esc="tax" /></small>
+                </div>
+                <button class="btn-switchpane" t-on-click="trigger('switchpane')">View Cart <span class="fa fa-arrow-circle-right"/></button>
+            </t>
+            <t t-if="pane === 'left'">
+              <button class="btn-switchpane view-products" t-on-click="trigger('switchpane')">Back to Products <span class="fa fa-arrow-circle-right"/></button>
+            </t>
+        </div>
+    </t>
+
+</templates>

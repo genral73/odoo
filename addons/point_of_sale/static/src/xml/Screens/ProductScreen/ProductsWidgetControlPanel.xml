@@ -2,8 +2,8 @@
 <templates id="template" xml:space="preserve">
 
     <t t-name="ProductsWidgetControlPanel" owl="1">
-        <div>
-            <header class="rightpane-header">
+        <div class="products-widget-control">
+            <div class="rightpane-header">
                 <!-- Breadcrumbs -->
                 <div class="breadcrumbs">
                     <HomeCategoryBreadcrumb />
@@ -22,7 +22,7 @@
                         <i class="fa fa-remove" />
                     </span>
                 </div>
-            </header>
+            </div>
             <!-- Subcategories -->
             <t t-if="props.subcategories.length > 0">
                 <div class="categories">

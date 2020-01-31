@@ -23,6 +23,8 @@ odoo.define('point_of_sale.PaymentScreen', function(require) {
             useListener('select-payment-line', this.selectPaymentLine);
             useListener('new-payment-line', this.addNewPaymentLine);
             useListener('update-selected-paymentline', this._updateSelectedPaymentline);
+            useListener('unselect-payment-line', this.unselectPaymentLine);
+            useListener('select-last-payment-line', this.selectLastPaymentLine);
             useErrorHandlers();
             NumberBuffer.use({
                 // The numberBuffer listens to this event to update its state.
@@ -162,6 +164,17 @@ odoo.define('point_of_sale.PaymentScreen', function(require) {
             this.currentOrder.select_paymentline(line);
             NumberBuffer.reset();
             this.render();
+        }
+        unselectPaymentLine(event) {
+            this.currentOrder.select_paymentline(undefined);
+            NumberBuffer.reset();
+            this.render();
+        }
+        selectLastPaymentLine(event) {
+          const line = this.paymentLines[this.paymentLines.length - 1];
+          this.currentOrder.select_paymentline(line);
+          NumberBuffer.reset();
+          this.render();
         }
         async validateOrder(isForceValidate) {
             if (await this._isOrderValid(isForceValidate)) {

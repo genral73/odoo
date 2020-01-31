@@ -9,6 +9,7 @@ odoo.define('point_of_sale.ProductScreen', function(require) {
     const { ActionpadWidget } = require('point_of_sale.ActionpadWidget');
     const { NumberBuffer } = require('point_of_sale.NumberBuffer');
     const { useListener } = require('web.custom_hooks');
+    const { MobileOrderWidget } = require('point_of_sale.MobileOrderWidget');
     const Registry = require('point_of_sale.ComponentsRegistry');
 
     class ProductScreen extends PosComponent {
@@ -24,6 +25,7 @@ odoo.define('point_of_sale.ProductScreen', function(require) {
                 useWithBarcode: true,
             });
             this.numpadMode = 'quantity';
+            this.mobile_pane = 'right';
         }
         mounted() {
             this.env.pos.on(
@@ -190,8 +192,19 @@ odoo.define('point_of_sale.ProductScreen', function(require) {
                 return code.code;
             }
         }
+
+        switchPane() {
+            if (this.mobile_pane === "left") {
+                this.mobile_pane = "right";
+                this.render();
+            }
+            else {
+                this.mobile_pane = "left";
+                this.render();
+            }
+        }
     }
-    ProductScreen.components = { ProductsWidget, OrderWidget, NumpadWidget, ActionpadWidget };
+    ProductScreen.components = { ProductsWidget, OrderWidget, NumpadWidget, ActionpadWidget, MobileOrderWidget };
     ProductScreen.controlButtons = [];
 
     /**
