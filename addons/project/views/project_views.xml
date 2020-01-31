@@ -111,17 +111,15 @@
                                 <field name="name"/>
                                 <field name="mail_template_id"/>
                                 <field name="rating_template_id" groups="project.group_project_rating"/>
-                                <div class="alert alert-info" role="alert" colspan='2' attrs="{'invisible': ['|',('rating_template_id','=', False), ('projects_rating_disabled', '=', '')]}">
-                                    <i class="fa fa-warning"/> Customer Ratings are disabled on the following project(s) :
-                                    <p>
-                                        <field name="projects_rating_disabled" />
-                                    </p>
+                                <div class="alert alert-warning" role="alert" colspan='2' attrs="{'invisible': ['|',('rating_template_id','=', False), ('projects_rating_disabled', '=', '')]}">
+                                    <i class="fa fa-warning" title="Customer disabled on projects"/><b> Customer Ratings</b> are disabled on the following project(s) :
+                                    <field name="projects_rating_disabled" class="mb-0" />
                                 </div>
                                 <field name="auto_validation_kanban_state" attrs="{'invisible': [('rating_template_id','=', False)]}" groups="project.group_project_rating"/>
                             </group>
                             <group>
                                 <field name="fold"/>
-                                <field name="project_ids" widget="many2many_tags"/>
+                                <field name="project_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
                                 <field name="sequence" groups="base.group_no_one"/>
                             </group>
                         </group>
@@ -166,7 +164,7 @@
                     <field name="rating_template_id" optional="show"/>
                     <field name="auto_validation_kanban_state" optional="hide" />
                     <field name="description" optional="hide"/>
-                    <field name="project_ids" optional="show" widget="many2many_tags" />
+                    <field name="project_ids" optional="show" widget="many2many_tags" options="{'color_field': 'color'}" />
                 </tree>
             </field>
         </record>
