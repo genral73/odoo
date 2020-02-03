@@ -989,4 +989,5 @@ if record:
             action="crm_lead_tag_action"
             parent="menu_crm_config_lead"
             sequence="1"/>
+
 </odoo>
