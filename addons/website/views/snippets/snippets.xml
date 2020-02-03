@@ -131,20 +131,22 @@
 
 <template id="website.snippet_options_border">
     <we-row string="Border">
-        <we-colorpicker data-dependencies="border_width_opt"
+        <we-colorpicker data-dependencies="border_width_opt" t-att-data-apply-to="so_border_apply_to"
                         data-select-style="true" data-css-property="border-color" data-color-prefix="border-"/>
-        <we-select data-css-property="border-style" data-dependencies="border_width_opt">
+        <we-select data-css-property="border-style" data-dependencies="border_width_opt" t-att-data-apply-to="so_border_apply_to">
             <we-button data-select-style="solid">Solid</we-button>
             <we-button data-select-style="dashed">Dashed</we-button>
             <we-button data-select-style="dotted">Dotted</we-button>
             <we-button data-select-style="double">Double</we-button>
         </we-select>
         <we-input data-name="border_width_opt"
+                  t-att-data-apply-to="so_border_apply_to"
                   data-select-style="0" data-css-property="border-width"
                   data-unit="px" data-extra-class="border"/>
     </we-row>
     <we-input string="Rounded"
-              data-dependencies="border_width_opt,bg_color_opt"
+              t-att-data-apply-to="so_border_apply_to"
+              t-att-data-dependencies="so_rounded_no_dependencies != true and 'border_width_opt,bg_color_opt'"
               data-select-style="0" data-css-property="border-radius"
               data-unit="px" data-extra-class="rounded"/>
 </template>
@@ -277,7 +279,7 @@
     <!-- Background Image -->
     <div data-js="background" string="Background"
         data-selector="section, .parallax, .carousel-item"
-        data-exclude=".s_hr, .s_image_gallery, .o_gallery .carousel-item">
+        data-exclude=".s_hr, .o_gallery .carousel-item">
         <we-imagepicker string="Background" data-background="" data-allow-videos=":not(.parallax, .s_parallax_bg)"/>
     </div>
 
