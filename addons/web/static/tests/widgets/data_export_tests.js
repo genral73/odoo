@@ -46,16 +46,7 @@ QUnit.module('widgets', {
 
 
     QUnit.test('exporting all data in list view', async function (assert) {
-        assert.expect(8);
-
-        var blockUI = framework.blockUI;
-        var unblockUI = framework.unblockUI;
-        framework.blockUI = function () {
-            assert.step('block UI');
-        };
-        framework.unblockUI = function () {
-            assert.step('unblock UI');
-        };
+        assert.expect(6);
 
         var list = await createView({
             View: ListView,
@@ -94,6 +85,10 @@ QUnit.module('widgets', {
                         }
                     ]);
                 }
+                if (route.startsWith('/web/async_export')) {
+                    assert.step(route);
+                    return Promise.resolve();
+                }
                 return this._super.apply(this, arguments);
             },
             session: {
@@ -119,12 +114,8 @@ QUnit.module('widgets', {
         await testUtils.dom.click($('.modal span:contains(Export)'));
         await testUtils.dom.click($('.modal span:contains(Close)'));
         list.destroy();
-        framework.blockUI = blockUI;
-        framework.unblockUI = unblockUI;
         assert.verifySteps([
-            'block UI',
-            '/web/export/csv',
-            'unblock UI',
+            '/web/async_export/csv',
         ]);
     });
 
@@ -282,7 +273,7 @@ QUnit.module('widgets', {
     });
 
     QUnit.test('Direct export list ', async function (assert) {
-        assert.expect(2)
+        assert.expect(3);
 
         let list = await createView({
             View: ListView,
@@ -294,10 +285,10 @@ QUnit.module('widgets', {
                     <field name="bar"/>
                 </tree>`,
             domain: [['bar', '!=', 'glou']],
-            session: {
-                get_file(args) {
-                    let data = JSON.parse(args.data.data);
-                    assert.strictEqual(args.url, '/web/export/xlsx', "should call get_file with the correct url");
+            mockRPC: function(route, args) {
+                if (route === '/web/async_export/xlsx') {
+                    assert.step(route);
+                    let data = JSON.parse(args.data);
                     assert.deepEqual(data, {
                         context: {},
                         model: 'partner',
@@ -312,9 +303,10 @@ QUnit.module('widgets', {
                             name: 'bar',
                             label: 'Bar',
                         }]
-                    }, "should be called with correct params")
-                    args.complete();
-                },
+                    }, "should be called with correct params");
+                    return Promise.resolve();
+                }
+                return this._super(...arguments);
             },
         });
 
@@ -322,12 +314,15 @@ QUnit.module('widgets', {
         await testUtils.dom.click(list.$('.o_data_row .o_list_record_selector input')[0]);
         // Download
         await testUtils.dom.click(list.$buttons.find('.o_list_export_xlsx'));
+        assert.verifySteps([
+            '/web/async_export/xlsx',
+        ]);
 
         list.destroy();
     });
 
     QUnit.test('Direct export grouped list ', async function (assert) {
-        assert.expect(2)
+        assert.expect(3)
 
         let list = await createView({
             View: ListView,
@@ -341,10 +336,10 @@ QUnit.module('widgets', {
                 </tree>`,
             groupBy: ['foo', 'bar'],
             domain: [['bar', '!=', 'glou']],
-            session: {
-                get_file(args) {
-                    let data = JSON.parse(args.data.data);
-                    assert.strictEqual(args.url, '/web/export/xlsx', "should call get_file with the correct url");
+            mockRPC: function(route, args) {
+                if (route === '/web/async_export/xlsx') {
+                    assert.step(route);
+                    let data = JSON.parse(args.data);
                     assert.deepEqual(data, {
                         context: {},
                         model: 'partner',
@@ -360,14 +355,18 @@ QUnit.module('widgets', {
                             label: 'Bar',
                         }]
                     }, "should be called with correct params")
-                    args.complete();
-                },
+                    return Promise.resolve();
+                }
+                return this._super(...arguments);
             },
         });
 
         await testUtils.dom.click(list.$buttons.find('.o_list_export_xlsx'));
 
         list.destroy();
+        assert.verifySteps([
+            '/web/async_export/xlsx',
+        ])
     });
 });
 
