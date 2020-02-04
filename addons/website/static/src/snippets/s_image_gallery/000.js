@@ -105,9 +105,6 @@ const GallerySliderWidget = publicWidget.Widget.extend({
             $lis.each(function (i) {
                 $(this).toggleClass('d-none', i < page * nbPerPage || i >= (page + 1) * nbPerPage);
             });
-            if (self.editableMode) { // do not remove DOM in edit mode
-                return;
-            }
             if (page <= 0) {
                 self.$prev.detach();
             } else {
@@ -139,7 +136,9 @@ const GallerySliderWidget = publicWidget.Widget.extend({
             page += ($(this).hasClass('o_indicators_left') ? -1 : 1);
             page = Math.max(0, Math.min(nbPages - 1, page)); // should not be necessary
             self.$carousel.carousel(page * realNbPerPage);
-            hide();
+            if (!self.editableMode) {
+                hide();
+            }
         });
         this.$carousel.on('slid.bs.carousel.gallery_slider', update);
 
