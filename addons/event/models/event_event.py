@@ -3,6 +3,7 @@
 
 import logging
 import pytz
+import vobject
 
 from odoo import _, api, fields, models
 from odoo.addons.base.models.res_partner import _tz_get
@@ -11,12 +12,6 @@ from odoo.exceptions import ValidationError
 from odoo.tools.translate import html_translate
 
 _logger = logging.getLogger(__name__)
-
-try:
-    import vobject
-except ImportError:
-    _logger.warning("`vobject` Python module not found, iCal file generation disabled. Consider installing this module if you want to generate iCal files")
-    vobject = None
 
 
 class EventType(models.Model):

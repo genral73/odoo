@@ -28,6 +28,7 @@ from zlib import adler32
 import babel.core
 from datetime import datetime, date
 import passlib.utils
+import psutil
 import psycopg2
 import json
 import werkzeug.contrib.sessions
@@ -39,11 +40,6 @@ import werkzeug.wrappers
 import werkzeug.wsgi
 from werkzeug import urls
 from werkzeug.wsgi import wrap_file
-
-try:
-    import psutil
-except ImportError:
-    psutil = None
 
 import odoo
 from odoo import fields

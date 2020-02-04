@@ -35,7 +35,7 @@ RUN apt-get update -qq &&  \
         python3-libsass \
         python3-lxml \
         python3-mako \
-        python3-mock \
+        python3-num2words \
         python3-ofxparse \
         python3-passlib \
         python3-polib \
@@ -54,7 +54,9 @@ RUN apt-get update -qq &&  \
         python3-vatnumber \
         python3-vobject \
         python3-werkzeug \
+        python3-xlrd \
         python3-xlsxwriter \
+        python3-xlwt \
         rsync && \
     rm -rf /var/lib/apt/lists/*
 

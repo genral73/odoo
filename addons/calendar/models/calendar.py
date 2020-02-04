@@ -14,6 +14,7 @@ import pytz
 import re
 import time
 import uuid
+import vobject
 
 from odoo import api, fields, models
 from odoo import tools
@@ -984,13 +985,6 @@ class Meeting(models.Model):
                 else:
                     return idate.replace(tzinfo=pytz.timezone('UTC'))
             return False
-
-        try:
-            # FIXME: why isn't this in CalDAV?
-            import vobject
-        except ImportError:
-            _logger.warning("The `vobject` Python module is not installed, so iCal file generation is unavailable. Please install the `vobject` Python module")
-            return result
 
         for meeting in self:
             cal = vobject.iCalendar()

@@ -17,7 +17,9 @@ import operator
 import os
 import re
 import requests
+import xlrd
 
+from xlrd import xlsx
 from PIL import Image
 
 from odoo import api, fields, models
@@ -40,15 +42,6 @@ BOM_MAP = {
     'utf-32le': codecs.BOM_UTF32_LE,
     'utf-32be': codecs.BOM_UTF32_BE,
 }
-
-try:
-    import xlrd
-    try:
-        from xlrd import xlsx
-    except ImportError:
-        xlsx = None
-except ImportError:
-    xlrd = xlsx = None
 
 try:
     from . import odf_ods_reader

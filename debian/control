@@ -28,7 +28,8 @@ Depends:
  python3-libsass,
  python3-lxml,
  python3-mako,
- python3-mock,
+ python3-num2words,
+ python3-ofxparse,
  python3-passlib,
  python3-polib,
  python3-psutil,
@@ -44,6 +45,7 @@ Depends:
  python3-vatnumber,
  python3-vobject,
  python3-werkzeug,
+ python3-xlwt,
  python3-xlsxwriter,
  python3-xlrd,
 Conflicts: tinyerp-server, openerp-server, openerp-web, openerp

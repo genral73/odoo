@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+import os
 
 from configparser import ConfigParser
 from os.path import join as opj
-import os
+
 import werkzeug.urls
+
 
 import odoo
 from odoo import models, fields

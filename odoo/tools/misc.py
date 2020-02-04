@@ -28,6 +28,10 @@ import types
 import unicodedata
 import werkzeug.utils
 import zipfile
+import cProfile
+import xlsxwriter
+import xlwt
+
 from collections import defaultdict, Iterable, Mapping, MutableMapping, MutableSet, OrderedDict
 from itertools import islice, groupby as itergroupby, repeat
 from lxml import etree
@@ -35,13 +39,6 @@ from lxml import etree
 from .which import which
 import traceback
 from operator import itemgetter
-
-try:
-    # pylint: disable=bad-python3-import
-    import cProfile
-except ImportError:
-    import profile as cProfile
-
 
 from .config import config
 from .cache import *
@@ -379,46 +376,36 @@ def merge_sequences(*iterables):
     return topological_sort(deps)
 
 
-try:
-    import xlwt
 
-    # add some sanitization to respect the excel sheet name restrictions
-    # as the sheet name is often translatable, can not control the input
-    class PatchedWorkbook(xlwt.Workbook):
-        def add_sheet(self, name, cell_overwrite_ok=False):
+# add some sanitization to respect the excel sheet name restrictions
+# as the sheet name is often translatable, can not control the input
+class PatchedWorkbook(xlwt.Workbook):
+    def add_sheet(self, name, cell_overwrite_ok=False):
+        # invalid Excel character: []:*?/\
+        name = re.sub(r'[\[\]:*?/\\]', '', name)
+
+        # maximum size is 31 characters
+        name = name[:31]
+        return super(PatchedWorkbook, self).add_sheet(name, cell_overwrite_ok=cell_overwrite_ok)
+
+xlwt.Workbook = PatchedWorkbook
+
+
+# add some sanitization to respect the excel sheet name restrictions
+# as the sheet name is often translatable, can not control the input
+class PatchedXlsxWorkbook(xlsxwriter.Workbook):
+
+    # TODO when xlsxwriter bump to 0.9.8, add worksheet_class=None parameter instead of kw
+    def add_worksheet(self, name=None, **kw):
+        if name:
             # invalid Excel character: []:*?/\
             name = re.sub(r'[\[\]:*?/\\]', '', name)
 
             # maximum size is 31 characters
             name = name[:31]
-            return super(PatchedWorkbook, self).add_sheet(name, cell_overwrite_ok=cell_overwrite_ok)
+        return super(PatchedXlsxWorkbook, self).add_worksheet(name, **kw)
 
-    xlwt.Workbook = PatchedWorkbook
-
-except ImportError:
-    xlwt = None
-
-try:
-    import xlsxwriter
-
-    # add some sanitization to respect the excel sheet name restrictions
-    # as the sheet name is often translatable, can not control the input
-    class PatchedXlsxWorkbook(xlsxwriter.Workbook):
-
-        # TODO when xlsxwriter bump to 0.9.8, add worksheet_class=None parameter instead of kw
-        def add_worksheet(self, name=None, **kw):
-            if name:
-                # invalid Excel character: []:*?/\
-                name = re.sub(r'[\[\]:*?/\\]', '', name)
-
-                # maximum size is 31 characters
-                name = name[:31]
-            return super(PatchedXlsxWorkbook, self).add_worksheet(name, **kw)
-
-    xlsxwriter.Workbook = PatchedXlsxWorkbook
-
-except ImportError:
-    xlsxwriter = None
+xlsxwriter.Workbook = PatchedXlsxWorkbook
 
 
 def to_xml(s):
