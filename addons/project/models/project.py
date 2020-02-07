@@ -7,6 +7,7 @@ from datetime import timedelta
 from odoo import api, fields, models, tools, SUPERUSER_ID, _
 from odoo.exceptions import UserError, AccessError, ValidationError
 from odoo.tools.misc import format_date
+from odoo.tools import safe_eval
 
 
 class ProjectTaskType(models.Model):
