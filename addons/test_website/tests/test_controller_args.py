@@ -1,5 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+
 import odoo.tests
+from odoo.addons.website.tools import MockRequest
 
 
 @odoo.tests.common.tagged('post_install', '-at_install')
@@ -29,3 +31,17 @@ class TestWebsiteControllerArgs(odoo.tests.HttpCase):
         req = self.url_open('/ignore_args/kw?a=valueA&b=valueB')
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.json(), {'a': 'valueA', 'kw': {'b': 'valueB'}})
+
+    def test_route_type(self):
+        response = self.url_open('/test_route_json_http?blabla=qsd')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.text, "{'blabla': 'qsd'}")
+
+        response = self.url_open('/test_route_json_http', data=b"blabla=qsd", headers={'Content-type': 'application/x-www-form-urlencoded'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.text, "{'blabla': 'qsd'}")
+
+        response = self.url_open('/test_route_json_http', data=b'{"a": "blabla"}', headers={'Content-type': 'application/json'})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue("{'a': 'blabla'}" in response.text)
