@@ -5,7 +5,8 @@ from odoo.tools import float_compare, float_is_zero
 from odoo.exceptions import UserError
 import re
 from math import copysign
-
+import itertools
+from collections import defaultdict
 
 class AccountReconcileModelLine(models.Model):
     _name = 'account.reconcile.model.line'
@@ -371,13 +372,15 @@ class AccountReconcileModel(models.Model):
         for table, field, column in [('st_line', 'label', 'payment_ref'), ('st_line_move', 'note', 'narration'), ('st_line', 'transaction_type', 'transaction_type')]:
             if rule['match_' + field] == 'contains':
                 query += ' AND {}.{} ILIKE %s'.format(table, column)
-                params += ['%%%s%%' % rule['match_' + field + '_param']]
+                params += ['%%%s%%' % rule['match_' + field + '_param']] #TODO OCO eeeeuuuuaaaaaaagh !
             elif rule['match_' + field] == 'not_contains':
                 query += ' AND {}.{} NOT ILIKE %s'.format(table, column)
                 params += ['%%%s%%' % rule['match_' + field + '_param']]
             elif rule['match_' + field] == 'match_regex':
                 query += ' AND {}.{} ~* %s'.format(table, column)
                 params += [rule['match_' + field + '_param']]
+
+        #TODO OCO Pour le truc de fhe,c'est probablement quelque part par ici ^ (le code est générique, donc peut-être plutôt à la suite? Quoique, en fait il faudrait p-ê le faire partout) => en fait, il ne faut pas matcher que le nom de la st line
 
         # Filter on partners.
         if rule.match_partner:
@@ -417,7 +420,7 @@ class AccountReconcileModel(models.Model):
         with_tables += ', partners_table AS (' + partners_table + ')'
         return with_tables
 
-    def _get_invoice_matching_query(self, st_lines, excluded_ids=None, partner_map=None):
+    def _get_invoice_matching_query(self, st_lines, excluded_ids=None, partner_map=None): #TODO OCO refactorer ?
         ''' Get the query applying all rules trying to match existing entries with the given statement lines.
         :param st_lines:        Account.bank.statement.lines recordset.
         :param excluded_ids:    Account.move.lines to exclude.
@@ -565,7 +568,7 @@ class AccountReconcileModel(models.Model):
         full_query += ' ORDER BY aml_date_maturity, aml_id'
         return full_query, all_params
 
-    def _get_writeoff_suggestion_query(self, st_lines, excluded_ids=None, partner_map=None):
+    def _get_writeoff_suggestion_query(self, st_lines, excluded_ids=None, partner_map=None): #TODO OCO refactorer ?
         ''' Get the query applying all reconciliation rules.
         :param st_lines:        Account.bank.statement.lines recordset.
         :param excluded_ids:    Account.move.lines to exclude.
@@ -601,6 +604,21 @@ class AccountReconcileModel(models.Model):
         full_query += ' UNION ALL '.join(queries)
         return full_query, all_params
 
+    def _get_candidates(self, st_lines, excluded_ids, partner_map): #TODO OCO DOC
+        treatment_map = {
+            self.filtered(lambda m: m.rule_type == 'invoice_matching'): lambda x: x._get_invoice_matching_query(st_lines, excluded_ids, partner_map),
+            self.filtered(lambda m: m.rule_type == 'writeoff_suggestion'): lambda x: x._get_writeoff_suggestion_query(st_lines, excluded_ids, partner_map),
+        }
+
+        rslt = []
+        for rules, query_generator in treatment_map.items():
+            if rules:
+                query, params = query_generator(rules)
+                self._cr.execute(query, params)
+                rslt += self._cr.dictfetchall()
+
+        return rslt
+
     def _check_rule_propositions(self, statement_line, candidates):
         ''' Check restrictions that can't be handled for each move.line separately.
         /!\ Only used by models having a type equals to 'invoice_matching'.
@@ -608,7 +626,7 @@ class AccountReconcileModel(models.Model):
         :param candidates:      Fetched account.move.lines from query (dict).
         :return:                True if the reconciliation propositions are accepted. False otherwise.
         '''
-        if not self.match_total_amount:
+        if not self.match_total_amount: #TODO OCO oui, en fait, ça ne check que le match_total_amount si le modèle l'utilise => changer le nom de la fonction me semble indiqué
             return True
         if not candidates:
             return False
@@ -638,7 +656,32 @@ class AccountReconcileModel(models.Model):
             return False
         return amount_percentage >= self.match_total_amount_param
 
-    def _apply_rules(self, st_lines, excluded_ids=None, partner_map=None):
+    @api.model
+    def _sort_reconciliation_candidates_by_priority(self, candidates, already_proposed_aml_ids, already_reconciled_aml_ids):
+        candidates_by_priority = defaultdict(lambda: []) #TODO OCO 1=highest priority
+
+        for candidate in filter(lambda x: x['aml_id'] not in already_reconciled_aml_ids, candidates):
+
+            if candidate['payment_reference_flag']:
+                priority = 1
+            elif candidate['communication_flag']:
+                priority = 3
+            else:
+                priority = 5
+
+            if candidate['aml_id'] in already_proposed_aml_ids:
+                priority += 1
+
+            candidates_by_priority[priority].append(candidate)
+
+        if candidates_by_priority[1]:
+            # We ignore candidates with lowest priorities if highes priority ones are avalaible
+            candidates_by_priority[5] = []
+            candidates_by_priority[6] = []
+
+        return candidates_by_priority
+
+    def _apply_rules(self, st_lines, excluded_ids=None, partner_map=None): #TODO OCO selon comment tu modifies la méthode, pour l'isoler, il faudra sans doute passer param de plus qui prend les lignes déjà sélectionnées (l'équivalent de amls_ids_to_exclude, avant la boucle un peu plus bas)
         ''' Apply criteria to get candidates for all reconciliation models.
         :param st_lines:        Account.bank.statement.lines recordset.
         :param excluded_ids:    Account.move.lines to exclude.
@@ -653,156 +696,90 @@ class AccountReconcileModel(models.Model):
 
         results = dict((r.id, {'aml_ids': []}) for r in st_lines)
 
-        if not available_models:
+        if not available_models: #TODO OCO si virable, le faire
             return results
 
         ordered_models = available_models.sorted(key=lambda m: (m.sequence, m.id))
 
-        grouped_candidates = {}
+        amls_ids_to_exclude = set() # Keep track of already processed amls. #TODO OCO renommer already_treated; plus clair
+        reconciled_amls_ids = set() # Keep track of already reconciled amls. #TODO OCO renommer
+        for st_line in st_lines: #TODO OCO renommer st_lines pourrait être bien
 
-        # Type == 'invoice_matching'.
-        # Map each (st_line.id, model_id) with matching amls.
-        invoices_models = ordered_models.filtered(lambda m: m.rule_type == 'invoice_matching')
-        self.env['account.move'].flush(['state'])
-        self.env['account.move.line'].flush(['balance', 'reconciled'])
-        self.env['account.bank.statement.line'].flush(['company_id'])
-        if invoices_models:
-            query, params = invoices_models._get_invoice_matching_query(st_lines, excluded_ids=excluded_ids, partner_map=partner_map)
-            self._cr.execute(query, params)
-            query_res = self._cr.dictfetchall()
+            st_line_currency = st_line.currency_id or st_line.journal_id.currency_id or st_line.company_id.currency_id
+            st_line_residual = st_line.currency_id and st_line.amount_currency or st_line.amount
 
-            for res in query_res:
-                grouped_candidates.setdefault(res['id'], {})
-                grouped_candidates[res['id']].setdefault(res['model_id'], [])
-                grouped_candidates[res['id']][res['model_id']].append(res)
+            for rec_model in ordered_models:
 
-        # Type == 'writeoff_suggestion'.
-        # Map each (st_line.id, model_id) with a flag indicating the st_line matches the criteria.
-        write_off_models = ordered_models.filtered(lambda m: m.rule_type == 'writeoff_suggestion')
-        if write_off_models:
-            query, params = write_off_models._get_writeoff_suggestion_query(st_lines, excluded_ids=excluded_ids, partner_map=partner_map)
-            self._cr.execute(query, params)
-            query_res = self._cr.dictfetchall()
+                candidates = rec_model._get_candidates(st_line, excluded_ids, partner_map)
 
-            for res in query_res:
-                grouped_candidates.setdefault(res['id'], {})
-                grouped_candidates[res['id']].setdefault(res['model_id'], True)
+                if candidates: #TODO OCO inverser la condition et mettre un continue serait p-ê plus beau
 
-        # Keep track of already processed amls.
-        amls_ids_to_exclude = set()
+                    if rec_model.rule_type == 'invoice_matching': #TODO OCO fonction séparée ?
+                        #TODO OCO retirer directement les candidats filtrés ????
+                        candidates_by_priority = self._sort_reconciliation_candidates_by_priority(candidates, amls_ids_to_exclude, reconciled_amls_ids)
 
-        # Keep track of already reconciled amls.
-        reconciled_amls_ids = set()
+                        # Special case: the amount are the same, submit the line directly.
+                        for candidate in itertools.chain.from_iterable(candidates_by_priority.values()):
+                            residual_amount = candidate['aml_currency_id'] and candidate['aml_amount_residual_currency'] or candidate['aml_amount_residual']
 
-        # Iterate all and create results.
-        for line in st_lines:
-            line_currency = line.currency_id or line.journal_id.currency_id or line.company_id.currency_id
-            line_residual = line.currency_id and line.amount_currency or line.amount
+                            if st_line_currency.is_zero(residual_amount - st_line_residual):
+                                candidates_by_priority = self._sort_reconciliation_candidates_by_priority([candidate], amls_ids_to_exclude, reconciled_amls_ids)
+                                break
 
-            # Search for applicable rule.
-            # /!\ BREAK are very important here to avoid applying multiple rules on the same line.
-            for model in ordered_models:
-                # No result found.
-                if not grouped_candidates.get(line.id) or not grouped_candidates[line.id].get(model.id):
-                    continue
+                        if candidates_by_priority[1] or candidates_by_priority[2] or rec_model._check_rule_propositions(st_line, itertools.chain.from_iterable(candidates_by_priority.values())):
+                            results[st_line.id]['model'] = rec_model
 
-                if model.rule_type == 'invoice_matching':
-                    candidates = grouped_candidates[line.id][model.id]
+                            # Add candidates to the result.
+                            for candidate in itertools.chain.from_iterable(candidates_by_priority.values()):
+                                results[st_line.id]['aml_ids'].append(candidate['aml_id'])
+                                amls_ids_to_exclude.add(candidate['aml_id'])
 
-                    # If some invoices match on the communication, suggest them.
-                    # Otherwise, suggest all invoices having the same partner.
-                    # N.B: The only way to match a line without a partner is through the communication.
-                    first_batch_candidates = []
-                    first_batch_candidates_proposed = []
-                    second_batch_candidates = []
-                    second_batch_candidates_proposed = []
-                    third_batch_candidates = []
-                    third_batch_candidates_proposed = []
-                    for c in candidates:
-                        # Don't take into account already reconciled lines.
-                        if c['aml_id'] in reconciled_amls_ids:
-                            continue
+                            # Create write-off lines.
+                            #TODO OCO ce qui suit là m'a l'air de pouvoir être isolé dans une fonction (hmm, quoique en fait)
+                            move_lines = self.env['account.move.line'].browse(results[st_line.id]['aml_ids'])
+                            partner = partner_map and partner_map.get(st_line.id) and self.env['res.partner'].browse(partner_map[st_line.id])  #TODO OCO la partner_map, c'est un peu bizarre, mais ça semble nécessaire
+                            lines_val_list = rec_model._prepare_reconciliation(st_line, aml_ids=results[line.id]['aml_ids'], partner=partner)
 
-                        # Dispatch candidates between lines matching invoices with the communication or only the partner.
-                        elif c['payment_reference_flag']:
-                            if c['aml_id'] in amls_ids_to_exclude:
-                                first_batch_candidates_proposed.append(c)
-                            else:
-                                first_batch_candidates.append(c)
-                        elif c['communication_flag']:
-                            if c['aml_id'] in amls_ids_to_exclude:
-                                second_batch_candidates_proposed.append(c)
-                            else:
-                                second_batch_candidates.append(c)
-                        elif not first_batch_candidates:
-                            if c['aml_id'] in amls_ids_to_exclude:
-                                third_batch_candidates_proposed.append(c)
-                            else:
-                                third_batch_candidates.append(c)
-                    available_candidates = (first_batch_candidates + first_batch_candidates_proposed
-                                            or second_batch_candidates + second_batch_candidates_proposed
-                                            or third_batch_candidates + third_batch_candidates_proposed)
+                            # A write-off must be applied since there are some 'new' lines to propose.
+                            if not lines_vals_list or any(not line_vals.get('id') for line_vals in lines_vals_list):
+                                results[st_line.id]['status'] = 'write_off'
 
-                    # Special case: the amount are the same, submit the line directly.
-                    for c in available_candidates:
-                        residual_amount = c['aml_currency_id'] and c['aml_amount_residual_currency'] or c['aml_amount_residual']
+                            # Process auto-reconciliation.
+                            if lines_vals_list and (candidates_by_priority[1] or candidates_by_priority[2]) and rec_model.auto_reconcile:
+                                if not st_line.partner_id and partner:
+                                    st_line.partner_id = partner
+                                st_line.reconcile(lines_vals_list)
 
-                        if float_is_zero(residual_amount - line_residual, precision_rounding=line_currency.rounding):
-                            available_candidates = [c]
-                            break
+                                results[st_line.id]['status'] = 'reconciled'
+                                results[st_line.id]['reconciled_lines'] = st_line.line_ids
 
-                    # Needed to handle check on total residual amounts.
-                    if first_batch_candidates or first_batch_candidates_proposed or model._check_rule_propositions(line, available_candidates):
-                        results[line.id]['model'] = model
+                                # The reconciled move lines are no longer candidates for another rule.
+                                reconciled_amls_ids.update(move_lines.ids)
 
-                        # Add candidates to the result.
-                        for candidate in available_candidates:
-                            results[line.id]['aml_ids'].append(candidate['aml_id'])
-                            amls_ids_to_exclude.add(candidate['aml_id'])
+                            # Break models loop.
+                            break #TODO OCO ce serait bien qu'on puisse se passer de ce genre de machins
+
+                    elif rec_model.rule_type == 'writeoff_suggestion':
+                        results[st_line.id]['model'] = rec_model
+                        results[st_line.id]['status'] = 'write_off'
 
                         # Create write-off lines.
-                        move_lines = self.env['account.move.line'].browse(results[line.id]['aml_ids'])
-                        partner = partner_map and partner_map.get(line.id) and self.env['res.partner'].browse(partner_map[line.id])
-                        lines_vals_list = model._prepare_reconciliation(line, aml_ids=results[line.id]['aml_ids'], partner=partner)
+                        partner = partner_map and partner_map.get(st_line.id) and self.env['res.partner'].browse(partner_map[st_line.id])
+                        lines_vals_list = rec_model._prepare_reconciliation(st_line, partner=partner)
 
-                        # A write-off must be applied since there is some 'new' lines to propose.
-                        if not lines_vals_list or any(not line_vals.get('id') for line_vals in lines_vals_list):
-                            results[line.id]['status'] = 'write_off'
+                        if not lines_vals_list:
+                            break
 
                         # Process auto-reconciliation.
-                        if lines_vals_list and (first_batch_candidates or second_batch_candidates) and model.auto_reconcile:
-                            if not line.partner_id and partner:
-                                line.partner_id = partner
-                            line.reconcile(lines_vals_list)
-
-                            results[line.id]['status'] = 'reconciled'
-                            results[line.id]['reconciled_lines'] = line.line_ids
-
-                            # The reconciled move lines are no longer candidates for another rule.
-                            reconciled_amls_ids.update(move_lines.ids)
+                        if rec_model.auto_reconcile:
+                            #TODO OCO on pourrait pas faire une fonction qui généralise ce truc ? Ca doit être présent de façon relativement similaire ailleurs, non ?
+                            if not st_line.partner_id and partner:
+                                st_line.partner_id = partner
+                            st_line.reconcile(lines_vals_list)
+                            results[st_line.id]['status'] = 'reconciled'
+                            results[st_line.id]['reconciled_lines'] = st_line.line_ids
 
                         # Break models loop.
                         break
 
-                elif model.rule_type == 'writeoff_suggestion' and grouped_candidates[line.id][model.id]:
-                    results[line.id]['model'] = model
-                    results[line.id]['status'] = 'write_off'
-
-                    # Create write-off lines.
-                    partner = partner_map and partner_map.get(line.id) and self.env['res.partner'].browse(partner_map[line.id])
-                    lines_vals_list = model._prepare_reconciliation(line, partner=partner)
-
-                    if not lines_vals_list:
-                        break
-
-                    # Process auto-reconciliation.
-                    if model.auto_reconcile:
-                        if not line.partner_id and partner:
-                            line.partner_id = partner
-                        line.reconcile(lines_vals_list)
-                        results[line.id]['status'] = 'reconciled'
-                        results[line.id]['reconciled_lines'] = line.line_ids
-
-                    # Break models loop.
-                    break
         return results
