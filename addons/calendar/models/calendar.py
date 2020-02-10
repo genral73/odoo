@@ -159,9 +159,9 @@ class Attendee(models.Model):
     def copy(self, default=None):
         raise UserError(_('You cannot duplicate a calendar attendee.'))
 
-    def _send_mail_to_attendees(self, template_xmlid, force_send=False, force_event_id=None):
+    def _send_mail_to_attendees(self, mail_template, force_send=False, force_event_id=None):
         """ Send mail for event invitation to event attendees.
-            :param template_xmlid: xml id of the email template to use to send the invitation
+            :param mail_template: the email template to use to send the invitation
             :param force_send: if set to True, the mail(s) will be sent immediately (instead of the next queue processing)
         """
         res = False
@@ -170,7 +170,6 @@ class Attendee(models.Model):
             return res
 
         calendar_view = self.env.ref('calendar.view_calendar_event_calendar')
-        invitation_template = self.env.ref(template_xmlid)
 
         # get ics file for all meetings
         ics_files = force_event_id._get_ics_file() if force_event_id else self.mapped('event_id')._get_ics_file()
@@ -190,7 +189,7 @@ class Attendee(models.Model):
             'base_url': self.env['ir.config_parameter'].sudo().get_param('web.base.url', default='http://localhost:8069'),
             'force_event_id': force_event_id,
         })
-        invitation_template = invitation_template.with_context(rendering_context)
+        mail_template = mail_template.with_context(rendering_context)
 
         # send email with attachments
         mail_ids = []
@@ -210,9 +209,9 @@ class Attendee(models.Model):
                                 'mimetype': 'text/calendar',
                                 'datas': base64.b64encode(ics_file)})
                     ]
-                    mail_ids.append(invitation_template.with_context(no_document=True).send_mail(attendee.id, email_values=email_values, notif_layout='mail.mail_notification_light'))
+                    mail_ids.append(mail_template.with_context(no_document=True).send_mail(attendee.id, email_values=email_values, notif_layout='mail.mail_notification_light'))
                 else:
-                    mail_ids.append(invitation_template.send_mail(attendee.id, email_values=email_values, notif_layout='mail.mail_notification_light'))
+                    mail_ids.append(mail_template.send_mail(attendee.id, email_values=email_values, notif_layout='mail.mail_notification_light'))
 
         if force_send and mail_ids:
             res = self.env['mail.mail'].sudo().browse(mail_ids).send()
@@ -444,7 +443,7 @@ class AlarmManager(models.AbstractModel):
 
         result = False
         if alarm.alarm_type == 'email':
-            result = meeting.attendee_ids.filtered(lambda r: r.state != 'declined')._send_mail_to_attendees('calendar.calendar_template_meeting_reminder', force_send=True, force_event_id=meeting)
+            result = meeting.attendee_ids.filtered(lambda r: r.state != 'declined')._send_mail_to_attendees(alarm.mail_template_id, force_send=True, force_event_id=meeting)
         return result
 
     def do_notif_reminder(self, alert):
@@ -452,7 +451,7 @@ class AlarmManager(models.AbstractModel):
         meeting = self.env['calendar.event'].browse(alert['event_id'])
 
         if alarm.alarm_type == 'notification':
-            message = meeting.display_time
+            message = '%s %s' % (meeting.display_time, (alarm.body or ''))
 
             delta = alert['notify_at'] - datetime.datetime.now()
             delta = delta.seconds + delta.days * 3600 * 24
@@ -500,6 +499,10 @@ class Alarm(models.Model):
     duration = fields.Integer('Remind Before', required=True, default=1)
     interval = fields.Selection(list(_interval_selection.items()), 'Unit', required=True, default='hours')
     duration_minutes = fields.Integer('Duration in minutes', compute='_compute_duration_minutes', store=True, help="Duration in minutes")
+    mail_template_id = fields.Many2one('mail.template', string="Email Template", domain=[('model', 'in', ['calendar.event', 'calendar.attendee'])],
+        default=lambda self: self.env.ref('calendar.calendar_template_meeting_reminder', False),
+        help="Template that would be used to send the reminder.")
+    body = fields.Text("Body", help="Body that would be send as a notification for the reminder")
 
     @api.onchange('duration', 'interval', 'alarm_type')
     def _onchange_duration_interval(self):
@@ -529,6 +532,17 @@ class Alarm(models.Model):
         result = super(Alarm, self).unlink()
         self._update_cron()
         return result
+
+    def action_test(self):
+        ctx = dict(self.env.context, default_alarm_id=self.id)
+        return {
+            'name': _('Test Reminder'),
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'calendar.alarm.test',
+            'target': 'new',
+            'context': ctx,
+        }
 
 
 class MeetingType(models.Model):
@@ -1059,7 +1073,7 @@ class Meeting(models.Model):
 
             if meeting_attendees and not self._context.get('detaching'):
                 to_notify = meeting_attendees.filtered(lambda a: a.email != current_user.email)
-                to_notify._send_mail_to_attendees('calendar.calendar_template_meeting_invitation')
+                to_notify._send_mail_to_attendees(self.env.ref('calendar.calendar_template_meeting_invitation'))
 
             if meeting_attendees:
                 meeting.write({'attendee_ids': [(4, meeting_attendee.id) for meeting_attendee in meeting_attendees]})
@@ -1427,7 +1441,7 @@ class Meeting(models.Model):
         email = self.env.user.email
         if email:
             for meeting in self:
-                meeting.attendee_ids._send_mail_to_attendees('calendar.calendar_template_meeting_invitation')
+                meeting.attendee_ids._send_mail_to_attendees(self.env.ref('calendar.calendar_template_meeting_invitation'))
         return True
 
     ####################################################
@@ -1564,7 +1578,7 @@ class Meeting(models.Model):
                         attendee_to_email = current_meeting.attendee_ids
 
                     if attendee_to_email:
-                        attendee_to_email._send_mail_to_attendees('calendar.calendar_template_meeting_changedate')
+                        attendee_to_email._send_mail_to_attendees(self.env.ref('calendar.calendar_template_meeting_changedate'))
         return True
 
     @api.model

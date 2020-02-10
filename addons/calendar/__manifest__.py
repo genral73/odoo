@@ -31,6 +31,7 @@ If you need to manage your meetings, you should install the CRM module.
         'views/mail_activity_views.xml',
         'views/calendar_templates.xml',
         'views/calendar_views.xml',
+        'wizard/calendar_alarm_test_views.xml',
         'data/mail_activity_data.xml',
     ],
     'qweb': ['static/src/xml/base_calendar.xml'],

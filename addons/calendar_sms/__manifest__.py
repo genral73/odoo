@@ -9,6 +9,8 @@
     'version': '1.0',
     'depends': ['calendar', 'sms'],
     'data': [
+        'security/ir.model.access.csv',
+        'security/calendar_sms_security.xml',
         'data/sms_data.xml',
         'views/calendar_views.xml',
     ],

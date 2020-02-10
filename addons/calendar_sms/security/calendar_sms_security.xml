@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="ir_rule_sms_template_calendar_user" model="ir.rule">
+            <field name="name">SMS Template: calendar user</field>
+            <field name="model_id" ref="sms.model_sms_template"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+        <record id="ir_rule_sms_template_calendar_manager" model="ir.rule">
+            <field name="name">SMS Template: calendar manager</field>
+            <field name="model_id" ref="sms.model_sms_template"/>
+            <field name="groups" eval="[(4, ref('base.group_partner_manager'))]"/>
+        </record>
+    </data>
+</odoo>

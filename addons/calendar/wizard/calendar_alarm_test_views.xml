@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="calendar_alarm_test_view_form" model="ir.ui.view">
+        <field name="name">calendar.alarm.test.view.form</field>
+        <field name="model">calendar.alarm.test</field>
+        <field name="arch" type="xml">
+            <form>
+                <p class="text-muted">
+                    Send a sample email for testing purpose to the attendee below.
+                </p>
+                <group>
+                    <field name="event_id"/>
+                </group>
+                <footer>
+                    <button string="Send" name="send_reminder_test" type="object" class="btn btn-primary"/>
+                    <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
