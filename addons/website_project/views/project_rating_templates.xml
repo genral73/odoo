@@ -58,15 +58,15 @@
         <!-- Page : Project Rating Page (and widgets) -->
         <template id="portal_project_rating_progressbar">
             <div class="progress o_rating_progress">
-                <t t-set="percent_rating_5" t-value="int((stats['rating_5'] / float(stats['total'])) * 100) if stats['total'] else 0.0"/>
+                <t t-set="percent_rating_5" t-value="int(round((stats['rating_5'] / float(stats['total'])) * 100)) if stats['total'] else 0.0"/>
                 <div class="progress-bar bg-success" t-attf-style="width: #{percent_rating_5}%;" title="Happy">
                     <t t-esc="percent_rating_5"/>%
                 </div>
-                <t t-set="percent_rating_3" t-value="int((stats['rating_3'] / float(stats['total'])) * 100) if stats['total'] else 0.0"/>
+                <t t-set="percent_rating_3" t-value="int(round((stats['rating_3'] / float(stats['total'])) * 100)) if stats['total'] else 0.0"/>
                 <div class="progress-bar bg-warning" t-attf-style="width: #{percent_rating_3}%;" title="Average">
                     <t t-esc="percent_rating_3"/>%
                 </div>
-                <t t-set="percent_rating_1" t-value="int((stats['rating_1'] / float(stats['total'])) * 100) if stats['total'] else 0.0"/>
+                <t t-set="percent_rating_1" t-value="int(round((stats['rating_1'] / float(stats['total'])) * 100)) if stats['total'] else 0.0"/>
                 <div class="progress-bar bg-danger" t-attf-style="width: #{percent_rating_1}%;" title="Bad">
                     <t t-esc="percent_rating_1"/>%
                 </div>
@@ -116,7 +116,7 @@
                         </div>
                     </div>
                     <div class="col-md-3 o_smiley_no_padding_left">
-                        <strong class="float-right"><t t-esc="partner_stat['percentage_happy']"/>%</strong>
+                        <strong class="float-right"><t t-esc="int(round(partner_stat['percentage_happy']))"/>%</strong>
                     </div>
                 </div>
             </t>

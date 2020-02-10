@@ -222,7 +222,7 @@ class Project(models.Model):
 
     # rating fields
     rating_request_deadline = fields.Datetime(compute='_compute_rating_request_deadline', store=True)
-    rating_active = fields.Boolean('Customer Ratings', default=False)
+    rating_active = fields.Boolean('Customer Ratings', default=True)
     rating_status = fields.Selection([('stage', 'Rating when changing stage'), ('periodic', 'Periodical Rating')], 'Customer Ratings Status', help="How to get customer feedback?\n"
                     "- Rating when changing stage: an email will be sent when a task is pulled in another stage.\n"
                     "- Periodical Rating: email will be sent periodically.\n\n"
