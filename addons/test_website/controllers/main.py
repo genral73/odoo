@@ -119,3 +119,9 @@ class WebsiteTest(Home):
     @http.route(['/get_post_nomultilang'], type='http', auth="public", methods=['GET', 'POST'], website=True, multilang=False, sitemap=False)
     def get_post_method_no_multilang(self, **kw):
         return request.make_response('get_post_nomultilang')
+
+    @http.route(['/test_route_json_http'], type='*', auth="public", methods=['GET', 'POST'], csrf=False)
+    def test_route_json_http(self, **kw):
+        if hasattr(request, 'jsonrequest'):
+            return str(request.jsonrequest)
+        return str(kw)
