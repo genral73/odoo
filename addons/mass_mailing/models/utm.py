@@ -20,8 +20,12 @@ class UtmCampaign(models.Model):
 
     @api.depends('mailing_mail_ids')
     def _compute_mailing_mail_count(self):
+        mailing_data = self.env['mailing.mailing'].read_group(
+            [('campaign_id', 'in', self.ids)], ['campaign_id'], ['campaign_id'])
+        mapped_data = {
+            m['campaign_id'][0]: m['campaign_id_count'] for m in mailing_data}
         for campaign in self:
-            campaign.mailing_mail_count = len(campaign.mailing_mail_ids)
+            campaign.mailing_mail_count = mapped_data.get(campaign.id, len(campaign.mailing_mail_ids))
 
     def _compute_statistics(self):
         """ Compute statistics of the mass mailing campaign """
