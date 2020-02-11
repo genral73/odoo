@@ -179,8 +179,10 @@ class Applicant(models.Model):
         (self - applicants).application_count = False
 
     def _compute_meeting_count(self):
+        meeting_data = self.env['calendar.event'].read_group([('applicant_id', 'in', self.ids)], ['applicant_id'], ['applicant_id'])
+        mapped_data = {m['applicant_id'][0]: m['applicant_id_count'] for m in meeting_data}
         for applicant in self:
-            applicant.meeting_count = self.env['calendar.event'].search_count([('applicant_id', '=', applicant.id)])
+            applicant.meeting_count = mapped_data.get(applicant.id, 0.0)
 
     def _get_attachment_number(self):
         read_group_res = self.env['ir.attachment'].read_group(

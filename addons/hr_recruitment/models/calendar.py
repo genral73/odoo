@@ -33,4 +33,5 @@ class CalendarEvent(models.Model):
                 if event.applicant_id.id == applicant_id:
                     event.is_highlighted = True
 
+    # VFE index=True ?
     applicant_id = fields.Many2one('hr.applicant', string="Applicant")
