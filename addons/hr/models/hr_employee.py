@@ -113,6 +113,11 @@ class HrEmployeePrivate(models.Model):
     departure_description = fields.Text(string="Additional Information", groups="hr.group_hr_user", copy=False, tracking=True)
     departure_date = fields.Date(string="Departure Date", groups="hr.group_hr_user", copy=False, tracking=True)
     message_main_attachment_id = fields.Many2one(groups="hr.group_hr_user")
+    job_title = fields.Char(compute="_compute_job_title", store=True, readonly=False)
+    work_phone = fields.Char(compute="_compute_phones", store=True, readonly=False)
+    mobile_phone = fields.Char(compute="_compute_phones", store=True, readonly=False)
+    address_id = fields.Many2one(compute="_compute_address_id", store=True, readonly=False)
+    parent_id = fields.Many2one(compute="_compute_parent_id", store=True, readonly=False)
 
     _sql_constraints = [
         ('barcode_uniq', 'unique (barcode)', "The Badge ID must be unique, this one is already assigned to another employee."),
@@ -192,25 +197,30 @@ class HrEmployeePrivate(models.Model):
             if employee.pin and not employee.pin.isdigit():
                 raise ValidationError(_("The PIN must be a sequence of digits."))
 
-    @api.onchange('job_id')
-    def _onchange_job_id(self):
-        if self.job_id:
-            self.job_title = self.job_id.name
+    @api.depends('job_id')
+    def _compute_job_title(self):
+        for employee in self:
+            if employee.job_id:
+                employee.job_title = employee.job_id.name
 
-    @api.onchange('address_id')
-    def _onchange_address(self):
-        self.work_phone = self.address_id.phone
-        self.mobile_phone = self.address_id.mobile
+    @api.depends('address_id')
+    def _compute_phones(self):
+        for employee in self:
+            if employee.address_id:
+                employee.work_phone = employee.address_id.phone
+                employee.mobile_phone = employee.address_id.mobile
 
-    @api.onchange('company_id')
-    def _onchange_company(self):
-        address = self.company_id.partner_id.address_get(['default'])
-        self.address_id = address['default'] if address else False
+    @api.depends('company_id')
+    def _compute_address_id(self):
+        for employee in self:
+            address = employee.company_id.partner_id.address_get(['default'])
+            employee.address_id = address['default'] if address else False
 
-    @api.onchange('department_id')
-    def _onchange_department(self):
-        if self.department_id.manager_id:
-            self.parent_id = self.department_id.manager_id
+    @api.depends('department_id')
+    def _compute_parent_id(self):
+        for employee in self:
+            if employee.department_id.manager_id:
+                employee.parent_id = employee.department_id.manager_id
 
     @api.onchange('user_id')
     def _onchange_user(self):
