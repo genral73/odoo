@@ -55,6 +55,7 @@ var ListController = BasicController.extend({
         this.multipleRecordsSavingPromise = null;
         this.fieldChangedPrevented = false;
         this.selectAll = false;
+        this.isExportEnable = params.isExportEnable;
         Object.defineProperty(this, 'mode', {
             get: () => this.renderer.isEditable() ? 'edit' : 'readonly',
             set: () => {},
