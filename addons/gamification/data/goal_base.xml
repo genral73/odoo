@@ -3,7 +3,7 @@
          so users can freely customize/delete them -->
     <data noupdate="1">
         <!--Email template -->
-        
+
         <record id="email_template_goal_reminder" model="mail.template">
             <field name="name">Goal: Reminder for Goal Update</field>
             <field name="model_id" ref="gamification.model_gamification_goal"/>
@@ -22,7 +22,7 @@
             <field name="lang">${object.user_id.lang}</field>
             <field name="auto_delete" eval="True"/>
         </record>
-        
+
         <record id="simple_report_template" model="mail.template">
             <field name="name">Challenge: Simple Challenge Report Progress</field>
             <field name="model_id" ref="gamification.model_gamification_challenge"/>
@@ -32,7 +32,7 @@
     <td valign="top" align="center">
         % set record = ctx.get('record')
         % set company = record and record.company_id or user.company_id
-        % set challenge_lines = ctx.get('challenge_lines', [])     
+        % set challenge_lines = ctx.get('challenge_lines', [])
         <table cellspacing="0" cellpadding="0" width="600" style="margin: 0 auto; width: 570px;">
             <tr><td>
                 <table cellspacing="0" cellpadding="0" width="100%">
@@ -93,13 +93,13 @@
                                     <tr>
                                         <td colspan="5" style="height:1px;background-color:#e3e3e3;"></td>
                                     </tr>
-                                % endfor        
+                                % endfor
                                 </tbody>
-                            </table>                   
-                        % else: 
+                            </table>
+                        % else:
                             <span style="color:#A8A8A8;font-size:13px;">
                                 Challenge: <strong>${object.name}</strong>.
-                            </span> 
+                            </span>
                             % for line in challenge_lines:
                                 <!-- Header + Button table -->
                                 <table cellspacing="0" cellpadding="0" width="100%" style="margin-top:35px;">
@@ -142,7 +142,7 @@
                                                             % endif
                                                             <div style="margin:0 3px 0 3px;height:220px;">
                                                                 <div style="height:${heightA}px;">
-                                                                    ${extra_div | safe}   
+                                                                    ${extra_div | safe}
                                                                     <div style="height:55px;">
                                                                         <img style="margin-bottom:5px;width:50px;height:50px;border-radius:50%;object-fit:cover;" t-att-src="image_data_uri(object.env['res.users'].browse(goal['user_id']).partner_id.image_128)" alt="${goal['name']}"/>
                                                                     </div>
@@ -177,7 +177,7 @@
                                                     <tr style="color:#9A6C8E; font-size:12px;">
                                                         <th style="width:15%;text-align:center;">Rank</th>
                                                         <th style="width:25%;text-align:left;">Name</th>
-                                                        <th style="width:30%;text-align:right;">Performance 
+                                                        <th style="width:30%;text-align:right;">Performance
                                                             % if line['suffix']:
                                                                 (${line['suffix']})
                                                             % elif line['monetary']:
@@ -212,7 +212,7 @@
                                             </table>
                                         </td>
                                     </tr>
-                                </table> 
+                                </table>
                             % endfor
                         % endif
                     </td></tr>
