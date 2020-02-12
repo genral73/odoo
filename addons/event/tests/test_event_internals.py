@@ -129,7 +129,7 @@ class TestEventData(TestEventCommon):
             'use_mail_schedule': True,
             'event_type_mail_ids': [(5, 0), (0, 0, {
                 'interval_nbr': 1, 'interval_unit': 'days', 'interval_type': 'before_event',
-                'template_id': self.env['ir.model.data'].xmlid_to_res_id('event.event_reminder')})]
+                'template_ref': 'mail.template,%i' % self.env['ir.model.data'].xmlid_to_res_id('event.event_reminder')})]
         })
         event.write({'event_type_id': event_type.id})
         self.assertEqual(event.date_tz, 'Europe/Paris')
@@ -140,7 +140,7 @@ class TestEventData(TestEventCommon):
         self.assertEqual(event.event_mail_ids.interval_nbr, 1)
         self.assertEqual(event.event_mail_ids.interval_unit, 'days')
         self.assertEqual(event.event_mail_ids.interval_type, 'before_event')
-        self.assertEqual(event.event_mail_ids.template_id, self.env.ref('event.event_reminder'))
+        self.assertEqual(event.event_mail_ids.template_ref, self.env.ref('event.event_reminder'))
 
     @users('user_eventmanager')
     def test_event_registrable(self):
