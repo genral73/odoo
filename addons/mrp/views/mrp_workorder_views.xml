@@ -448,6 +448,7 @@
         </field>
     </record>
 
+    <!-- Used in enterprise/mrp_workorder -->
     <record model="ir.actions.act_window" id="action_mrp_workorder_workcenter">
         <field name="name">Work Orders Planning</field>
         <field name="type">ir.actions.act_window</field>
@@ -467,6 +468,7 @@
         </field>
     </record>
 
+    <!-- Used in enterprise/mrp_workorder -->
     <record model="ir.actions.act_window" id="action_mrp_workorder_production">
         <field name="name">Work Orders Planning</field>
         <field name="type">ir.actions.act_window</field>
