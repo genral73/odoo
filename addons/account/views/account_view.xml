@@ -445,6 +445,7 @@ action = model.setting_init_bank_account_action()
             </field>
         </record>
 
+        <!-- VFE TODO move to account_accountant -->
         <record id="account_tag_action" model="ir.actions.act_window">
             <field name="name">Account Tags</field>
             <field name="res_model">account.account.tag</field>
@@ -772,13 +773,13 @@ action = model.setting_init_bank_account_action()
             </field>
         </record>
 
-        <record id="action_bank_statement_draft_tree" model="ir.actions.act_window">
+        <!-- <record id="action_bank_statement_draft_tree" model="ir.actions.act_window">
             <field name="name">Draft statements</field>
             <field name="res_model">account.bank.statement</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('state','=','draft')]</field>
             <field name="filter" eval="True"/>
-        </record>
+        </record> -->
 
         <record id="view_account_reconcile_model_form" model="ir.ui.view">
             <field name="name">account.reconcile.model.form</field>
@@ -1239,6 +1240,7 @@ action = model.setting_init_bank_account_action()
                 </tree>
             </field>
         </record>
+        <!-- TODO Move to enterprise/account_reports ? -->
         <record id="action_tax_group" model="ir.actions.act_window">
             <field name="name">Tax Groups</field>
             <field name="res_model">account.tax.group</field>
@@ -1450,12 +1452,12 @@ action = model.setting_init_bank_account_action()
                 </search>
             </field>
         </record>
-        <record id="action_account_template_form" model="ir.actions.act_window">
+        <!-- <record id="action_account_template_form" model="ir.actions.act_window">
             <field name="name">Account Templates</field>
             <field name="res_model">account.account.template</field>
             <field name="view_mode">tree,form</field>
             <field name="search_view_id" ref="view_account_template_search"/>
-        </record>
+        </record> -->
 
         <!-- Chart of Accounts Templates -->
         <record id="view_account_chart_template_form" model="ir.ui.view">
@@ -1676,7 +1678,7 @@ action = model.setting_init_bank_account_action()
             </field>
         </record>
 
-        <record id="action_account_fiscal_position_template_form" model="ir.actions.act_window">
+        <!-- <record id="action_account_fiscal_position_template_form" model="ir.actions.act_window">
             <field name="name">Fiscal Position</field>
             <field name="res_model">account.fiscal.position.template</field>
             <field name="view_mode">tree,form</field>
@@ -1686,7 +1688,7 @@ action = model.setting_init_bank_account_action()
                 Create a new fiscal position
               </p>
             </field>
-        </record>
+        </record> -->
 
         <record id="account_bank_statement_pivot" model="ir.ui.view">
             <field name="name">account.bank.statement.pivot</field>
@@ -1833,6 +1835,7 @@ action = model.setting_init_bank_account_action()
             </field>
         </record>
 
+        <!-- TODO move to account_accountant -->
         <record id="action_account_group_tree" model="ir.actions.act_window">
             <field name="name">Account Groups</field>
             <field name="res_model">account.group</field>

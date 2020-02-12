@@ -1126,6 +1126,7 @@
             context="{'search_default_account_id': [active_id]}"
             res_model="account.move.line"/>
 
+        <!-- VFE TODO move to enterprise/account_report -->
         <act_window
             id="action_move_line_select_by_partner"
             name="Journal Items"
@@ -1141,6 +1142,7 @@
             <field name="code">action = records.action_accrual_entry()</field>
         </record>
 
+        <!-- VFE TODO move to enterprise/account_report -->
         <act_window
             id="action_move_line_select_tax_audit"
             name="Journal Items for Tax Audit"
@@ -1230,7 +1232,7 @@
             <field name="view_mode">tree,pivot,graph,form,kanban</field>
         </record>
 
-        <record id="action_move_line_graph" model="ir.actions.act_window">
+        <!-- <record id="action_move_line_graph" model="ir.actions.act_window">
             <field name="name">Journal Items</field>
             <field name="view_mode">graph,pivot</field>
             <field name="view_id" ref="account_move_line_graph_date"/>
@@ -1246,7 +1248,7 @@
             <field name="domain">[('display_type', 'not in', ('line_section', 'line_note'))]</field>
             <field name="context">{'search_default_account_id': [active_id], 'search_default_posted': 1}</field>
             <field name="res_model">account.move.line</field>
-        </record>
+        </record> -->
 
         <!-- account.move (Journal Entry) -->
 
