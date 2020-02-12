@@ -90,7 +90,7 @@
         </field>
     </record>
 
-    <record id='fleet_vehicle_model_action' model='ir.actions.act_window'>
+    <!-- <record id='fleet_vehicle_model_action' model='ir.actions.act_window'>
         <field name="name">Vehicles Model</field>
         <field name="res_model">fleet.vehicle.model</field>
         <field name="view_mode">tree,form</field>
@@ -102,7 +102,7 @@
             You can define several models (e.g. A3, A4) for each make (Audi).
           </p>
         </field>
-    </record>
+    </record> -->
 
     <menuitem name="Fleet" id="menu_root" sequence="115" groups="fleet_group_user" web_icon="fleet,static/description/icon.png"/>
     <menuitem name="Configuration" parent="menu_root" id="fleet_configuration" sequence="100" groups="fleet_group_manager"/>
