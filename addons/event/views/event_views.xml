@@ -171,12 +171,12 @@
             </field>
         </record>
 
-        <record id="event_registration_action_tree" model="ir.actions.act_window">
+        <!-- <record id="event_registration_action_tree" model="ir.actions.act_window">
            <field name="name">Event registrations</field>
            <field name="type">ir.actions.act_window</field>
            <field name="res_model">event.registration</field>
            <field name="view_mode">tree,kanban,form,calendar,graph</field>
-        </record>
+        </record> -->
 
         <!-- EVENT.EVENT VIEWS -->
         <record id="event_event_action_pivot" model="ir.actions.act_window" >
