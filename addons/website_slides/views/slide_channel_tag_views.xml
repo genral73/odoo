@@ -39,7 +39,7 @@
             </tree>
         </field>
     </record>
-    
+
     <record id="slide_channel_tag_action" model="ir.actions.act_window">
         <field name="name">Course Tags</field>
         <field name="res_model">slide.channel.tag</field>
