@@ -502,9 +502,20 @@ class Task(models.Model):
     ], default='0', index=True, string="Priority")
     sequence = fields.Integer(string='Sequence', index=True, default=10,
         help="Gives the sequence order when displaying a list of tasks.")
-    stage_id = fields.Many2one('project.task.type', string='Stage', ondelete='restrict', tracking=True, index=True,
-        default=_get_default_stage_id, group_expand='_read_group_stage_ids',
-        domain="[('project_ids', '=', project_id)]", copy=False)
+    stage_id = fields.Many2one(
+        'project.task.type',
+        string='Stage',
+        compute='_compute_stage_id',
+        store=True,
+        readonly=False,
+        ondelete='restrict',
+        tracking=True,
+        index=True,
+        default=_get_default_stage_id,
+        group_expand='_read_group_stage_ids',
+        domain="[('project_ids', '=', project_id)]",
+        copy=False)
+
     tag_ids = fields.Many2many('project.tags', string='Tags')
     kanban_state = fields.Selection([
         ('normal', 'Grey'),
@@ -541,7 +552,13 @@ class Task(models.Model):
     partner_phone = fields.Char(related='partner_id.phone')
     partner_city = fields.Char(related='partner_id.city', readonly=False)
     manager_id = fields.Many2one('res.users', string='Project Manager', related='project_id.user_id', readonly=True)
-    company_id = fields.Many2one('res.company', string='Company', required=True, default=_default_company_id)
+    company_id = fields.Many2one('res.company',
+                                 string='Company',
+                                 compute='_compute_company_id',
+                                 store=True,
+                                 readonly=False,
+                                 required=True,
+                                 default=_default_company_id)
     color = fields.Integer(string='Color Index')
     user_email = fields.Char(related='user_id.email', string='User Email', readonly=True, related_sudo=False)
     attachment_ids = fields.One2many('ir.attachment', compute='_compute_attachment_ids', string="Main Attachments",
@@ -667,24 +684,20 @@ class Task(models.Model):
         for task in self:
             task.subtask_count = len(self._get_all_subtasks())
 
-    @api.onchange('project_id')
-    def _onchange_project(self):
-        if self.project_id:
-            # find partner
-            if self.project_id.partner_id:
-                self.partner_id = self.project_id.partner_id
-            # find stage
-            if self.project_id not in self.stage_id.project_ids:
-                self.stage_id = self.stage_find(self.project_id.id, [('fold', '=', False)])
-            # keep multi company consistency
-            self.company_id = self.project_id.company_id
-        else:
-            self.stage_id = False
-    
-    @api.onchange('company_id')
-    def _onchange_task_company(self):
-        if self.project_id.company_id != self.company_id:
-            self.project_id = False
+    @api.depends('project_id.company_id')
+    def _compute_company_id(self):
+        for task in self:
+            if task.project_id:
+                task.company_id = task.project_id.company_id
+
+    @api.depends('project_id')
+    def _compute_stage_id(self):
+        for task in self:
+            if task.project_id:
+                if task.project_id not in task.stage_id.project_ids:
+                    task.stage_id = task.stage_find(task.project_id.id, [('fold', '=', False)])
+            else:
+                task.stage_id = False
 
     @api.constrains('parent_id', 'child_ids')
     def _check_subtask_level(self):
@@ -800,9 +813,18 @@ class Task(models.Model):
 
     @api.depends('parent_id.partner_id', 'project_id.partner_id')
     def _compute_partner_id(self):
+        """
+        If a task has no partner_id, use the project partner_id if any, or else the parent task partner_id.
+        Once the task partner_id has been set:
+            1) if the project partner_id changes, the task partner_id is automatically changed also.
+            2) if the parent task partner_id changes, the task partner_id remains the same.
+        """
         for task in self:
-            if not task.partner_id:
-                task.partner_id = task.parent_id.partner_id or task.project_id.partner_id
+            if task.partner_id:
+                if task.project_id.partner_id:
+                    task.partner_id = task.project_id.partner_id
+            else:
+                task.partner_id = task.project_id.partner_id or task.parent_id.partner_id 
 
     @api.depends('partner_id.email', 'parent_id.email_from')
     def _compute_email_from(self):
