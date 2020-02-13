@@ -57,7 +57,6 @@ class TestReInvoice(TestExpenseCommon, TestCommonSaleNoChart):
             'sale_order_id': self.sale_order.id,
             'analytic_account_id': self.sale_order.analytic_account_id.id,
         })
-        expense1._onchange_product_id()
         expense2 = self.env['hr.expense'].create({
             'name': 'Expense for delivered product',
             'employee_id': self.employee.id,
@@ -68,7 +67,6 @@ class TestReInvoice(TestExpenseCommon, TestCommonSaleNoChart):
             'sale_order_id': self.sale_order.id,
             'analytic_account_id': self.sale_order.analytic_account_id.id,
         })
-        expense2._onchange_product_id()
 
         # approve and generate entries
         self.expense_sheet.approve_expense_sheets()
@@ -111,7 +109,6 @@ class TestReInvoice(TestExpenseCommon, TestCommonSaleNoChart):
             'sale_order_id': self.sale_order.id,
             'analytic_account_id': self.sale_order.analytic_account_id.id,
         })
-        expense1._onchange_product_id()
 
         # approve and generate entries
         self.expense_sheet.approve_expense_sheets()
@@ -158,7 +155,6 @@ class TestReInvoice(TestExpenseCommon, TestCommonSaleNoChart):
             'sale_order_id': self.sale_order.id,
             'analytic_account_id': self.sale_order.analytic_account_id.id,
         })
-        expense1._onchange_product_id()
 
         # approve and generate entries
         self.expense_sheet.approve_expense_sheets()
@@ -183,7 +179,6 @@ class TestReInvoice(TestExpenseCommon, TestCommonSaleNoChart):
             'sale_order_id': self.sale_order.id,
             'analytic_account_id': self.sale_order.analytic_account_id.id,
         })
-        expense2._onchange_product_id()
 
         # approve and generate entries
         self.expense_sheet2.approve_expense_sheets()
@@ -225,7 +220,6 @@ class TestReInvoice(TestExpenseCommon, TestCommonSaleNoChart):
             'sale_order_id': self.sale_order.id,
             'analytic_account_id': analytic_account.id,
         })
-        expense1._onchange_product_id()  # will reset the SO field to NULL
 
         # approve and generate entries
         self.expense_sheet.approve_expense_sheets()
