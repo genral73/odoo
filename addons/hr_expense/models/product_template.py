@@ -7,7 +7,7 @@ from odoo import api, fields, models
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
-    can_be_expensed = fields.Boolean(string="Can be Expensed", help="Specify whether the product can be selected in an expense.")
+    can_be_expensed = fields.Boolean(string="Can be Expensed", compute='_compute_can_be_expensed', store=True, readonly=False, help="Specify whether the product can be selected in an expense.")
 
     @api.model
     def create(self, vals):
@@ -17,7 +17,8 @@ class ProductTemplate(models.Model):
             vals.update({'supplier_taxes_id': False})
         return super(ProductTemplate, self).create(vals)
 
-    @api.onchange('type')
-    def _onchange_type_for_expense(self):
-        if self.type not in ['consu', 'service']:  # storable can not be expensed.
-            self.can_be_expensed = False
+    @api.depends('type')
+    def _compute_can_be_expensed(self):
+        for product_template in self:
+            if product_template.type not in ['consu', 'service']:  # storable can not be expensed.
+                product_template.can_be_expensed = False
