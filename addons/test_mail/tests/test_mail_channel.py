@@ -162,6 +162,11 @@ class TestChannelFeatures(TestMailCommon):
         self.env['ir.config_parameter'].set_param('mail.catchall.domain', 'schlouby.fr')
         self.test_channel.write({'email_send': True})
         self.user_employee.write({'notification_type': 'email'})
+        # It marks user as active and logged in at least once, which is a requirement for receiving notifications
+        old_user = self.env.uid
+        self.env.uid = self.user_employee.id
+        self.env['res.users.log'].create({})
+        self.env.uid = old_user
 
         # Subscribe an user without email. We shouldn't try to send email to them.
         nomail = self.env['res.users'].create({
