@@ -203,6 +203,22 @@
                 }
             }
         }
+        &.o_indicators-dots {
+            .carousel {
+                ul.carousel-indicators li {
+                    max-width: 8px;
+                    max-height: 8px;
+                    margin: 0 6px;
+                    border-radius: 10px;
+                    background-color: $black;
+                    background-image: none !important;
+
+                    &:not(.active) {
+                        opacity: .4;
+                    }
+                }
+            }
+        }
     }
     .carousel-inner .item img {
         max-width: none;
