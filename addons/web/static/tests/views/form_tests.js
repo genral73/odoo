@@ -3,6 +3,7 @@ odoo.define('web.form_tests', function (require) {
 
 var AbstractStorageService = require('web.AbstractStorageService');
 var BasicModel = require('web.BasicModel');
+var Bus = require('web.Bus');
 var concurrency = require('web.concurrency');
 var core = require('web.core');
 var fieldRegistry = require('web.field_registry');
@@ -493,6 +494,7 @@ QUnit.module('Views', {
         this.data.product.records = [{id: 1, name: 'Tromblon', partner_type_ids: [12, 14]}];
         this.data.partner.records[0].product_id = 1;
 
+        const bus = new Bus();
         const webClient = await createWebClient({
             data: this.data,
             archs: {
@@ -520,6 +522,7 @@ QUnit.module('Views', {
                 }
                 return this._super.apply(this, arguments);
             },
+            bus: bus,
         });
 
         const form = await createView({
@@ -552,10 +555,12 @@ QUnit.module('Views', {
                     testUtils.actionManager.doAction(ev.data.action);
                 },
             },
+            bus: bus,
         });
         await testUtils.dom.click(form.$('.o_field_widget[name="product_id"]'));
         form.destroy();
         webClient.destroy();
+        bus.destroy();
     });
 
     QUnit.test('invisible fields are properly hidden', async function (assert) {
@@ -6261,7 +6266,6 @@ QUnit.module('Views', {
             actions: actions,
             archs: archs,
             data: this.data,
-            debug: 1,
         });
 
         await testUtils.actionManager.doAction(1);
@@ -7535,12 +7539,18 @@ QUnit.module('Views', {
         assert.expect(2);
 
         var instanceNumber = 0;
+        const oo = {}
+        let nextID = 0;
         await testUtils.mock.patch(mixins.ParentedMixin, {
             init: function () {
+                this.id = nextID++;
+                oo[this.id] = this;
+                if (this.id===3)debugger
                 instanceNumber++;
                 return this._super.apply(this, arguments);
             },
             destroy: function () {
+                delete oo[this.id];
                 if (!this.isDestroyed()) {
                     instanceNumber--;
                 }
@@ -7596,6 +7606,7 @@ QUnit.module('Views', {
 
         form.destroy();
         assert.strictEqual(instanceNumber, 0);
+        debugger
 
         await testUtils.mock.unpatch(mixins.ParentedMixin);
     });
