@@ -681,11 +681,8 @@ table.table_desc tr td {
                 height: $o-theme-navbar-fixed-logo-height;
             }
         }
-        &:not(.o_header_standard) + main {
-            padding-top: $o-theme-navbar-fixed-logo-height !important;
-        }
         @include media-breakpoint-up(md) {
-            @if o-website-value('header-template') == 'header_centered' {
+            @if (index(('menu_logo_below', 'logo_menu_below'), o-website-value('header-template'))) != null {
                 .navbar-brand {
                     font-size: 0px;
                     opacity: 0;
@@ -706,6 +703,43 @@ table.table_desc tr td {
 }
 #oe_main_menu_navbar + #wrapwrap .o_header_affix {
     top: $o-navbar-height;
+}
+
+#wrapwrap:not(.o_header_overlay) {
+    > header.o_header_affix.fixed_logo {
+        &:not(.o_header_standard) + main {
+            padding-top: $o-theme-navbar-fixed-logo-height !important;
+        }
+    }
+}
+
+#wrapwrap.o_header_overlay {
+    > header {
+        &:not(.o_header_affix) {
+            @include o-position-absolute(0, 0, auto, 0);
+        }
+        &:not(.o_header_affix), &.o_header_fixed:not(.fixed_logo) {
+            z-index: 1000;
+            background-color: transparent !important;
+
+            > .navbar {
+                background-color: transparent !important;
+                border-color: transparent;
+                color: inherit;
+
+                .nav-item {
+                    > .nav-link {
+                        background-color: transparent;
+                        color: inherit;
+
+                        &.active {
+                            font-weight: bolder;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 // Navbar
@@ -734,6 +768,7 @@ table.table_desc tr td {
 
 // Header templates
 header {
+    z-index: 1;
     @include media-breakpoint-up(md) {
         // Allow to center the logo, ignoring the toggler space
         .o_navbar_toggler_container {
@@ -741,14 +776,17 @@ header {
             min-width: 0;
         }
     }
-    @if o-website-value('header-template') == 'header_hamburger' {
+    @if index(('hamburger_logo', 'logo_hamburger'), o-website-value('header-template')) {
+        .navbar-brand {
+            text-align: center;
+        }
         .navbar-brand, .logo img {
             margin: auto;
         }
         .navbar-nav {
             margin-top: $spacer / 2;
         }
-        @if o-website-value('header-template') == 'navbar_text_center' {
+        @if o-website-value('header-template') == 'logo_hamburger' {
             .o_navbar_toggler_container {
                 direction: rtl;
             }
@@ -760,7 +798,10 @@ header {
                 transition: padding 200ms;
             }
         }
-    } @else if o-website-value('header-template') == 'header_centered' {
+    } @else if index(('logo_menu_below', 'menu_logo_below'), o-website-value('header-template')) {
+        .navbar-brand {
+            text-align: center;
+        }
         .navbar-expand-md {
             > .container {
                 flex-wrap: wrap;
@@ -774,14 +815,14 @@ header {
         }
         .navbar-brand {
             @include media-breakpoint-up(md) {
-                @if o-website-value('header-template') == 'logo_below' {
+                @if o-website-value('header-template') == 'menu_logo_below' {
                     margin-top: $navbar-padding-y;
                 } @else {
                     margin-bottom: $navbar-padding-y;
                 }
             }
         }
-        @if o-website-value('header-template') == 'logo_below' {
+        @if o-website-value('header-template') == 'menu_logo_below' {
             .navbar-collapse {
                 @include media-breakpoint-up(md) {
                     order: -1;
@@ -863,29 +904,6 @@ header {
     }
 }
 
-#wrapwrap.o_header_overlay {
-    > header:not(.o_header_affix) {
-        @include o-position-absolute(0, 0, auto, 0);
-        z-index: 1000;
-
-        > .navbar {
-            background-color: transparent !important;
-            border-color: transparent;
-            color: inherit;
-
-            .nav-item {
-                > .nav-link {
-                    background-color: transparent;
-                    color: inherit;
-
-                    &.active {
-                        font-weight: bolder;
-                    }
-                }
-            }
-        }
-    }
-}
 // Figure with special style
 .o_figure_relative_layout {
     position: relative;

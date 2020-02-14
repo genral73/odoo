@@ -385,34 +385,88 @@
          data-no-check="true"/>
 
     <div id="so_header_theme"
+         data-js="headerOptions"
          data-selector="#wrapwrap > header"
          data-no-check="true"
          groups="website.group_website_designer">
         <we-checkbox string="Show Sign In" data-customize-website-views="portal.portal_show_sign_in" data-reload="/"/>
         <we-colorpicker string="Background Color" data-customize-website-color="" data-color="menu"/>
+        <we-select id="option_header_shadow" string="Shadow" data-reload="/">
+            <we-button data-customize-website-views="" data-name="header_no_shadow_opt">No Shadow</we-button>
+            <we-button data-customize-website-views="website.header_shadow">Regular Shadow</we-button>
+        </we-select>
         <we-select string="Logo" data-reload="/">
             <we-button data-customize-website-views="">Text</we-button>
             <we-button data-customize-website-views="website.layout_logo_show">Image</we-button>
         </we-select>
-        <we-input string="Logo Height" data-customize-website-variable="null" data-variable="logo-height" data-unit="px" data-save-unit="rem"/>
-        <we-input string="Logo Height When Scrolling" data-depends="!option_header_visibility_scroll" data-variable="fixed-logo-height" data-unit="px" data-save-unit="rem"/>
+        <we-input string="Logo Height"
+                  data-customize-website-variable="null"
+                  data-variable="logo-height"
+                  data-unit="px"
+                  data-save-unit="rem"/>
+        <we-input id="option_logo_height_scrolled"
+                  string="Logo Height (Scrolled)"
+                  data-customize-website-variable="null"
+                  data-variable="fixed-logo-height"
+                  data-unit="px"
+                  data-save-unit="rem"/>
         <we-row string="Font">
             <we-fontfamilypicker data-variable="navbar-font-number"/>
             <we-input data-customize-website-variable="null" data-variable="header-font-size" data-unit="px" data-save-unit="rem"/>
         </we-row>
-        <we-select id="header_templates_select" string="Header Template" data-reload="/">
-            <we-button id="option_template_header_logo_menu" data-xmlid="" data-widget="auto" data-variable="header-template" data-value="corporate">Logo - Menu</we-button>
-            <we-button id="option_template_header_hamburger_logo_centered" data-xmlid="website.template_header_hamburger_logo_centered" data-widget="auto" data-variable="header-template" data-value="showcase">Hamburger - Logo</we-button>
-            <we-button id="option_template_header_logo_menu_below" data-xmlid="" data-widget="auto" data-variable="header-template" data-value="brand">Logo - Menu</we-button>
-            <we-button id="option_template_header_menu_logo_below" data-xmlid="" data-widget="auto" data-variable="header-template" data-value="pizza">Menu - Logo</we-button>
-            <we-button id="option_template_header_logo_hamburger" data-xmlid="website.template_header_logo_hamburger" data-widget="auto" data-variable="header-template" data-value="space">Logo - Hamburger</we-button>
+        <we-select id="header_templates_select" data-variable="header-template" string="Header Template" data-reload="/">
+            <we-button id="option_template_header_logo_menu"
+                       data-name="header_logo_menu_opt"
+                       data-customize-website-views=""
+                       data-customize-website-variable="logo_menu"
+                       string="Logo - Menu"/>
+            <we-button id="option_template_header_hamburger_logo_centered"
+                       data-name="header_hamburger_logo_centered_opt"
+                       data-customize-website-views="website.template_header_hamburger, website.template_header_hamburger_left"
+                       data-customize-website-variable="hamburger_logo"
+                       string="Hamburger - Logo"/>
+            <we-button id="option_template_header_logo_menu_below"
+                       data-name="header_logo_menu_below_opt"
+                       data-customize-website-views=""
+                       data-customize-website-variable="logo_menu_below"
+                       string="Logo - Menu"/>
+            <we-button id="option_template_header_menu_logo_below"
+                       data-name="header_menu_logo_below_opt"
+                       data-customize-website-views=""
+                       data-customize-website-variable="menu_logo_below"
+                       string="Menu - Logo"/>
+            <we-button id="option_template_header_logo_hamburger"
+                       data-name="header_logo_hamburger_opt"
+                       data-customize-website-views="website.template_header_hamburger, website.template_header_navbar_text_center"
+                       data-customize-website-variable="logo_hamburger"
+                       string="Logo - Hamburger"/>
         </we-select>
-        <we-select id="header_visibilities_list" string="Header Visibility" data-reload="/">
-            <we-button id="option_header_visibility_standard" data-xmlid="website.affix_top_menu">Standard</we-button>
-            <we-button id="option_header_visibility_scroll" data-xmlid="">Scroll</we-button>
-            <we-button id="option_header_visibility_freeze" data-xmlid="website.header_visibility_freeze">Freeze</we-button>
-            <we-button id="option_header_visibility_disappears" data-xmlid="website.header_visibility_disappears">Disappears</we-button>
-            <we-button id="option_header_visibility_fade_out" data-xmlid="website.header_visibility_fade_out">Fade Out</we-button>
+        <we-select id="header_visibilities_list" string="Header Visibility">
+            <we-button id="option_header_visibility_standard"
+                       data-name="header_visibility_standard_opt"
+                       data-select-class="o_header_standard"
+                       data-customize-website-views="website.header_visibility_standard"
+                       string="Standard"/>
+            <we-button id="option_header_visibility_scroll"
+                       data-name="header_visibility_scroll_opt"
+                       data-select-class=""
+                       data-customize-website-views=""
+                       string="Scroll"/>
+            <we-button id="option_header_visibility_fixed"
+                       data-name="header_visibility_fixed_opt"
+                       data-select-class="o_header_fixed"
+                       data-customize-website-views="website.header_visibility_fixed"
+                       string="Fixed"/>
+            <we-button id="option_header_visibility_disappears"
+                       data-name="header_visibility_disappears_opt"
+                       data-select-class="o_header_disappears"
+                       data-customize-website-views="website.header_visibility_disappears"
+                       string="Disappears"/>
+            <we-button id="option_header_visibility_fade_out"
+                       data-name="header_visibility_fade_out_opt"
+                       data-select-class="o_header_fade_out"
+                       data-customize-website-views="website.header_visibility_fade_out"
+                       string="Fade Out"/>
         </we-select>
         <we-checkbox string="Hoverable Dropdown"
                      data-select-class="o_hoverable_dropdown"
@@ -423,13 +477,18 @@
     <div data-js="topMenuTransparency"
         data-selector="[data-main-object^='website.page('] #wrapwrap > header"
         data-no-check="true">
-        <we-checkbox string="Transparent on this page" data-transparent="true" data-no-preview="true"/>
+        <we-checkbox id="option_header_transparent"
+                     string="Transparent on this page"
+                     data-name="header_transparent_opt"
+                     data-transparent="true"
+                     data-no-preview="true"/>
     </div>
 
     <div data-js="topMenuColor"
          data-selector="[data-main-object^='website.page('] #wrapwrap > header"
          data-no-check="true">
         <we-colorpicker string="Transparent color"
+            id="option_header_transparent_color"
             data-select-style="true"
             data-css-property="background-color"
             data-color-prefix="bg-"
@@ -440,13 +499,31 @@
          data-no-check="true"
          groups="website.group_website_designer">
         <we-colorpicker string="Background" data-customize-website-color="" data-color="footer"/>
-        <we-select string="Footer Template" data-reload="/">
-            <we-button id="option_template_footer_products_contacts_about_us" data-xmlid="" data-widget="auto" data-variable="footer-template" data-value="corporate">Products - Contacts - About us</we-button>
-            <we-button id="option_template_footer_logo_about_us_below" data-xmlid="website.template_footer_logo_about_us_below" data-widget="auto" data-variable="footer-template" data-value="showcase">Logo - About us</we-button>
-            <we-button id="option_template_footer_links_address_logo" data-xmlid="website.template_footer_links_address_logo" data-widget="auto" data-variable="footer-template" data-value="brand">Links - Address - Logo</we-button>
-            <we-button id="option_template_footer_name_logo_links_about_us" data-xmlid="website.template_footer_name_logo_links_about_us" data-widget="auto" data-variable="footer-template" data-value="pizza">Website name - Logo - Links - About us</we-button>
-            <we-button id="option_template_footer_logo_only" data-xmlid="website.template_footer_logo_only" data-widget="auto" data-variable="footer-template" data-value="space">Logo only</we-button>
-            <we-button id="option_template_footer_address_logo" data-xmlid="website.template_footer_address_logo" data-widget="auto" data-variable="footer-template" data-value="family">Address - Logo</we-button>
+        <we-select string="Footer Template" data-variable="footer-template" data-reload="/">
+            <we-button id="option_template_footer_products_contacts_about_us"
+                       data-customize-website-views="website.footer_custom"
+                       data-customize-website-variable="products_contacts_about_us"
+                       string="Products - Contacts - About us"/>
+            <we-button id="option_template_footer_logo_about_us_below"
+                       data-customize-website-views="website.template_footer_logo_about_us_below"
+                       data-customize-website-variable="logo_about_us_below"
+                       string="Logo - About us"/>
+            <we-button id="option_template_footer_links_address_logo"
+                       data-customize-website-views="website.template_footer_links_address_logo"
+                       data-customize-website-variable="links_address_logo"
+                       string="Links - Address - Logo"/>
+            <we-button id="option_template_footer_name_logo_links_about_us"
+                       data-customize-website-views="website.template_footer_name_logo_links_about_us"
+                       data-customize-website-variable="name_logo_links_about_us"
+                       string="Website name - Logo - Links - About us"/>
+            <we-button id="option_template_footer_logo_only"
+                       data-customize-website-views="website.template_footer_logo_only"
+                       data-customize-website-variable="logo_only"
+                       string="Logo only"/>
+            <we-button id="option_template_footer_address_logo"
+                       data-customize-website-views="website.template_footer_address_logo"
+                       data-customize-website-variable="address_logo"
+                       string="Address - Logo"/>
         </we-select>
     </div>
 

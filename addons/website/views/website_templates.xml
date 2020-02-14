@@ -217,7 +217,7 @@
     </xpath>
 </template>
 
-<template id="template_header_navbar_text_center" inherit_id="website.layout" name="Template Header Navabar Text Center" active="False">
+<template id="template_header_navbar_text_center" inherit_id="website.layout" name="Template Header Navbar Text Center" active="False">
     <xpath expr="//header//ul[hasclass('nav')]" position="attributes">
         <attribute name="class" remove="text-right" add="text-center" separator=" "/>
     </xpath>
@@ -246,7 +246,7 @@
 
 <template id="header_visibility_standard" inherit_id="website.layout" name="Header Visibility Standard">
     <xpath expr="//header" position="attributes">
-        <attribute name="t-attf-class" add="o_header_standard" separator=" "/>
+        <attribute name="t-attf-class" add="o_header_standard o_top_fixed_element" separator=" "/>
     </xpath>
 </template>
 
@@ -256,21 +256,27 @@
     </xpath>
 </template>
 
-<template id="header_visibility_freeze" inherit_id="website.layout" name="Header Visibility Freeze" active="False">
+<template id="header_visibility_fixed" inherit_id="website.layout" name="Header Visibility Fixed" active="False">
     <xpath expr="//header" position="attributes">
-        <attribute name="t-attf-class" add="o_header_freeze" separator=" "/>
+        <attribute name="t-attf-class" add="o_header_fixed o_top_fixed_element" separator=" "/>
     </xpath>
 </template>
 
 <template id="header_visibility_disappears" inherit_id="website.layout" name="Header Visibility Disappears" active="False">
     <xpath expr="//header" position="attributes">
-        <attribute name="t-attf-class" add="o_header_freeze o_header_disappears" separator=" "/>
+        <attribute name="t-attf-class" add="o_header_fixed o_header_disappears o_top_fixed_element" separator=" "/>
     </xpath>
 </template>
 
 <template id="header_visibility_fade_out" inherit_id="website.layout" name="Header Visibility Fade Out" active="False">
     <xpath expr="//header" position="attributes">
-        <attribute name="t-attf-class" add="o_header_freeze o_header_fade_out" separator=" "/>
+        <attribute name="t-attf-class" add="o_header_fixed o_header_fade_out o_top_fixed_element" separator=" "/>
+    </xpath>
+</template>
+
+<template id="header_shadow" inherit_id="website.layout" name="Header Shadow" active="False">
+    <xpath expr="//header" position="attributes">
+        <attribute name="t-attf-class" add="shadow" separator=" "/>
     </xpath>
 </template>
 

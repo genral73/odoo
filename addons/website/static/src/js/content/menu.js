@@ -25,6 +25,7 @@ const BaseFixedHeader = animations.Animation.extend({
         this.$dropdowns = this.$el.find('.dropdown');
         this.$dropdownMenus = this.$el.find('.dropdown-menu');
         this.$navbarCollapses = this.$el.find('.navbar-collapse');
+        this.isOverlayHeader = this.$el.closest('.o_header_overlay').length || this.$el.hasClass('o_header_overlay_theme');
         // While scrolling through navbar menus on medium devices, body should not be scrolled with it
         this.$el.find('div.navbar-collapse').on('show.bs.collapse', function () {
             if ($(window).width() <= 768) {
@@ -53,8 +54,10 @@ const BaseFixedHeader = animations.Animation.extend({
      * @private
      */
     _initializeFixedHeader: function () {
-        this.headerHeight = this.$el.height();
-        $('main').css('padding-top', this.headerHeight);
+        this.headerHeight = this.$el.outerHeight();
+        if (!this.isOverlayHeader) {
+            $('main').css('padding-top', this.headerHeight);
+        }
         this.$el.addClass('o_header_affix affixed');
     },
 
@@ -62,7 +65,9 @@ const BaseFixedHeader = animations.Animation.extend({
      * @private
      */
     _removeFixedHeader: function () {
-        $('main').css('padding-top', '');
+        if (!this.isOverlayHeader) {
+            $('main').css('padding-top', '');
+        }
         this.$el.removeClass('o_header_affix affixed');
     },
 
@@ -120,7 +125,7 @@ const BaseFixedHeader = animations.Animation.extend({
 });
 
 publicWidget.registry.standardHeader = BaseFixedHeader.extend({
-    selector: 'header.o_header_standard',
+    selector: 'header.o_header_standard:not(.o_header_sidebar)',
 
     /**
      * @override
@@ -128,7 +133,7 @@ publicWidget.registry.standardHeader = BaseFixedHeader.extend({
     start: function () {
         this.fixedHeader = false;
         this.fixedHeaderShow = false;
-        this.headerHeight = this.$el.height();
+        this.headerHeight = this.$el.outerHeight();
         return this._super.apply(this, arguments);
     },
 
@@ -297,8 +302,8 @@ publicWidget.registry.menuDirection = publicWidget.Widget.extend({
     },
 });
 
-publicWidget.registry.freezeHeader = BaseFixedHeader.extend({
-    selector: 'header.o_header_freeze',
+publicWidget.registry.fixedHeader = BaseFixedHeader.extend({
+    selector: 'header.o_header_fixed',
 
     /**
      * @override
