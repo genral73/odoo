@@ -207,7 +207,6 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             'request_hour_from': '8',  # 8:00 AM in the employee's timezone
             'request_hour_to': '17',  # 5:00 PM in the employee's timezone
         })
-        leave._onchange_request_parameters()
         self.assertEqual(leave.date_from, datetime(2019, 5, 5, 20, 0, 0), "It should have been localized before saving in UTC")
         self.assertEqual(leave.date_to, datetime(2019, 5, 6, 5, 0, 0), "It should have been localized before saving in UTC")
 
@@ -227,7 +226,6 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             'request_hour_from': '8',  # 8:00 AM in the company's timezone
             'request_hour_to': '17',  # 5:00 PM in the company's timezone
         })
-        leave._onchange_request_parameters()
         self.assertEqual(leave.date_from, datetime(2019, 5, 5, 20, 0, 0), "It should have been localized before saving in UTC")
         self.assertEqual(leave.date_to, datetime(2019, 5, 6, 5, 0, 0), "It should have been localized before saving in UTC")
 
@@ -248,7 +246,6 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             'request_hour_from': '8',  # 8:00 AM in the department's timezone
             'request_hour_to': '17',  # 5:00 PM in the department's timezone
         })
-        leave._onchange_request_parameters()
         self.assertEqual(leave.date_from, datetime(2019, 5, 5, 20, 0, 0), "It should have been localized before saving in UTC")
         self.assertEqual(leave.date_to, datetime(2019, 5, 6, 5, 0, 0), "It should have been localized before saving in UTC")
 
