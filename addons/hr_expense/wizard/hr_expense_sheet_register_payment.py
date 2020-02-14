@@ -24,7 +24,11 @@ class HrExpenseSheetRegisterPaymentWizard(models.TransientModel):
 
         if 'partner_id' in fields and active_id and not result.get('partner_id'):
             expense_sheet = self.env['hr.expense.sheet'].browse(active_id)
-            result['partner_id'] = expense_sheet.address_id.id or expense_sheet.employee_id.id and expense_sheet.employee_id.address_home_id.id
+            partner_id = expense_sheet.employee_id.id and expense_sheet.employee_id.user_id.partner_id.id
+            if partner_id:
+                result['partner_id'] = partner_id
+            if not partner_id and self.env.user.has_group('base.group_private_addresses'):
+                result['partner_id'] = expense_sheet.employee_id.address_home_id.id
         return result
 
     expense_sheet_id = fields.Many2one('hr.expense.sheet', string="Expense Report", required=True)

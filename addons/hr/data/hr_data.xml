@@ -10,11 +10,22 @@
           <field name="name">Sales</field>
         </record>
 
+        <record id="res_partner_address_private" model="res.partner">
+            <field name="name">Mitchell Admin</field>
+            <field name="street">191-103 Integer Rd</field>
+            <field name="zip">08219</field>
+            <field name="city">Corona</field>
+            <field name="country_id" ref="base.us"/>
+            <field name="phone">+1 555-555-5555</field>
+            <field name="email">admin@yourcompany.example.com</field>
+            <field name="type">private</field>
+        </record>
+
         <record id="employee_admin" model="hr.employee">
             <field name="name" eval="obj(ref('base.partner_admin')).name" model="res.partner"/>
             <field name="user_id" ref="base.user_admin"/>
             <field name="address_id" ref="base.partner_admin"/>
-            <field name="address_home_id" ref="base.partner_admin"/>
+            <field name="address_home_id" ref="res_partner_address_private"/>
             <field name="image_1920" eval="obj(ref('base.partner_admin')).image_1920" model="res.partner"/>
         </record>
 
