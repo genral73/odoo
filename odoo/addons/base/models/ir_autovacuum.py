@@ -41,6 +41,7 @@ class AutoVacuum(models.AbstractModel):
         if not self.env.is_admin():
             raise AccessDenied()
         self.env['ir.attachment']._file_gc()
+        self.env['ir.async']._vacuum_terminated_tasks()
         self._gc_transient_models()
         self._gc_user_logs()
         return True
