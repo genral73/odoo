@@ -14,6 +14,9 @@ from odoo.exceptions import AccessError
 from odoo.osv import expression
 from odoo.http import request
 
+from odoo.addons.base.models.ir_ui_view import PUBLIC_ASSETS
+PUBLIC_ASSETS.append('website.compiled_assets_wysiwyg')
+
 _logger = logging.getLogger(__name__)
 
 
