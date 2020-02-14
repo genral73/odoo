@@ -222,6 +222,27 @@ QUnit.module('Views', {
         list.destroy();
     });
 
+    // QUnit.test('list with export button', async function (assert) {
+    //     assert.expect(4);
+
+    //     var list = await createView({
+    //         View: ListView,
+    //         model: 'foo',
+    //         data: this.data,
+    //         viewOptions: {hasSidebar: true},
+    //         arch: '<tree export="1"><field name="foo"/></tree>',
+    //     });
+
+    //     assert.isNotVisible(list.sidebar.$el, 'sidebar should be invisible');
+    //     assert.ok(list.$('tbody td.o_list_record_selector').length, 'should have at least one record');
+
+    //     await testUtils.dom.click(list.$('tbody td.o_list_record_selector:first input'));
+    //     assert.isVisible(list.sidebar.$el, 'sidebar should be visible');
+    //     assert.ok(list.sidebar.$('a:contains(Export)').length, 'sidebar should have Export button');
+
+    //     list.destroy();
+    // });
+
     QUnit.test('simple editable rendering', async function (assert) {
         assert.expect(15);
 
