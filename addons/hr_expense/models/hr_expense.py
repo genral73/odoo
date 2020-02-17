@@ -171,8 +171,8 @@ class HrExpense(models.Model):
         for expense in self:
             expense.employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.uid), ('company_id', '=', expense.company_id.id)])
 
-    @api.constrains('product_id', 'product_uom_id')
-    def _verify_uom(self):
+    @api.onchange('product_uom_id')
+    def _onchange_product_uom_id(self):
         if self.product_id and self.product_uom_id.category_id != self.product_id.uom_id.category_id:
             raise UserError(_('Selected Unit of Measure does not belong to the same category as the product Unit of Measure.'))
 
