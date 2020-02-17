@@ -6,15 +6,15 @@ from odoo import api, fields, models, tools
 class MaintenanceEquipment(models.Model):
     _inherit = 'maintenance.equipment'
 
-    employee_id = fields.Many2one('hr.employee', compute='_compute_equipment_assign', store=True, readonly=False, string='Assigned Employee', tracking=True)
-    department_id = fields.Many2one('hr.department', compute='_compute_equipment_assign', store=True, readonly=False, string='Assigned Department', tracking=True)
+    employee_id = fields.Many2one('hr.employee', compute='_compute_equipment_assign', store=True, readonly=False, copy=True, string='Assigned Employee', tracking=True)
+    department_id = fields.Many2one('hr.department', compute='_compute_equipment_assign', store=True, readonly=False, copy=True, string='Assigned Department', tracking=True)
     equipment_assign_to = fields.Selection(
         [('department', 'Department'), ('employee', 'Employee'), ('other', 'Other')],
         string='Used By',
         required=True,
         default='employee')
     owner_user_id = fields.Many2one(compute='_compute_owner', store=True)
-    assign_date = fields.Date(compute='_compute_equipement_assign', store=True, readonly=False)
+    assign_date = fields.Date(compute='_compute_equipement_assign', store=True, readonly=False, copy=True)
 
     @api.depends('employee_id', 'department_id', 'equipment_assign_to')
     def _compute_owner(self):
