@@ -89,7 +89,7 @@ class AccountMove(models.Model):
 
     @api.model
     def _get_default_invoice_date(self):
-        return fields.Date.today() if self._context.get('default_move_type', 'entry') in ('in_invoice', 'in_refund', 'in_receipt') else False
+        return fields.Date.context_today(self) if self._context.get('default_move_type', 'entry') in ('in_invoice', 'in_refund', 'in_receipt') else False
 
     @api.model
     def _get_default_currency(self):
@@ -1336,7 +1336,11 @@ class AccountMove(models.Model):
                 tax_key_add_base = tuple(move._get_tax_key_for_group_add_base(line))
                 if tax_key_add_base not in done_taxes:
                     if line.currency_id != self.company_id.currency_id:
-                        amount = self.company_id.currency_id._convert(line.tax_base_amount, line.currency_id, self.company_id, line.date or fields.Date.today())
+                        amount = self.company_id.currency_id._convert(
+                            line.tax_base_amount,
+                            line.currency_id,
+                            self.company_id,
+                            line.date or fields.Date.today())
                     else:
                         amount = line.tax_base_amount
                     res[line.tax_line_id.tax_group_id]['base'] += amount
@@ -2099,7 +2103,7 @@ class AccountMove(models.Model):
         for move in self:
             if not move.line_ids.filtered(lambda line: not line.display_type):
                 raise UserError(_('You need to add a line before posting.'))
-            if move.auto_post and move.date > fields.Date.today():
+            if move.auto_post and move.date > fields.Date.context_today(move):
                 date_msg = move.date.strftime(get_lang(self.env).date_format)
                 raise UserError(_("This move is configured to be auto-posted on %s") % date_msg)
 
@@ -2132,7 +2136,7 @@ class AccountMove(models.Model):
         self.state = 'posted'
         self.posted_before = True
         for move in self:
-            if move.auto_post and move.date > fields.Date.today():
+            if move.auto_post and move.date > fields.Date.context_today(move):
                 raise UserError(_("This move is configured to be auto-posted on {}".format(move.date.strftime(get_lang(self.env).date_format))))
 
             move.message_subscribe([p.id for p in [move.partner_id] if p not in move.sudo().message_partner_ids])
@@ -2405,7 +2409,7 @@ class AccountMove(models.Model):
         '''
         records = self.search([
             ('state', '=', 'draft'),
-            ('date', '<=', fields.Date.today()),
+            ('date', '<=', fields.Date.context_today(self)),
             ('auto_post', '=', True),
         ])
         records.post()
@@ -3001,7 +3005,11 @@ class AccountMoveLine(models.Model):
             company_currency = line.account_id.company_id.currency_id
             balance = line.amount_currency
             if line.currency_id and company_currency and line.currency_id != company_currency:
-                balance = line.currency_id._convert(balance, company_currency, line.account_id.company_id, line.move_id.date or fields.Date.today())
+                balance = line.currency_id._convert(
+                    balance,
+                    company_currency,
+                    line.account_id.company_id,
+                    line.move_id.date or fields.Date.context_today(line))
                 line.debit = balance > 0 and balance or 0.0
                 line.credit = balance < 0 and -balance or 0.0
     # -------------------------------------------------------------------------
@@ -3869,7 +3877,7 @@ class AccountMoveLine(models.Model):
             total = 0
             total_currency = 0
             writeoff_lines = []
-            date = fields.Date.today()
+            date = fields.Date.context_today(self)
             for vals in lines:
                 # Check and complete vals
                 if 'account_id' not in vals or 'journal_id' not in vals:
@@ -3877,7 +3885,7 @@ class AccountMoveLine(models.Model):
                 if ('debit' in vals) ^ ('credit' in vals):
                     raise UserError(_("Either pass both debit and credit or none."))
                 if 'date' not in vals:
-                    vals['date'] = self._context.get('date_p') or fields.Date.today()
+                    vals['date'] = self._context.get('date_p') or fields.Date.context_today(self)
                 vals['date'] = fields.Date.to_date(vals['date'])
                 if vals['date'] and vals['date'] < date:
                     date = vals['date']
@@ -4456,7 +4464,7 @@ class AccountPartialReconcile(models.Model):
             if move.date > (move.company_id.period_lock_date or date.min):
                 move._reverse_moves([{'ref': _('Reversal of %s') % move.name}], cancel=True)
             else:
-                move._reverse_moves([{'date': fields.Date.today(), 'ref': _('Reversal of %s') % move.name}], cancel=True)
+                move._reverse_moves([{'date': fields.Date.context_today(move), 'ref': _('Reversal of %s') % move.name}], cancel=True)
         res = super(AccountPartialReconcile, self).unlink()
         if full_to_unlink:
             full_to_unlink.unlink()
@@ -4486,7 +4494,7 @@ class AccountFullReconcile(models.Model):
                 to_reverse = rec.exchange_move_id
                 rec.exchange_move_id = False
                 to_reverse._reverse_moves([{
-                    'date': fields.Date.today(),
+                    'date': fields.Date.context_today(rec),
                     'ref': _('Reversal of: %s') % to_reverse.name,
                 }], cancel=True)
         return super(AccountFullReconcile, self).unlink()

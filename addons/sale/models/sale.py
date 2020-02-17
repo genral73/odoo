@@ -277,7 +277,7 @@ class SaleOrder(models.Model):
             order.access_url = '/my/orders/%s' % (order.id)
 
     def _compute_is_expired(self):
-        today = fields.Date.today()
+        today = fields.Date.context_today(self)
         for order in self:
             order.is_expired = order.state == 'sent' and order.validity_date and order.validity_date < today
 
@@ -297,10 +297,12 @@ class SaleOrder(models.Model):
             else:
                 order.expected_date = False
 
+    @api.depends('validity_date')
     def _compute_remaining_validity_days(self):
+        today = fields.Date.context_today(self)
         for record in self:
             if record.validity_date:
-                record.remaining_validity_days = (record.validity_date - fields.Date.today()).days + 1
+                record.remaining_validity_days = (record.validity_date - today).days + 1
             else:
                 record.remaining_validity_days = 0
 
