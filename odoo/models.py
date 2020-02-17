@@ -2635,6 +2635,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         # 1. determine the proper fields of the model: the fields defined on the
         # class and magic fields, not the inherited or custom ones
         cls0 = cls.pool.model_cache.get(cls._model_cache_key)
+
         if cls0 and cls0._model_cache_key == cls._model_cache_key:
             # cls0 is either a model class from another registry, or cls itself.
             # The point is that it has the same base classes. We retrieve stuff
@@ -2643,18 +2644,24 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             # therefore two registries are never set up at the same time.
 
             # remove fields that are not proper to cls
-            for name in OrderedSet(cls._fields) - cls0._proper_fields:
+            for name in set(cls._fields).difference(cls0._proper_fields):
                 delattr(cls, name)
-                cls._fields.pop(name, None)
-            # collect proper fields on cls0, and add them on cls
-            for name in cls0._proper_fields:
-                field = cls0._fields[name]
-                # regular fields are shared, while related fields are setup from scratch
-                if not field.related:
-                    self._add_field(name, field)
-                else:
-                    self._add_field(name, field.new(**field.args))
-            cls._proper_fields = OrderedSet(cls._fields)
+                del cls._fields[name]
+
+            if cls0 is cls:
+                # simply reset up fields
+                for name, field in cls._fields.items():
+                    field.setup_base(self, name)
+            else:
+                # collect proper fields on cls0, and add them on cls
+                for name in cls0._proper_fields:
+                    field = cls0._fields[name]
+                    # regular fields are shared, while related fields are setup from scratch
+                    if not field.related:
+                        self._add_field(name, field)
+                    else:
+                        self._add_field(name, field.new(**field.args))
+                cls._proper_fields = list(cls._fields)
 
         else:
             # retrieve fields from parent classes, and duplicate them on cls to
@@ -2667,7 +2674,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 if not any(field.args.get(k) for k in ('automatic', 'manual', 'inherited')):
                     self._add_field(name, field.new())
             self._add_magic_fields()
-            cls._proper_fields = OrderedSet(cls._fields)
+            cls._proper_fields = list(cls._fields)
 
         cls.pool.model_cache[cls._model_cache_key] = cls
 
