@@ -113,11 +113,11 @@ class HrEmployeePrivate(models.Model):
     departure_description = fields.Text(string="Additional Information", groups="hr.group_hr_user", copy=False, tracking=True)
     departure_date = fields.Date(string="Departure Date", groups="hr.group_hr_user", copy=False, tracking=True)
     message_main_attachment_id = fields.Many2one(groups="hr.group_hr_user")
-    job_title = fields.Char(compute="_compute_job_title", store=True, readonly=False)
-    work_phone = fields.Char(compute="_compute_phones", store=True, readonly=False)
-    mobile_phone = fields.Char(compute="_compute_phones", store=True, readonly=False)
-    address_id = fields.Many2one(compute="_compute_address_id", store=True, readonly=False)
-    parent_id = fields.Many2one(compute="_compute_parent_id", store=True, readonly=False)
+    job_title = fields.Char(compute="_compute_job_title", store=True, readonly=False, copy=True)
+    work_phone = fields.Char(compute="_compute_phones", store=True, readonly=False, copy=True)
+    mobile_phone = fields.Char(compute="_compute_phones", store=True, readonly=False, copy=True)
+    address_id = fields.Many2one(compute="_compute_address_id", store=True, readonly=False, copy=True)
+    parent_id = fields.Many2one(compute="_compute_parent_id", store=True, readonly=False, copy=True)
 
     _sql_constraints = [
         ('barcode_uniq', 'unique (barcode)', "The Badge ID must be unique, this one is already assigned to another employee."),

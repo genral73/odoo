@@ -16,7 +16,7 @@ class HrPlanActivityType(models.Model):
         domain=lambda self: ['|', ('res_model_id', '=', False), ('res_model_id', '=', self.env['ir.model']._get('hr.employee').id)],
         ondelete='restrict'
     )
-    summary = fields.Char('Summary', compute="_compute_default_summary", store=True, readonly=False)
+    summary = fields.Char('Summary', compute="_compute_default_summary", store=True, readonly=False, copy=True)
     responsible = fields.Selection([
         ('coach', 'Coach'),
         ('manager', 'Manager'),
