@@ -605,15 +605,14 @@ class IrModelFields(models.Model):
         """ Return the (sudoed) `ir.model.fields` record with the given model and name.
         The result may be an empty recordset if the model is not found.
         """
-        field_id = self._get_id(model_name, name) if model_name and name else False
+        field_id = model_name and name and self._get_ids(model_name).get(name)
         return self.sudo().browse(field_id)
 
-    @tools.ormcache('model_name', 'name')
-    def _get_id(self, model_name, name):
-        self.env.cr.execute("SELECT id FROM ir_model_fields WHERE model=%s AND name=%s",
-                            (model_name, name))
-        result = self.env.cr.fetchone()
-        return result and result[0]
+    @tools.ormcache('model_name')
+    def _get_ids(self, model_name):
+        cr = self.env.cr
+        cr.execute("SELECT name, id FROM ir_model_fields WHERE model=%s", [model_name])
+        return dict(cr.fetchall())
 
     def _drop_column(self):
         tables_to_drop = set()
@@ -877,11 +876,10 @@ class IrModelFields(models.Model):
         cr.execute("SELECT * FROM ir_model_fields WHERE model=%s", [model_name])
         return {row['name']: row for row in cr.dictfetchall()}
 
-    def _reflect_field_params(self, field):
+    def _reflect_field_params(self, field, model_id):
         """ Return the values to write to the database for the given field. """
-        model = self.env['ir.model']._get(field.model_name)
         return {
-            'model_id': model.id,
+            'model_id': model_id,
             'model': field.model_name,
             'name': field.name,
             'field_description': field.string,
@@ -918,6 +916,7 @@ class IrModelFields(models.Model):
 
         cr = self._cr
         module = self._context.get('module')
+        model_id = self.env['ir.model']._get_id(model._name)
         fields_data = self._existing_field_data(model._name)
         to_insert = []
         to_xmlids = []
@@ -925,7 +924,7 @@ class IrModelFields(models.Model):
         modified_fnames = []
         for name, field in model._fields.items():
             old_vals = fields_data.get(name)
-            new_vals = self._reflect_field_params(field)
+            new_vals = self._reflect_field_params(field, model_id)
             modified_fnames = new_vals.keys()
             if old_vals is None:
                 to_insert.append(new_vals)
@@ -945,7 +944,10 @@ class IrModelFields(models.Model):
             # insert missing fields
             ids = query_insert(cr, self._table, to_insert)
             modified_ids.extend(ids)
-            self.clear_caches()
+            # update fields_data instead of invalidating it
+            for id_, data in zip(ids, to_insert):
+                data['id'] = id_
+                fields_data[data['name']] = data
 
         if modified_ids:
             def mark_modified(records, fnames):
@@ -1130,7 +1132,7 @@ class IrModelSelection(models.Model):
         """ Set the selection of a field to the given list, and return the row
             values of the given selection records.
         """
-        field_id = self.env['ir.model.fields']._get(model_name, field_name).id
+        field_id = self.env['ir.model.fields']._get_ids(model_name).get(field_name)
 
         # selection rows {value: row}
         cur_rows = self._existing_selection_data(model_name, field_name)

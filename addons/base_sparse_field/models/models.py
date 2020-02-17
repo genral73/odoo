@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from collections import defaultdict
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
@@ -32,14 +34,10 @@ class IrModelFields(models.Model):
 
         # set 'serialization_field_id' on sparse fields; it is done here to
         # ensure that the serialized field is reflected already
-        cr = self._cr
-        query = """ UPDATE ir_model_fields
-                    SET serialization_field_id=%s
-                    WHERE model=%s AND name=%s
-                    RETURNING id
-                """
         fields_data = self._existing_field_data(model._name)
 
+        # update serialization_field_id in batches, grouped by value
+        updates = defaultdict(list)
         for field in model._fields.values():
             ser_field_id = None
             if field.sparse:
@@ -48,11 +46,17 @@ class IrModelFields(models.Model):
                     raise UserError(msg % (field.sparse, field.name))
                 ser_field_id = fields_data[field.sparse]['id']
 
-            if fields_data[field.name]['serialization_field_id'] != ser_field_id:
-                cr.execute(query, (ser_field_id, model._name, field.name))
-                record = self.browse(cr.fetchone())
-                self.pool.post_init(record.modified, ['serialization_field_id'])
-                self.clear_caches()
+            field_data = fields_data[field.name]
+            if field_data.get('serialization_field_id') != ser_field_id:
+                field_data['serialization_field_id'] = ser_field_id
+                updates[ser_field_id].append(field_data['id'])
+
+        cr = self._cr
+        query = "UPDATE ir_model_fields SET serialization_field_id=%s WHERE id IN %s"
+        for ser_field_id, field_ids in updates.items():
+            cr.execute(query, [ser_field_id, tuple(field_ids)])
+            records = self.browse(field_ids)
+            self.pool.post_init(records.modified, ['serialization_field_id'])
 
     def _instanciate_attrs(self, field_data):
         attrs = super(IrModelFields, self)._instanciate_attrs(field_data)
