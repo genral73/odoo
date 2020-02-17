@@ -7,7 +7,7 @@ from odoo import api, fields, models
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
-    can_be_expensed = fields.Boolean(string="Can be Expensed", compute='_compute_can_be_expensed', store=True, readonly=False, help="Specify whether the product can be selected in an expense.")
+    can_be_expensed = fields.Boolean(string="Can be Expensed", compute='_compute_can_be_expensed', store=True, readonly=False, copy=True, help="Specify whether the product can be selected in an expense.")
 
     @api.model
     def create(self, vals):
