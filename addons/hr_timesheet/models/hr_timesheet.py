@@ -40,32 +40,21 @@ class AccountAnalyticLine(models.Model):
         return []
 
     task_id = fields.Many2one(
-<<<<<<< HEAD
-        'project.task',
-        'Task',
-        compute='_compute_task_id',
-        store=True,
-        readonly=False,
-        index=True,
-        domain="[('company_id', '=', company_id),"
-                "('project_id.allow_timesheets',"" '=', True),"
-                "('project_id', '=?', project_id)]")
-=======
         'project.task', 'Task', index=True,
         domain="[('company_id', '=', company_id), ('project_id.allow_timesheets', '=', True), ('project_id', '=?', project_id)]"
     )
-
->>>>>>> 983288883aa... [IMP] convert onchanges to stored-editable computed fields.
 
     project_id = fields.Many2one('project.project',
                                  'Project',
                                  compute='_compute_project_id',
                                  store=True,
                                  readonly=False,
+                                 copy=True,
                                  domain=_domain_project_id)
 
     user_id = fields.Many2one(compute='_compute_user_id',
                               store=True,
+                              copy=True,
                               readonly=False)
 
     employee_id = fields.Many2one('hr.employee', "Employee", check_company=True, domain=_domain_employee_id)
@@ -87,17 +76,17 @@ class AccountAnalyticLine(models.Model):
 
     @api.depends('task_id.project_id')
     def _compute_project_id(self):
-        for record in self:
-            if not record.project_id:
-                record.project_id = record.task_id.project_id
+        for line in self:
+            if not line.project_id:
+                line.project_id = line.task_id.project_id
 
     @api.depends('employee_id')
     def _compute_user_id(self):
-        for record in self:
-            if record.employee_id:
-                record.user_id = record.employee_id.user_id
+        for line in self:
+            if line.employee_id:
+                line.user_id = line.employee_id.user_id
             else:
-                record.user_id = record._default_user()
+                line.user_id = line._default_user()
 
     @api.depends('employee_id')
     def _compute_department_id(self):

@@ -31,6 +31,7 @@ class HolidaysType(models.Model):
         compute='_compute_timesheet_task_id',
         store=True,
         readonly=False,
+        copy=True,
         default=_default_task_id,
         domain="[('project_id', '=', timesheet_project_id),"
                 "('company_id', '=', company_id)]")
@@ -43,15 +44,15 @@ class HolidaysType(models.Model):
 
     @api.depends('timesheet_project_id')
     def _compute_timesheet_task_id(self):
-        for record in self:
-            company = record.company_id if record.company_id else record.env.company
+        for holidayType in self:
+            company = holidayType.company_id if holidayType.company_id else holidayType.env.company
             default_task_id = company.leave_timesheet_task_id
 
             if default_task_id and \
-               default_task_id.project_id == record.timesheet_project_id:
-                record.timesheet_task_id = default_task_id
+               default_task_id.project_id == holidayType.timesheet_project_id:
+                holidayType.timesheet_task_id = default_task_id
             else:
-                record.timesheet_task_id = False
+                holidayType.timesheet_task_id = False
 
     @api.constrains('timesheet_generate', 'timesheet_project_id', 'timesheet_task_id')
     def _check_timesheet_generate(self):
