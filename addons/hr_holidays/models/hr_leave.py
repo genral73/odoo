@@ -120,32 +120,32 @@ class HolidaysRequest(models.Model):
     payslip_status = fields.Boolean('Reported in last payslips', help='Green this button when the time off has been taken into account in the payslip.', copy=False)
     report_note = fields.Text('HR Comments', copy=False, groups="hr_holidays.group_hr_holidays_manager")
     user_id = fields.Many2one('res.users', string='User', related='employee_id.user_id', related_sudo=True, compute_sudo=True, store=True, default=lambda self: self.env.uid, readonly=True)
-    manager_id = fields.Many2one('hr.employee', compute='_compute_from_employee_id', store=True, readonly=False)
+    manager_id = fields.Many2one('hr.employee', compute='_compute_from_employee_id', store=True, readonly=False, copy=True)
     # leave type configuration
     holiday_status_id = fields.Many2one(
-        "hr.leave.type", compute='_compute_from_employee_id', store=True, string="Time Off Type", required=True, readonly=True,
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]},
+        "hr.leave.type", compute='_compute_from_employee_id', store=True, copy=True, string="Time Off Type", required=True, readonly=False,
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]},
         domain=[('valid', '=', True)])
     validation_type = fields.Selection(string='Validation Type', related='holiday_status_id.leave_validation_type', readonly=False)
     # HR data
     employee_id = fields.Many2one(
-        'hr.employee', compute='_compute_from_holiday_type', store=True, string='Employee', index=True, readonly=True, ondelete="restrict",
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=_default_employee, tracking=True)
+        'hr.employee', compute='_compute_from_holiday_type', store=True, copy=True, string='Employee', index=True, readonly=False, ondelete="restrict",
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]}, default=_default_employee, tracking=True)
     tz_mismatch = fields.Boolean(compute='_compute_tz_mismatch')
     tz = fields.Selection(_tz_get, compute='_compute_tz')
     department_id = fields.Many2one(
-        'hr.department', compute='_compute_department_id', store=True, string='Department', readonly=True,
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+        'hr.department', compute='_compute_department_id', store=True, copy=True, string='Department', readonly=False,
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]})
     notes = fields.Text('Reasons', readonly=True, states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
     # duration
     date_from = fields.Datetime(
-        'Start Date', compute='_compute_date_from_to', store=True, readonly=True, index=True, copy=False, required=True,
+        'Start Date', compute='_compute_date_from_to', store=True, readonly=False, index=True, copy=False, required=True,
         default=fields.Datetime.now,
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, tracking=True)
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]}, tracking=True)
     date_to = fields.Datetime(
-        'End Date', compute='_compute_date_from_to', store=True, readonly=True, copy=False, required=True,
+        'End Date', compute='_compute_date_from_to', store=True, readonly=False, copy=False, required=True,
         default=fields.Datetime.now,
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, tracking=True)
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]}, tracking=True)
     number_of_days = fields.Float(
         'Duration (Days)', compute='_compute_number_of_days', store=True, readonly=False, copy=False, tracking=True,
         help='Number of days of the time off request. Used in the calculation. To manually correct the duration, use this field.')
@@ -170,10 +170,10 @@ class HolidaysRequest(models.Model):
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]},
         help='By Employee: Allocation/Request for individual Employee, By Employee Tag: Allocation/Request for group of employees in category')
     category_id = fields.Many2one(
-        'hr.employee.category', compute='_compute_from_holiday_type', store=True, string='Employee Tag', readonly=True,
+        'hr.employee.category', compute='_compute_from_holiday_type', store=True, copy=True, string='Employee Tag', readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, help='Category of Employee')
     mode_company_id = fields.Many2one(
-        'res.company', compute='_compute_from_holiday_type', store=True, string='Company Mode', readonly=True,
+        'res.company', compute='_compute_from_holiday_type', store=True, copy=True, string='Company Mode', readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
     first_approver_id = fields.Many2one(
         'hr.employee', string='First Approval', readonly=True, copy=False,
@@ -245,9 +245,9 @@ class HolidaysRequest(models.Model):
         ('am', 'Morning'), ('pm', 'Afternoon')],
         string="Date Period Start", default='am')
     # request type
-    request_unit_half = fields.Boolean('Half Day', compute='_compute_request_unit_half', store=True, readonly=False)
-    request_unit_hours = fields.Boolean('Custom Hours', compute='_compute_request_unit_hours', store=True, readonly=False)
-    request_unit_custom = fields.Boolean('Days-long custom hours', compute='_compute_request_unit_custom', store=True, readonly=False)
+    request_unit_half = fields.Boolean('Half Day', compute='_compute_request_unit_half', store=True, readonly=False, copy=True)
+    request_unit_hours = fields.Boolean('Custom Hours', compute='_compute_request_unit_hours', store=True, readonly=False, copy=True)
+    request_unit_custom = fields.Boolean('Days-long custom hours', compute='_compute_request_unit_custom', store=True, readonly=False, copy=True)
 
     _sql_constraints = [
         ('type_value',

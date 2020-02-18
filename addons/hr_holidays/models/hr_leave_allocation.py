@@ -59,20 +59,20 @@ class HolidaysAllocation(models.Model):
         'Start Date', readonly=True, index=True, copy=False,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, tracking=True)
     date_to = fields.Datetime(
-        'End Date', compute='_compute_from_holiday_status_id', store=True, readonly=True, copy=False,
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, tracking=True)
+        'End Date', compute='_compute_from_holiday_status_id', store=True, readonly=False, copy=False,
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]}, tracking=True)
     holiday_status_id = fields.Many2one(
-        "hr.leave.type", compute='_compute_from_employee_id', store=True, string="Time Off Type", required=True, readonly=True,
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]},
+        "hr.leave.type", compute='_compute_from_employee_id', store=True, copy=True, string="Time Off Type", required=True, readonly=False,
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]},
         domain=_holiday_status_id_domain, default=_default_holiday_status_id)
     employee_id = fields.Many2one(
-        'hr.employee', compute='_compute_from_holiday_type', store=True, string='Employee', index=True, readonly=True, ondelete="restrict",
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=_default_employee, tracking=True)
-    manager_id = fields.Many2one('hr.employee', compute='_compute_from_employee_id', store=True, string='Manager', readonly=True)
+        'hr.employee', compute='_compute_from_holiday_type', store=True, copy=True, string='Employee', index=True, readonly=False, ondelete="restrict",
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]}, default=_default_employee, tracking=True)
+    manager_id = fields.Many2one('hr.employee', compute='_compute_from_employee_id', store=True, copy=True, string='Manager', readonly=True)
     notes = fields.Text('Reasons', readonly=True, states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
     # duration
     number_of_days = fields.Float(
-        'Number of Days', compute='_compute_from_holiday_status_id', store=True, readonly=False, tracking=True, default=1,
+        'Number of Days', compute='_compute_from_holiday_status_id', store=True, readonly=False, copy=True, tracking=True, default=1,
         help='Duration in days. Reference field to use when necessary.')
     number_of_days_display = fields.Float(
         'Duration (days)', compute='_compute_number_of_days_display',
@@ -109,14 +109,14 @@ class HolidaysAllocation(models.Model):
              "\n- By Department: all employees of the specified department"
              "\n- By Employee Tag: all employees of the specific employee group category")
     mode_company_id = fields.Many2one(
-        'res.company', compute='_compute_from_holiday_type', store=True, string='Company Mode', readonly=True,
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+        'res.company', compute='_compute_from_holiday_type', store=True, copy=True, string='Company Mode', readonly=False,
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]})
     department_id = fields.Many2one(
-        'hr.department', compute='_compute_department_id', store=True, string='Department', readonly=True,
+        'hr.department', compute='_compute_department_id', store=True, copy=True, string='Department', readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
     category_id = fields.Many2one(
-        'hr.employee.category', compute='_compute_from_holiday_type', store=True, string='Employee Tag', readonly=True,
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+        'hr.employee.category', compute='_compute_from_holiday_type', store=True, copy=True, string='Employee Tag', readonly=False,
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]})
     # accrual configuration
     allocation_type = fields.Selection(
         [
@@ -125,18 +125,22 @@ class HolidaysAllocation(models.Model):
         ], string="Allocation Type", default="regular", required=True, readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
     accrual_limit = fields.Integer('Balance limit', default=0, help="Maximum of allocation for accrual; 0 means no maximum.")
-    number_per_interval = fields.Float("Number of unit per interval", compute='_compute_from_holiday_status_id', store=True, readonly=True, states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=1)
-    interval_number = fields.Integer("Number of unit between two intervals", compute='_compute_from_holiday_status_id', store=True, readonly=True, states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=1)
+    number_per_interval = fields.Float("Number of unit per interval", compute='_compute_from_holiday_status_id', store=True, copy=True, readonly=False,
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]}, default=1)
+    interval_number = fields.Integer("Number of unit between two intervals", compute='_compute_from_holiday_status_id', store=True, copy=True, readonly=False,
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]}, default=1)
     unit_per_interval = fields.Selection([
         ('hours', 'Hours'),
         ('days', 'Days')
-        ], compute='_compute_from_holiday_status_id', store=True, string="Unit of time added at each interval", default='hours', readonly=True, states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+        ], compute='_compute_from_holiday_status_id', store=True, copy=True, string="Unit of time added at each interval", default='hours', readonly=False,
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]})
     interval_unit = fields.Selection([
         ('days', 'Days'),
         ('weeks', 'Weeks'),
         ('months', 'Months'),
         ('years', 'Years')
-        ], compute='_compute_from_holiday_status_id', store=True, string="Unit of time between two intervals", default='weeks', readonly=True, states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+        ], compute='_compute_from_holiday_status_id', store=True, copy=True, string="Unit of time between two intervals", default='weeks', readonly=False,
+        states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]})
     nextcall = fields.Date("Date of the next accrual allocation", default=False, readonly=True)
     max_leaves = fields.Float(compute='_compute_leaves')
     leaves_taken = fields.Float(compute='_compute_leaves')
