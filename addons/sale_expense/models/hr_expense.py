@@ -21,17 +21,21 @@ class Expense(models.Model):
         for expense in self:
             expense.can_be_reinvoiced = expense.product_id.expense_policy in ['sales_price', 'cost']
 
-    @api.depends('product_id')
+    @api.depends('can_be_reinvoiced')
     def _compute_sale_order_id(self):
         for expense in self:
             if not expense.can_be_reinvoiced:
                 expense.sale_order_id = False
+            else:
+                expense.sale_order_id = expense.sale_order_id
 
     @api.depends('sale_order_id')
     def _compute_analytic_account_id(self):
         for expense in self:
             if expense.sale_order_id:
                 expense.analytic_account_id = expense.sale_order_id.sudo().analytic_account_id  # `sudo` required for normal employee without sale access rights
+            else:
+                expense.analytic_account_id = expense.analytic_account_id
 
     def action_move_create(self):
         """ When posting expense, if the AA is given, we will track cost in that
