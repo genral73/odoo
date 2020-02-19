@@ -16,6 +16,7 @@ class RestaurantFloor(models.Model):
     background_color = fields.Char('Background Color', help='The background color of the floor layout, (must be specified in a html-compatible format)', default='rgb(210, 210, 210)')
     table_ids = fields.One2many('restaurant.table', 'floor_id', string='Tables', help='The list of tables in this floor')
     sequence = fields.Integer('Sequence', help='Used to sort Floors', default=1)
+    active = fields.Boolean(default=True)
 
     def unlink(self):
         confs = self.mapped('pos_config_id').filtered(lambda c: c.is_table_management == True)
@@ -29,6 +30,17 @@ class RestaurantFloor(models.Model):
             if confs:
                 raise UserError(error_msg)
         return super(RestaurantFloor, self).unlink()
+
+    def write(self, vals):
+        open_session_ids = self.env['pos.session'].search([('config_id', 'in', self.pos_config_id.ids), ('state', '!=', 'closed')])
+        is_used = self.env['pos.config'].search([('floor_ids', '=', self.id)])
+        if vals and open_session_ids:
+            raise UserError(
+                'Please close and validate the following open PoS Session before modifying this floor.\n'
+                'Open session: %s' % (' '.join(open_session_ids.mapped('name')),))
+        if is_used:
+            raise UserError('The %s is already used in another Pos Config.' % self.name)
+        return super(RestaurantFloor, self).write(vals)
 
 
 class RestaurantTable(models.Model):
