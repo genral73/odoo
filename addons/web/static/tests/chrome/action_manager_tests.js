@@ -2272,7 +2272,6 @@ QUnit.module('ActionManager', {
                     params.error({
                         data: {
                             name: 'error',
-                            exception_type: 'warning',
                             arguments: ['could not download file'],
                         }
                     });

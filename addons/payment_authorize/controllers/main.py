@@ -57,7 +57,7 @@ class AuthorizeController(http.Controller):
             }
         except UserError as e:
             return {
-                'error': e.name,
+                'error': e.message,
             }
 
         if not token:
