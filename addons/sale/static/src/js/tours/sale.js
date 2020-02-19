@@ -69,15 +69,61 @@ tour.register('sale_tour', {
     position: "right",
     id: "form_button_save_clicked"
 }, {
-    trigger: ".breadcrumb-item:not(.active):last",
+    trigger: ".o_statusbar_buttons button:enabled:contains('Send by Email')",
     extra_trigger: ".o_sale_order [data-value='draft'].btn-primary",
-    content: _t("Use the breadcrumbs to <b>go back to preceeding screens</b>."),
+    content: _t("Send the quote to the customer and customize your email."),
     position: "bottom"
 }, {
-    trigger: 'li a[data-menu-xmlid="sale.sale_order_menu"], .oe_secondary_menu_section[data-menu-xmlid="sale.sale_order_menu"]',
-    content: _t("Use this menu to access quotations, sales orders and customers."),
-    edition: "enterprise",
+    trigger: ".modal-dialog .o_group input[name='email']",
+    extra_trigger: ".o_sale_order",
+    content: _t("Write the email of your customer"),
+    position: "right",
+    run: "text abc@odoo.com"
+}, {
+    trigger: ".modal-footer .btn-primary",
+    content: _t("Save the customer details."),
+    extra_trigger: ".o_sale_order",
     position: "bottom"
+}, {
+    trigger: ".modal-footer button[name='action_send_mail']",
+    content: _t("Send Mail to the customer."),
+    extra_trigger: ".o_sale_order",
+    position: "bottom"
+}, {
+    trigger: ".o_chatter_button_new_message",
+    content: _t("Assure a good follow-up and keep contact with the customer.<br/>Did you realize that the status of your quote is now 'quotation sent'?"),
+    position: "bottom"
+}, {
+    trigger: ".o_composer_input .o_composer_text_field",
+    run: "text Congratulation",
+    position: "left"
+}, {
+    trigger: ".o_composer_send",
+    position: "bottom"
+}, {
+    trigger: "button[name='action_confirm'].btn-primary",
+    content: _t("Once you get the confirmation of your customer,click on 'confirm'.<br/>Your quoteis now a Sale Order; Congratulation!"),
+    position: "bottom"
+}, {
+    trigger: ".o_statusbar_buttons > button:contains('Create Invoice')",
+    content: _t("Create the invoice based on your Sale Order."),
+    position: "bottom"
+}, {
+    trigger: ".modal-footer button[name='create_invoices'].btn-secondary",
+    extra_trigger: ".o_sale_order",
+    content: _t("Create the full invoice or a down payment in 1 click and come back to your Sale Order."),
+    position: "bottom"
+}, {
+    trigger: ".breadcrumb-item:not(.active):last a",
+    extra_trigger: ".o_sale_order [data-value='sale'].btn-primary",
+    content: _t("Use the breadcrumbs to <b>go back to all of your quotes.</b>."),
+    position: "bottom",
+    run: 'click'
+}, {
+    trigger: ".o_filters_menu_button",
+    content: _t("You are looking for a specific quote?<br/>Test our 'search tools'"),
+    position: "bottom",
+    run: 'click'
 }]);
 
 });
