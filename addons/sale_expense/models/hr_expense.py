@@ -16,7 +16,7 @@ class Expense(models.Model):
     can_be_reinvoiced = fields.Boolean("Can be reinvoiced", compute='_compute_can_be_reinvoiced')
     analytic_account_id = fields.Many2one(compute='_compute_analytic_account_id', store=True, readonly=False, copy=True)
 
-    @api.depends('product_id')
+    @api.depends('product_id.expense_policy')
     def _compute_can_be_reinvoiced(self):
         for expense in self:
             expense.can_be_reinvoiced = expense.product_id.expense_policy in ['sales_price', 'cost']
