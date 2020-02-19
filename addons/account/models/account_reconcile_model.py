@@ -178,7 +178,7 @@ class AccountReconcileModel(models.Model):
         action.update({
             'context': {},
             'domain': [('id', 'in', self._cr.fetchone()[0])],
-            'help': """<p class="o_view_nocontent_empty_folder">{}</p>""".format(_('No move from this reconciliation model')),
+            'help': """<p class="o_view_nocontent_empty_folder">{}</p>""".format(_('This reconciliation model has created no entry so far')),
         })
         return action
 
@@ -738,7 +738,7 @@ class AccountReconcileModel(models.Model):
                             #TODO OCO ce qui suit là m'a l'air de pouvoir être isolé dans une fonction (hmm, quoique en fait)
                             move_lines = self.env['account.move.line'].browse(results[st_line.id]['aml_ids'])
                             partner = partner_map and partner_map.get(st_line.id) and self.env['res.partner'].browse(partner_map[st_line.id])  #TODO OCO la partner_map, c'est un peu bizarre, mais ça semble nécessaire
-                            lines_val_list = rec_model._prepare_reconciliation(st_line, aml_ids=results[line.id]['aml_ids'], partner=partner)
+                            lines_vals_list = rec_model._prepare_reconciliation(st_line, aml_ids=results[st_line.id]['aml_ids'], partner=partner)
 
                             # A write-off must be applied since there are some 'new' lines to propose.
                             if not lines_vals_list or any(not line_vals.get('id') for line_vals in lines_vals_list):
