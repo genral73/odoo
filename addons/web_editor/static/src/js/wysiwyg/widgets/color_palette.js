@@ -16,11 +16,12 @@ const ColorPaletteWidget = Widget.extend({
     xmlDependencies: ['/web_editor/static/src/xml/snippets.xml'],
     template: 'web_editor.snippet.option.colorpicker',
     events: {
-        'click button': '_onColorButtonClick',
-        'mouseenter button': '_onColorButtonEnter',
-        'mouseleave button': '_onColorButtonLeave',
+        'click .o_we_color_btn': '_onColorButtonClick',
+        'mouseenter .o_we_color_btn': '_onColorButtonEnter',
+        'mouseleave .o_we_color_btn': '_onColorButtonLeave',
         'click .o_colorpicker_reset': '_onColorResetButtonClick',
         'click .o_add_custom_color': '_onCustomColorButtonClick',
+        'click .o_we_colorpicker_switch_pane_btn': '_onSwitchPaneButtonClick',
     },
     /**
      * @override
@@ -42,7 +43,10 @@ const ColorPaletteWidget = Widget.extend({
             excluded: [],
             excludeSectionOf: null,
             $editable: $(),
+            withCombinations: false,
         }, options || {});
+
+        this.withCombinations = this.options.withCombinations;
 
         this.trigger_up('request_editable', {callback: val => this.options.$editable = val});
     },
@@ -72,7 +76,9 @@ const ColorPaletteWidget = Widget.extend({
 
         const $colorSection = this.$('.o_colorpicker_sections');
         const $wrapper = $colorSection.find('.o_colorpicker_section_tabs');
-        $(qweb.render('web_editor.colorpicker')).appendTo($wrapper);
+        const $serverColorpicker = $(qweb.render('web_editor.colorpicker'));
+        $serverColorpicker.find('button').addClass('o_we_color_btn');
+        $serverColorpicker.appendTo($wrapper);
 
         this.el.querySelectorAll('.o_colorpicker_section').forEach(elem => {
             $(elem).prepend('<div>' + (elem.dataset.display || '') + '</div>');
@@ -116,7 +122,9 @@ const ColorPaletteWidget = Widget.extend({
         this.el.querySelectorAll('button[data-color]').forEach(elem => {
             const colorName = elem.dataset.color;
             const $color = $(elem);
-            $color.addClass('bg-' + colorName);
+            const colorNumber = parseInt(colorName);
+            const previewClass = (isNaN(colorNumber) || colorNumber % 100 === 0) ? `bg-${colorName}` : `o_cc${colorName}`;
+            $color.addClass(previewClass);
             this.colorNames.push(colorName);
             if (!elem.classList.contains('d-none')) {
                 const color = ColorpickerDialog.normalizeCSSColor(this.style.getPropertyValue('--' + colorName).trim());
@@ -161,7 +169,7 @@ const ColorPaletteWidget = Widget.extend({
     _addCompatibilityColors: function (colorNames) {
         for (const colorName of colorNames) {
             if (!this.$('button[data-color="' + colorName + '"]').length) {
-                this.$el.append($('<button/>', {'class': 'd-none', 'data-color': colorName}));
+                this.$el.append($('<button/>', {'class': 'o_we_color_btn d-none', 'data-color': colorName}));
             }
         }
     },
@@ -221,7 +229,7 @@ const ColorPaletteWidget = Widget.extend({
      */
     _createColorButton: function (color, classes) {
         return $('<button/>', {
-            class: classes.join(' '),
+            class: 'o_we_color_btn ' + classes.join(' '),
             style: 'background-color:' + color + ';',
         });
     },
@@ -329,6 +337,19 @@ const ColorPaletteWidget = Widget.extend({
             });
         });
         colorpicker.open();
+    },
+    /**
+     * @private
+     */
+    _onSwitchPaneButtonClick(ev) {
+        ev.stopPropagation();
+        this.el.querySelectorAll('.o_we_colorpicker_switch_pane_btn').forEach(el => {
+            el.classList.remove('active');
+        });
+        ev.currentTarget.classList.add('active');
+        this.el.querySelectorAll('.o_colorpicker_sections').forEach(el => {
+            el.classList.toggle('d-none', el.dataset.colorTab !== ev.currentTarget.dataset.target);
+        });
     },
 });
 
