@@ -576,7 +576,7 @@ class AccountReconcileModel(models.Model):
         :return:                (query, params)
         '''
         if any(m.rule_type != 'writeoff_suggestion' for m in self):
-            raise UserError(_('Programmation Error: Can\'t call _get_wo_suggestion_query() for different rules than \'writeoff_suggestion\''))
+            raise UserError(_("Programmation Error: Can't call _get_writeoff_suggestion_query() for different rules than 'writeoff_suggestion'"))
 
         queries = []
         all_params = []
