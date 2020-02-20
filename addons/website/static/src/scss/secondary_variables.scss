@@ -14,8 +14,20 @@ $o-color-palettes: append($o-color-palettes, map-merge($-palette-default, o-map-
 
 // Theme color palette
 // -------------------
+//
+// Proper themes have to enforce primary = alpha and secondary = beta.
+// Exceptions to this rule are made for compatibility reasons
+$-palette-default: nth($o-theme-color-palettes, $o-theme-color-palette-number);
+
+$-primary-default: map-get($-palette-default, 'primary');
+$-secondary-default: map-get($-palette-default, 'secondary');
+$-alpha-default: map-get($-palette-default, 'alpha');
+$-beta-default: map-get($-palette-default, 'beta');
 
 // Generate default theme color scheme if alpha is set
+$-is-alpha-primary: not $-primary-default or $-primary-default == $-alpha-default;
+$-is-beta-secondary: not $-secondary-default or $-secondary-default == $-beta-default;
+
 $-alpha: map-get($o-user-theme-color-palette, 'alpha');
 @if ($-alpha) {
     $o-user-theme-color-palette: map-merge((
@@ -29,7 +41,6 @@ $-alpha: map-get($o-user-theme-color-palette, 'alpha');
 // By default, all user theme color palette values are null. Each null value is
 // automatically replaced with corresponsing colors in chosen default theme
 // color palette.
-$-palette-default: nth($o-theme-color-palettes, $o-theme-color-palette-number);
 $o-theme-color-palettes: append($o-theme-color-palettes, map-merge($-palette-default, o-map-omit($o-user-theme-color-palette)));
 
 
