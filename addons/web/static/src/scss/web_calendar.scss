@@ -279,8 +279,15 @@ $o-cw-filter-avatar-size: 20px;
                 margin: 0 3px 2px;
 
                 .fc-content {
+                    display: flex;
+                    justify-content: space-between;
+                    flex-direction: row-reverse;                    
+                    margin: 4px 4px 3px;                    
+                }
+
+                .o_event_title {                    
                     @include text-truncate();
-                    margin: 4px 4px 3px;
+                    padding-right: 0.5em;                    
                 }
 
                 &.o_cw_nobg {
