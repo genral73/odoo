@@ -683,6 +683,7 @@ class AccountReconcileModel(models.Model):
         return candidates_by_priority
 
     def _apply_rules(self, st_lines, excluded_ids=None, partner_map=None): #TODO OCO selon comment tu modifies la méthode, pour l'isoler, il faudra sans doute passer param de plus qui prend les lignes déjà sélectionnées (l'équivalent de amls_ids_to_exclude, avant la boucle un peu plus bas)
+        #TODO OCO peut-être reconsidérer la façon dont on passe la partner_map ?
         ''' Apply criteria to get candidates for all reconciliation models.
         :param st_lines:        Account.bank.statement.lines recordset.
         :param excluded_ids:    Account.move.lines to exclude.
@@ -703,87 +704,91 @@ class AccountReconcileModel(models.Model):
                 # If we don't have any candidate for this model, jump to the next one.
                 candidates = rec_model._get_candidates(st_line, excluded_ids, partner_map)
                 if candidates:
-                    model_rslt, new_reconciled_aml_ids, new_treated_aml_ids = rec_model._get_rule_result(st_line, candidates, amls_ids_to_exclude, reconciled_amls_ids)
+                    model_rslt, new_reconciled_aml_ids, new_treated_aml_ids = rec_model._get_rule_result(st_line, candidates, amls_ids_to_exclude, reconciled_amls_ids, partner_map)
 
                     if model_rslt:
                         results[st_line.id] = model_rslt
-                        reconciled_aml_ids += new_reconciled_aml_ids
-                        amls_ids_to_exclude += new_treated_aml_ids
+                        reconciled_amls_ids |= new_reconciled_aml_ids
+                        amls_ids_to_exclude |= new_treated_aml_ids
                         break
 
         return results
 
-    def _get_rule_result(self, st_line, candidates, amls_ids_to_exclude, reconciled_amls_ids): #TODO OCO DOC
+    def _get_rule_result(self, st_line, candidates, amls_ids_to_exclude, reconciled_amls_ids, partner_map): #TODO OCO DOC
         self.ensure_one()
 
         if self.rule_type == 'invoice_matching':
-            return self._get_invoice_matching_rule_result(st_line, candidates, amls_ids_to_exclude, reconciled_amls_ids)
+            return self._get_invoice_matching_rule_result(st_line, candidates, amls_ids_to_exclude, reconciled_amls_ids, partner_map)
         elif self.rule_type == 'writeoff_suggestion':
-            return self._get_writeoff_suggestion_rule_result(st_line), [], []
-        else
-            return None, [], []
+            return self._get_writeoff_suggestion_rule_result(st_line, partner_map), set(), set()
+        else:
+            return None, set(), set()
 
-    def _get_invoice_matching_rule_result(self, st_line, candidates, amls_ids_to_exclude, reconciled_amls_ids):# TODO OCO DOC
-        candidates_by_priority = self._sort_reconciliation_candidates_by_priority(candidates, amls_ids_to_exclude, reconciled_amls_ids)
-        candidates = itertools.chain.from_iterable(candidates_by_priority.values()) # candidates_by_priority may have filtered less interesting candidates
+    def _get_invoice_matching_rule_result(self, st_line, candidates, amls_ids_to_exclude, reconciled_amls_ids, partner_map):# TODO OCO DOC
+        new_reconciled_aml_ids = set()
+        new_treated_aml_ids = set()
+        candidates, candidates_by_priority = self._filter_candidates(candidates, amls_ids_to_exclude, reconciled_amls_ids)
 
+        # Special case: the amount are the same, submit the line directly. #TODO OCO rendre le commentaire + clair ?
         st_line_currency = st_line.currency_id or st_line.journal_id.currency_id or st_line.company_id.currency_id
         st_line_residual = st_line.currency_id and st_line.amount_currency or st_line.amount
-        new_reconciled_aml_ids = []
-        new_treated_aml_ids = []
-
-        # Special case: the amount are the same, submit the line directly.
         for candidate in candidates:
             residual_amount = candidate['aml_currency_id'] and candidate['aml_amount_residual_currency'] or candidate['aml_amount_residual']
             if st_line_currency.is_zero(residual_amount - st_line_residual):
-                candidates_by_priority = self._sort_reconciliation_candidates_by_priority([candidate], amls_ids_to_exclude, reconciled_amls_ids)
+                candidates, candidates_by_priority = self._filter_candidates([candidate], amls_ids_to_exclude, reconciled_amls_ids)
                 break
 
+        # TODO OCO comment
         if candidates_by_priority[1] or candidates_by_priority[2] or self._check_rule_propositions(st_line, candidates):
-            new_treated_aml_ids = [candidate['aml_id'] for candidate in candidates]
             rslt = {
-                'aml_ids': [],
                 'model': self,
-                'aml_ids': new_treated_aml_ids,
+                'aml_ids': [candidate['aml_id'] for candidate in candidates],
             }
+            new_treated_aml_ids = set(rslt['aml_ids'])
 
             # Create write-off lines.
-            move_lines = self.env['account.move.line'].browse(rslt['aml_ids'])
-            partner = partner_map and partner_map.get(st_line.id) and self.env['res.partner'].browse(partner_map[st_line.id])  #TODO OCO la partner_map, c'est un peu bizarre, mais ça semble nécessaire
+            partner = partner_map and partner_map.get(st_line.id) and self.env['res.partner'].browse(partner_map[st_line.id])
             lines_vals_list = self._prepare_reconciliation(st_line, aml_ids=rslt['aml_ids'], partner=partner)
 
             # A write-off must be applied since there are some 'new' lines to propose.
             if not lines_vals_list or any(not line_vals.get('id') for line_vals in lines_vals_list):
-                results[st_line.id]['status'] = 'write_off'
+                rslt['status'] = 'write_off'
 
             # Process auto-reconciliation.
             if lines_vals_list and (candidates_by_priority[1] or candidates_by_priority[2]) and self.auto_reconcile:
                 if not st_line.partner_id and partner:
                     st_line.partner_id = partner
-                st_line.reconcile(lines_vals_list)
 
+                st_line.reconcile(lines_vals_list)
                 rslt['status'] = 'reconciled'
                 rslt['reconciled_lines'] = st_line.line_ids
-
-                # The reconciled move lines are no longer candidates for another rule.
-                new_reconciled_aml_ids = move_lines.ids
+                new_reconciled_aml_ids = new_treated_aml_ids
         else:
             rslt = None
 
         return rslt, new_reconciled_aml_ids, new_treated_aml_ids
 
-    def _get_writeoff_suggestion_rule_result(self, st_line):
-        rslt = {'model': self, 'status': 'write_off'}
+    def _filter_candidates(self, candidates, amls_ids_to_exclude, reconciled_amls_ids):
+        candidates_by_priority = self._sort_reconciliation_candidates_by_priority(candidates, amls_ids_to_exclude, reconciled_amls_ids)
+        candidates = itertools.chain.from_iterable(candidates_by_priority.values()) # candidates_by_priority may have filtered out less interesting candidates
+        return list(candidates), candidates_by_priority
+
+    def _get_writeoff_suggestion_rule_result(self, st_line, partner_map):
+        rslt = {
+            'model': self,
+            'status': 'write_off',
+            'aml_ids': [],
+        }
 
         # Create write-off lines.
         partner = partner_map and partner_map.get(st_line.id) and self.env['res.partner'].browse(partner_map[st_line.id])
-        lines_vals_list = rec_model._prepare_reconciliation(st_line, partner=partner)
+        lines_vals_list = self._prepare_reconciliation(st_line, partner=partner)
 
         # Process auto-reconciliation.
         if lines_vals_list and self.auto_reconcile:
-            #TODO OCO on pourrait pas faire une fonction qui généralise ce truc ? Ca doit être présent de façon relativement similaire ailleurs, non ?
             if not st_line.partner_id and partner:
                 st_line.partner_id = partner
+
             st_line.reconcile(lines_vals_list)
             rslt['status'] = 'reconciled'
             rslt['reconciled_lines'] = st_line.line_ids
