@@ -740,20 +740,15 @@ class AccountReconcileModel(models.Model):
                 break
 
         if candidates_by_priority[1] or candidates_by_priority[2] or self._check_rule_propositions(st_line, candidates):
+            new_treated_aml_ids = [candidate['aml_id'] for candidate in candidates]
             rslt = {
                 'aml_ids': [],
                 'model': self,
-                'aml_ids': #TODO OCO wip pour retirer la boucle d'en-dessous
+                'aml_ids': new_treated_aml_ids,
             }
 
-            # Add candidates to the result.
-            for candidate in candidates: #TODO OCO sans doute moyen d'ajouter directement à la cration de rslt
-                rslt['aml_ids'].append(candidate['aml_id'])
-                new_treated_aml_ids.add(candidate['aml_id'])
-
             # Create write-off lines.
-            #TODO OCO ce qui suit là m'a l'air de pouvoir être isolé dans une fonction (hmm, quoique en fait)
-            move_lines = self.env['account.move.line'].browse(results[st_line.id]['aml_ids'])
+            move_lines = self.env['account.move.line'].browse(rslt['aml_ids'])
             partner = partner_map and partner_map.get(st_line.id) and self.env['res.partner'].browse(partner_map[st_line.id])  #TODO OCO la partner_map, c'est un peu bizarre, mais ça semble nécessaire
             lines_vals_list = self._prepare_reconciliation(st_line, aml_ids=rslt['aml_ids'], partner=partner)
 
