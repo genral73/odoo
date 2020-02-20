@@ -48,8 +48,8 @@ class LunchOrder(models.Model):
     topping_quantity_1 = fields.Selection(related='product_id.category_id.topping_quantity_1')
     topping_quantity_2 = fields.Selection(related='product_id.category_id.topping_quantity_2')
     topping_quantity_3 = fields.Selection(related='product_id.category_id.topping_quantity_3')
-    image_1920 = fields.Image(related='product_id.image_1920')
-    image_128 = fields.Image(related='product_id.image_128')
+    image_1920 = fields.Image(compute='_compute_product_images')
+    image_128 = fields.Image(compute='_compute_product_images')
 
     available_toppings_1 = fields.Boolean(help='Are extras available for this product', compute='_compute_available_toppings')
     available_toppings_2 = fields.Boolean(help='Are extras available for this product', compute='_compute_available_toppings')
@@ -62,6 +62,12 @@ class LunchOrder(models.Model):
         value = bool(self._context.get('active_id', False))
         for line in self:
             line.edit = value
+
+    @api.depends('product_id')
+    def _compute_product_images(self):
+        for line in self:
+            line.image_1920 = line.product_id.image_1920 or line.category_id.image_1920
+            line.image_128 = line.product_id.image_128 or line.category_id.image_128
 
     @api.depends('product_id')
     def _compute_available_toppings(self):

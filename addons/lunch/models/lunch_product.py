@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+import base64
 
 from odoo import api, fields, models
-
+from odoo.modules.module import get_module_resource
 from odoo.tools import formatLang
 
 
@@ -11,6 +12,11 @@ class LunchProductCategory(models.Model):
     _name = 'lunch.product.category'
     _inherit = 'image.mixin'
     _description = 'Lunch Product Category'
+
+    @api.model
+    def _default_image(self):
+        image_path = get_module_resource('lunch', 'static/img', 'lunch.png')
+        return base64.b64encode(open(image_path, 'rb').read())
 
     name = fields.Char('Product Category', required=True, translate=True)
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
@@ -34,6 +40,8 @@ class LunchProductCategory(models.Model):
         ('1_more', 'One or More'),
         ('1', 'Only One')], 'Extra 3 Quantity', default='0_more', required=True)
     product_count = fields.Integer(compute='_compute_product_count', help="The number of products related to this category")
+    active = fields.Boolean('Active', default=True)
+    image_1920 = fields.Image(default=_default_image)
 
     def _compute_product_count(self):
         product_data = self.env['lunch.product'].read_group([('category_id', 'in', self.ids)], ['category_id'], ['category_id'])
@@ -59,6 +67,13 @@ class LunchProductCategory(models.Model):
             if topping_values:
                 topping_values.update({'topping_category': 3})
         return super(LunchProductCategory, self).write(vals)
+
+    def toggle_active(self):
+        """ Archiving related lunch product """
+        res = super().toggle_active()
+        products = self.env['lunch.product'].with_context(active_test=False).search([('category_id', 'in', self.ids), ('active', 'not in', self.mapped('active'))])
+        products.toggle_active()
+        return res
 
 
 class LunchTopping(models.Model):
