@@ -53,11 +53,17 @@ class ChannelUsersRelation(models.Model):
             for user in users:
                 users.add_karma(partner_karma[user.partner_id.id])
 
-    def unlink(self):
-        """
-        Override unlink method :
-        Remove attendee from a channel, then also remove slide.slide.partner related to.
-        """
+    @api.model
+    def create(self, values):
+        res = super(ChannelUsersRelation, self).create(values)
+        slide_partners = self.env['slide.slide.partner'].sudo().search([
+            ('channel_id', '=', res.channel_id.id),
+            ('partner_id', '=', res.partner_id.id)
+        ])
+        res.filtered(lambda cp: cp.partner_id in slide_partners.partner_id)._recompute_completion()
+        return res
+
+    def unlink_cascade(self):
         removed_slide_partner_domain = []
         for channel_partner in self:
             # find all slide link to the channel and the partner
@@ -68,7 +74,7 @@ class ChannelUsersRelation(models.Model):
             ])
         if removed_slide_partner_domain:
             self.env['slide.slide.partner'].search(removed_slide_partner_domain).unlink()
-        return super(ChannelUsersRelation, self).unlink()
+        self.unlink()
 
 
 class Channel(models.Model):
@@ -501,11 +507,13 @@ class Channel(models.Model):
         for channel in self:
             channel._action_add_members(channel.mapped('enroll_group_ids.users.partner_id'))
 
-    def _remove_membership(self, partner_ids):
+    def _remove_membership(self, partner_ids, unlink_slide_partners=False):
         """ Unlink (!!!) the relationships between the passed partner_ids
         and the channels and their slides (done in the unlink of slide.channel.partner model). """
         if not partner_ids:
             raise ValueError("Do not use this method with an empty partner_id recordset")
+
+        self.message_unsubscribe(partner_ids=partner_ids)
 
         removed_channel_partner_domain = []
         for channel in self:
@@ -516,7 +524,10 @@ class Channel(models.Model):
             ])
 
         if removed_channel_partner_domain:
-            self.env['slide.channel.partner'].sudo().search(removed_channel_partner_domain).unlink()
+            if unlink_slide_partners:
+                self.env['slide.channel.partner'].sudo().search(removed_channel_partner_domain).unlink_cascade()
+            else:
+                self.env['slide.channel.partner'].sudo().search(removed_channel_partner_domain).unlink()
 
     def action_view_slides(self):
         action = self.env.ref('website_slides.slide_slide_action').read()[0]
