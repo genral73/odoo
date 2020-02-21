@@ -30,7 +30,6 @@ from datetime import datetime, date
 import passlib.utils
 import psycopg2
 import json
-import werkzeug.contrib.sessions
 import werkzeug.datastructures
 import werkzeug.exceptions
 import werkzeug.local
@@ -42,6 +41,10 @@ try:
     from werkzeug.middleware.shared_data import SharedDataMiddleware
 except ImportError:
     from werkzeug.wsgi import SharedDataMiddleware
+try:
+    from secure_cookie import sessions
+except ImportError:
+    from werkzeug.contrib import sessions
 
 try:
     import psutil
@@ -973,7 +976,7 @@ class AuthenticationError(Exception):
 class SessionExpiredException(Exception):
     pass
 
-class OpenERPSession(werkzeug.contrib.sessions.Session):
+class OpenERPSession(sessions.Session):
     def __init__(self, *args, **kwargs):
         self.inited = False
         self.modified = False
@@ -1274,7 +1277,7 @@ class Root(object):
         # Setup http sessions
         path = odoo.tools.config.session_dir
         _logger.debug('HTTP sessions stored in: %s', path)
-        return werkzeug.contrib.sessions.FilesystemSessionStore(
+        return sessions.FilesystemSessionStore(
             path, session_class=OpenERPSession, renew_missing=True)
 
     @lazy_property
