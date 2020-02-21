@@ -2831,6 +2831,39 @@ QUnit.module('Views', {
         kanban.destroy();
     });
 
+    QUnit.test('kanban view with default_group_by and withou groupby menu', async function (assert) {
+        assert.expect(2);
+
+        var searchMenuTypesOriginal = KanbanView.prototype.searchMenuTypes;
+        KanbanView.prototype.searchMenuTypes = ['filter', 'favorite'];
+        this.data.partner.records.product_id = 1;
+        this.data.product.records.push({ id: 1, display_name: "third product" });
+
+        var kanban = await createView({
+            View: KanbanView,
+            model: 'partner',
+            data: this.data,
+            arch: '<kanban class="o_kanban_test" default_group_by="bar">' +
+                        '<field name="bar"/>' +
+                        '<templates><t t-name="kanban-box">' +
+                        '<div><field name="foo"/></div>' +
+                    '</t></templates></kanban>',
+            mockRPC: function (route, args) {
+                if (route === '/web/dataset/call_kw/partner/web_read_group') {
+                    throw new Error("Should not do a read_group RPC");
+                }
+                return this._super.apply(this, arguments);
+            },
+        });
+
+        assert.doesNotHaveClass(kanban.$('.o_kanban_view'), 'o_kanban_grouped');
+        assert.containsNone(kanban, '.o_control_panel .o_cp_right button:contains(Group By)',
+            "there should not be groupby dropdown");
+
+        kanban.destroy();
+        KanbanView.prototype.searchMenuTypes = searchMenuTypesOriginal;
+    });
+
     QUnit.test('kanban view with create=False', async function (assert) {
         assert.expect(1);
 
