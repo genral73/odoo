@@ -6,6 +6,11 @@ var ListView = require('web.ListView');
 var testUtils = require('web.test_utils');
 var data = require('web.data');
 
+const {AsyncJobService} = require('bus.AsyncJobService');
+const BusService = require('bus.BusService');
+const CrashManager = require('web.CrashManager').CrashManager;
+const LocalStorageService = require('web.LocalStorageService');
+
 var createView = testUtils.createView;
 
 QUnit.module('widgets', {
@@ -35,6 +40,15 @@ QUnit.module('widgets', {
             'ir.exports': {
                 fields: {
                     name: {string: "Name", type: "char"},
+                },
+                records: [],
+            },
+
+            'ir.async': {
+                fields: {
+                    name: {string: "Name", type: "char"},
+                    state: {string: "State", type: "char"},
+                    payload: {string: "Paylaod", type: "char"},
                 },
                 records: [],
             },
@@ -96,6 +110,12 @@ QUnit.module('widgets', {
                     assert.step(params.url);
                     params.complete();
                 },
+            },
+            services: {
+                'async_job': AsyncJobService,
+                'bus_service': BusService,
+                'crash_manager': CrashManager,
+                'local_storage': LocalStorageService,
             },
         });
 
@@ -167,6 +187,13 @@ QUnit.module('widgets', {
                     ]);
                 }
                 return this._super.apply(this, arguments);
+            },
+            services: {
+                'async_job': AsyncJobService,
+                'async_job': AsyncJobService,
+                'bus_service': BusService,
+                'crash_manager': CrashManager,
+                'local_storage': LocalStorageService,
             },
         });
 
@@ -308,6 +335,13 @@ QUnit.module('widgets', {
                 }
                 return this._super(...arguments);
             },
+            services: {
+                'async_job': AsyncJobService,
+                'async_job': AsyncJobService,
+                'bus_service': BusService,
+                'crash_manager': CrashManager,
+                'local_storage': LocalStorageService,
+            },
         });
 
         // select a record => should not be taken into account
@@ -358,6 +392,13 @@ QUnit.module('widgets', {
                     return Promise.resolve();
                 }
                 return this._super(...arguments);
+            },
+            services: {
+                'async_job': AsyncJobService,
+                'async_job': AsyncJobService,
+                'bus_service': BusService,
+                'crash_manager': CrashManager,
+                'local_storage': LocalStorageService,
             },
         });
 
