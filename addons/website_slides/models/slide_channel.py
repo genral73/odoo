@@ -177,6 +177,8 @@ class Channel(models.Model):
     can_review = fields.Boolean('Can Review', compute='_compute_action_rights', compute_sudo=False)
     can_comment = fields.Boolean('Can Comment', compute='_compute_action_rights', compute_sudo=False)
     can_vote = fields.Boolean('Can Vote', compute='_compute_action_rights', compute_sudo=False)
+    review_count = fields.Integer('Review count', compute='_compute_review_count', compute_sudo=True)
+    
 
     @api.depends('slide_ids.is_published')
     def _compute_slide_last_update(self):
@@ -344,6 +346,14 @@ class Channel(models.Model):
                 channel.can_comment = user_karma >= channel.karma_slide_comment
                 channel.can_vote = user_karma >= channel.karma_slide_vote
 
+    @api.depends()
+    def _compute_review_count(self):
+        domain = self._rating_domain()
+        domain.insert(0, '&')
+        domain += [('feedback', '!=', '')]
+        for record in self:
+            reviews = self.env['rating.rating'].search(domain)
+            self.review_count = len(reviews)
     # ---------------------------------------------------------
     # ORM Overrides
     # ---------------------------------------------------------

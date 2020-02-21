@@ -444,6 +444,8 @@ class WebsiteSlides(WebsiteProfile):
             # chatter
             'rating_avg': channel.rating_avg,
             'rating_count': channel.rating_count,
+            'review_count': channel.review_count,
+            'reviews_domain': [('body', '!=', '<p></p>'), ('body', '!=', '')],
             # display data
             'user': request.env.user,
             'pager': pager,
@@ -457,7 +459,7 @@ class WebsiteSlides(WebsiteProfile):
                 ('res_id', '=', channel.id),
                 ('author_id', '=', request.env.user.partner_id.id),
                 ('message_type', '=', 'comment'),
-                ('is_internal', '=', False)
+                ('is_internal', '=', False),
             ], order='write_date DESC', limit=1)
             if last_message:
                 last_message_values = last_message.read(['body', 'rating_value', 'attachment_ids'])[0]

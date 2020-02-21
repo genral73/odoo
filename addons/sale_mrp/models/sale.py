@@ -61,7 +61,7 @@ class SaleOrderLine(models.Model):
                     boms = boms._bom_find(product=order_line.product_id, company_id=order_line.company_id.id, bom_type='phantom')
                     dropship = True
                 # We fetch the BoMs of type kits linked to the order_line,
-                # the we keep only the one related to the finished produst.
+                # the we keep only the one related to the finished product.
                 # This bom shoud be the only one since bom_line_id was written on the moves
                 relevant_bom = boms.filtered(lambda b: b.type == 'phantom' and
                         (b.product_id == order_line.product_id or

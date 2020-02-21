@@ -44,9 +44,13 @@ PortalChatter.include({
             this.options = _.defaults(this.options, {
                 'display_rating': false,
                 'rating_default_value': 0.0,
+                'rating_count': 0, 
+                'disable_count': false,
+                'disable_messages': false,
             });
         }
         // rating card
+        this.set('rating_count',this.options.rating_count);
         this.set('rating_card_values', {});
         this.set('rating_value', false);
         this.on("change:rating_value", this, this._onChangeRatingDomain);

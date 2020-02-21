@@ -6,45 +6,64 @@
     <t t-extend="portal.Composer">
         <t t-jquery="textarea" t-operation="inner"><t t-esc="widget.options['default_message'] ? _.str.trim(widget.options['default_message']) : ''"/></t><!-- need to be one line to avoid \t in textarea -->
         <t t-jquery="form" t-operation="attributes">
-            <attribute name="t-attf-action">#{widget.options['force_submit_url'] ? widget.options['force_submit_url'] : '/mail/chatter_post'}</attribute>
-        </t>
-        <t t-jquery=".o_portal_chatter_composer_form input[name='csrf_token']" t-operation="after">
-            <t t-call="portal_rating.rating_star_input">
-                <t t-set="default_rating" t-value="widget.options['default_rating_value']"/>
+                <attribute name="t-attf-action">#{widget.options['force_submit_url'] ? widget.options['force_submit_url'] : '/mail/chatter_post'}</attribute>
             </t>
-            <input type="hidden" name="message_id" t-att-value="widget.options['default_message_id']" t-if="widget.options['default_message_id']"/>
+            <t t-jquery=".o_portal_chatter_composer_form input[name='csrf_token']" t-operation="after">
+                <t t-call="portal_rating.rating_star_input">
+                    <t t-set="default_rating" t-value="widget.options['default_rating_value']"/>
+                </t>
+                <input type="hidden" name="message_id" t-att-value="widget.options['default_message_id']" t-if="widget.options['default_message_id']"/>
+            </t>
         </t>
-    </t>
 
-    <t t-extend="portal.chatter_messages">
-        <t t-jquery="t[t-raw='message.body']" t-operation="before">
-            <t t-if="message['rating_value']">
-                <t t-call="portal_rating.rating_stars_static">
-                    <t t-set="val" t-value="message.rating_value"/>
+        <t t-extend="portal.chatter_messages">
+            <t t-jquery="t[t-raw='message.body']" t-operation="before">
+                <t t-if="message['rating_value']">
+                    <t t-call="portal_rating.rating_stars_static">
+                        <t t-set="val" t-value="message.rating_value"/>
+                    </t>
+                </t>
+            </t>
+            <t t-jquery=".o_portal_chatter_attachments" t-operation="after">
+                <!--Only possible if a rating is link to the message, for now we can't comment if no rating
+                    is link to the message (because publisher comment data
+                    is on the rating.rating model - one comment max) -->
+                <t t-if="message.rating and message.rating.id" t-call="portal_rating.chatter_rating_publisher">
+                    <t t-set="is_publisher" t-value="widget.options['is_user_publisher']"/>
+                    <t t-set="rating" t-value="message.rating"/>
                 </t>
             </t>
         </t>
-        <t t-jquery=".o_portal_chatter_attachments" t-operation="after">
-            <!--Only possible if a rating is link to the message, for now we can't comment if no rating
-                is link to the message (because publisher comment data
-                is on the rating.rating model - one comment max) -->
-            <t t-if="message.rating and message.rating.id" t-call="portal_rating.chatter_rating_publisher">
-                <t t-set="is_publisher" t-value="widget.options['is_user_publisher']"/>
-                <t t-set="rating" t-value="message.rating"/>
-            </t>
-        </t>
-    </t>
 
-    <t t-extend="portal.Chatter">
-        <t t-jquery="t[t-call='portal.chatter_message_count']" t-operation="replace">
-            <t t-if="widget.options['display_rating']">
-                <t t-call="portal_rating.rating_card"/>
+        <t t-name="portal_rating.chatter_rating_count" >
+            <t t-set="count" t-value="widget.get('rating_count')" />
+            <div class="o_rating_counter">
+                <t t-if="count > 0">
+                    <span class="o_message_count"> <t t-esc="count"/></span>
+                    <t t-if="count == 1">rating</t>
+                    <t t-else="">ratings</t>
+                </t>
+                <t  t-else="">
+                    There are no ratings for now.
+                </t>
+            </div>
+        </t>
+
+        <t t-extend="portal.Chatter">
+            <t t-jquery="t[t-call='portal.chatter_message_count']" t-operation="replace">
+                <t t-if="widget.options['display_rating'] and !widget.options['disable_count']">
+                    <t t-call="portal_rating.rating_card"/>
+                </t>
+                <t t-elif="!widget.options['disable_count']">
+                    <t t-call="portal.chatter_message_count"/>
+                </t>
             </t>
-            <t t-if="!widget.options['display_rating']">
-                <t t-call="portal.chatter_message_count"/>
+            <t t-jquery="t[t-call='portal.chatter_messages']" t-operation="replace">
+                <t t-if="!widget.options['disable_messages']">
+                    <t t-call="portal.chatter_messages"/>
+                </t>
             </t>
         </t>
-    </t>
 
     <!--
         New templates specific of rating in Chatter

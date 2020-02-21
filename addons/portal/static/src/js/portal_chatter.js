@@ -52,7 +52,6 @@ var PortalChatter = publicWidget.Widget.extend({
             'pid': false,
             'domain': [],
         });
-
         this.set('messages', []);
         this.set('message_count', this.options['message_count']);
         this.set('pager', {});

@@ -123,14 +123,13 @@ class PortalChatter(http.Controller):
         must provide valid identifiers through `kw`. See `_message_post_helper`.
         """
         url = redirect or (request.httprequest.referrer and request.httprequest.referrer + "#discussion") or '/my'
-
         res_id = int(res_id)
 
         attachment_ids = [int(attachment_id) for attachment_id in attachment_ids.split(',') if attachment_id]
         attachment_tokens = [attachment_token for attachment_token in attachment_tokens.split(',') if attachment_token]
         self._portal_post_check_attachments(attachment_ids, attachment_tokens)
-
-        if message or attachment_ids:
+        # A rating value can be created w/o a feedback but not without a chatter post
+        if message or attachment_ids or kw.get('rating_value'):
             # message is received in plaintext and saved in html
             if message:
                 message = plaintext2html(message)
