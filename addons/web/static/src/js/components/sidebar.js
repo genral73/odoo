@@ -119,7 +119,7 @@ odoo.define('web.Sidebar', function (require) {
                 .set_eval_context(context);
             result.flags = result.flags || {};
             result.flags.new_window = true;
-            this.trigger('do_action', {
+            this.trigger('do-action', {
                 action: result,
                 options: {
                     on_close: () => this.trigger('reload'),
