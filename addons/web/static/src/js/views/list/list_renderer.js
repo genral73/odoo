@@ -1208,7 +1208,6 @@ var ListRenderer = BasicRenderer.extend({
      */
     _onPagerChanged: async function (ev, pager, group) {
         ev.stopPropagation();
-        pager.update({ disabled: true });
         this.trigger_up('load', {
             id: group.id,
             limit: ev.detail.limit,
@@ -1217,7 +1216,6 @@ var ListRenderer = BasicRenderer.extend({
                 Object.assign(group, reloadedGroup);
                 this._renderView();
             },
-            on_fail: () => pager.update({ disabled: false }),
         });
     },
     /**

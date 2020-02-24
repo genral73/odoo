@@ -76,7 +76,6 @@ odoo.define('web.test_env', async function (require) {
      */
     QUnit.on('OdooBeforeTestHook', function () {
         owl.Component.env = makeTestEnvironment();
-        owl.config.mode = "dev";
     });
 
     return makeTestEnvironment;

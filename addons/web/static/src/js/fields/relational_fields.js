@@ -1583,7 +1583,7 @@ var FieldX2Many = AbstractField.extend(WidgetAdapterMixin, {
             on_success: value => {
                 this.value = value;
                 this.pagerState.limit = value.limit;
-                this.pagerState.count = value.count;
+                this.pagerState.size = value.count;
                 this._render();
             },
         });
