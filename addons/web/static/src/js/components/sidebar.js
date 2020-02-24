@@ -147,7 +147,7 @@ odoo.define('web.Sidebar', function (require) {
 
     Sidebar.components = { DropdownMenu };
     Sidebar.props = {
-        activeIds: { type: Array, element: Number },
+        activeIds: { type: Array, element: [Number|String] }, // virtual IDs are strings.
         context: Object,
         domain: { type: Array, optional: 1 },
         items: {

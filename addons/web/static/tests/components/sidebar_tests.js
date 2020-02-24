@@ -116,7 +116,7 @@ odoo.define('web.sidebar_tests', function (require) {
             assert.expect(2);
 
             const callbackPromise = testUtils.makeTestPromise();
-            this.props.items.other[0].callback = function(items) {
+            this.props.items.other[0].callback = function (items) {
                 assert.strictEqual(items.length, 1);
                 assert.strictEqual(items[0].description, "Boil'em");
                 callbackPromise.resolve();
