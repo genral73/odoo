@@ -45,7 +45,7 @@ odoo.define('web.groupby_menu_generator_tests', function (require) {
                         { sortable: true, name: 'candlelight', string: 'Candlelight', type: 'boolean' },
                     ],
                 },
-                handlers: {
+                intercepts: {
                     'create-new-groupby': function (ev) {
                         const { field } = ev.detail;
                         assert.deepEqual(field, this.state.fields[0]);

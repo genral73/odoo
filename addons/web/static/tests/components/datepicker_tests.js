@@ -46,7 +46,7 @@ odoo.define('web.datepicker_tests', function (require) {
 
             const picker = await createComponent(DatePicker, {
                 props: { value: moment('01/09/1997') },
-                handlers: {
+                intercepts: {
                     'datetime-changed': ev => {
                         assert.step('datetime-changed');
                         assert.strictEqual(ev.detail.value.format('MM/DD/YYYY'), '02/08/1997',
@@ -74,7 +74,7 @@ odoo.define('web.datepicker_tests', function (require) {
 
             const picker = await createComponent(DatePicker, {
                 props: { value: moment('01/09/1997') },
-                handlers: {
+                intercepts: {
                     'datetime-changed': ev => {
                         assert.step('datetime-changed');
                         assert.strictEqual(ev.detail.value.format('MM/DD/YYYY'), '02/08/1997',
@@ -143,7 +143,7 @@ odoo.define('web.datepicker_tests', function (require) {
 
             const picker = await createComponent(DateTimePicker, {
                 props: { value: moment('01/09/1997 12:30:01') },
-                handlers: {
+                intercepts: {
                     'datetime-changed': ev => {
                         assert.step('datetime-changed');
                         assert.strictEqual(ev.detail.value.format('MM/DD/YYYY HH:mm:ss'), '02/08/1997 15:45:05',
@@ -178,7 +178,7 @@ odoo.define('web.datepicker_tests', function (require) {
 
             const picker = await createComponent(DateTimePicker, {
                 props: { value: moment('01/09/1997 12:30:01') },
-                handlers: {
+                intercepts: {
                     'datetime-changed': ev => {
                         assert.step('datetime-changed');
                         assert.strictEqual(ev.detail.value.format('MM/DD/YYYY HH:mm:ss'), '02/08/1997 15:45:05',

@@ -115,9 +115,8 @@ odoo.define('web.test_utils_create', function (require) {
      * @param {string} [params.arch]
      * @param {boolean} [params.debug]
      * @param {Object} [params.env]
-     * @param {Object} [params.handlers]
+     * @param {Object} [params.intercepts]
      * @param {Object} [params.props]
-     * @param {Object} [params.state]
      * @returns {Component} instance of `constructor`, or of `Parent` if the
      *      given `arch` instantiates multiple components.
      */
@@ -135,34 +134,22 @@ odoo.define('web.test_utils_create', function (require) {
                 super(...arguments);
                 this.Component = constructor;
                 this.state = owl.useState(params.props || {});
-                for (const handler in params.handlers || {}) {
-                    customHooks.useListener(handler, params.handlers[handler]);
+                this.component = owl.hooks.useRef('component');
+                for (const eventName in params.intercepts || {}) {
+                    customHooks.useListener(eventName, params.intercepts[eventName]);
                 }
             }
         }
-        let arch;
-        if (params.arch) {
-            arch = params.arch;
-            Parent.components = { [constructor.name]: constructor };
-        } else {
-            arch = '<t t-component="Component" t-props="state"/>';
-        }
-        Parent.template = owl.tags.xml`${arch}`;
+        Parent.template = owl.tags.xml`<t t-component="Component" t-props="state" t-ref="component"/>`;
         const parent = new Parent();
         await parent.mount(prepareTarget(params.debug), { position: 'first-child' });
-        const children = Object.values(parent.__owl__.children);
-        if (children.length === 1) {
-            const child = children[0];
-            const originalDestroy = child.destroy;
-            Object.assign(child.state, params.state);
-            child.destroy = function () {
-                child.destroy = originalDestroy;
-                parent.destroy();
-            };
-            return child;
-        } else {
-            return parent;
-        }
+        const child = parent.component.comp;
+        const originalDestroy = child.destroy;
+        child.destroy = function () {
+            child.destroy = originalDestroy;
+            parent.destroy();
+        };
+        return child;
     }
 
     /**

@@ -20,13 +20,13 @@ odoo.define('web.pager_tests', function (require) {
                     limit: 4,
                     size: 10,
                 },
-                handlers: {
+                intercepts: {
                     'pager-changed'(ev) {
                         Object.assign(this.state, ev.detail);
                     },
                 },
             });
-            const helpers = getHelpers(parent.el, "");
+            const helpers = getHelpers(pager.el, "");
 
             assert.strictEqual(helpers.getPagerValue(), "1-4",
                 "currentMinimum should be set to 1");
@@ -48,13 +48,13 @@ odoo.define('web.pager_tests', function (require) {
                     limit: 4,
                     size: 10,
                 },
-                handlers: {
+                intercepts: {
                     'pager-changed'(ev) {
                         Object.assign(this.state, ev.detail);
                     },
                 },
             });
-            const helpers = getHelpers(parent.el, "");
+            const helpers = getHelpers(pager.el, "");
 
             await testUtils.dom.click(pager.el.querySelector('.o_pager_value'));
 
@@ -83,13 +83,13 @@ odoo.define('web.pager_tests', function (require) {
                     limit: 4,
                     size: 10,
                 },
-                handlers: {
+                intercepts: {
                     'pager-changed'(ev) {
                         Object.assign(this.state, ev.detail);
                     },
                 },
             });
-            const helpers = getHelpers(parent.el, "");
+            const helpers = getHelpers(pager.el, "");
 
             assert.strictEqual(helpers.getPagerValue(), "1-4", "Initial value should be correct");
 
@@ -120,14 +120,14 @@ odoo.define('web.pager_tests', function (require) {
                     limit: 4,
                     size: 10,
                 },
-                handlers: {
+                intercepts: {
                     async 'pager-changed'(ev) {
                         await pagerChangedPromise;
                         Object.assign(this.state, ev.detail);
                     },
                 },
             });
-            const helpers = getHelpers(parent.el, "");
+            const helpers = getHelpers(pager.el, "");
 
             await helpers.setPagerValue("1-3");
 

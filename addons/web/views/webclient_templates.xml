@@ -714,7 +714,6 @@
                 <script type="text/javascript" src="/web/static/tests/core/dom_tests.js"></script>
 
                 <script type="text/javascript" src="/web/static/tests/chrome/action_manager_tests.js"></script>
-                <script type="text/javascript" src="/web/static/tests/chrome/pager_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/chrome/keyboard_navigation_mixin_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/chrome/user_menu_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/chrome/systray_tests.js"></script>
@@ -722,6 +721,8 @@
                 <script type="text/javascript" src="/web/static/tests/components/custom_file_input_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/components/datepicker_tests.js"></script>
 
+                <script type="text/javascript" src="/web/static/tests/components/pager_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/sidebar_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/components/control_panel_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/components/dropdown_menu_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/components/filter_menu_tests.js"></script>

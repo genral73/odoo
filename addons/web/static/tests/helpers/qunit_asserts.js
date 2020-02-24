@@ -236,4 +236,5 @@ QUnit.assert.hasAttrValue = hasAttrValue;
 
 QUnit.assert.isVisible = isVisible;
 QUnit.assert.isNotVisible = isNotVisible;
+
 });

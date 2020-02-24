@@ -77,7 +77,7 @@ odoo.define('web.dropdown_menu_tests', function (require) {
 
             const dropdown = await createComponent(DropdownMenu, {
                 props: { items: this.items },
-                handlers: {
+                intercepts: {
                     'item-selected'(ev) {
                         assert.strictEqual(ev.detail.item.id, 1);
                         this.state.items[0].isActive = !this.state.items[0].isActive;
@@ -169,7 +169,7 @@ odoo.define('web.dropdown_menu_tests', function (require) {
             let eventNumber = 0;
             const dropdown = await createComponent(DropdownMenu, {
                 props: { items: this.items },
-                handlers: {
+                intercepts: {
                     'item-selected'(ev) {
                         eventNumber++;
                         const { option } = ev.detail;
@@ -303,14 +303,21 @@ odoo.define('web.dropdown_menu_tests', function (require) {
         QUnit.test('interactions between multiple dropdowns', async function (assert) {
             assert.expect(7);
 
-            const parent = await createComponent(DropdownMenu, {
-                arch: `
-                    <div>
-                        <DropdownMenu class="first" title="'First'" items="state.items"/>
-                        <DropdownMenu class="second" title="'Second'" items="state.items"/>
-                    </div>`,
-                props: { items: this.items },
-            });
+            const props = { items: this.items };
+            class Parent extends owl.Component {
+                constructor() {
+                    super(...arguments);
+                    this.state = owl.useState(props);
+                }
+            }
+            Parent.components = { DropdownMenu };
+            Parent.template = owl.tags.xml`
+                <div>
+                    <DropdownMenu class="first" title="'First'" items="state.items"/>
+                    <DropdownMenu class="second" title="'Second'" items="state.items"/>
+                </div>`;
+            const parent = new Parent();
+            await parent.mount(testUtils.prepareTarget(), { position: 'first-child' });
 
             const [menu1, menu2] = parent.el.querySelectorAll('.o_dropdown');
 

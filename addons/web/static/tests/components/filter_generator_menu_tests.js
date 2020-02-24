@@ -73,7 +73,7 @@ odoo.define('web.filter_menu_generator_tests', function (require) {
                 props: {
                     fields: this.fields,
                 },
-                handlers: {
+                intercepts: {
                     'create-new-filters'(ev) {
                         const preFilter = ev.detail.preFilters[0];
                         assert.strictEqual(preFilter.type, 'filter');
@@ -112,7 +112,7 @@ odoo.define('web.filter_menu_generator_tests', function (require) {
                 props: {
                     fields: this.fields,
                 },
-                handlers: {
+                intercepts: {
                     'create-new-filters'(ev) {
                         const preFilter = ev.detail.preFilters[0];
                         // this step combine a tokenization/parsing followed by a string formatting
@@ -155,7 +155,7 @@ odoo.define('web.filter_menu_generator_tests', function (require) {
                 props: {
                     fields: this.fields,
                 },
-                handlers: {
+                intercepts: {
                     'create-new-filters'(ev) {
                         const preFilter = ev.detail.preFilters[0];
                         assert.strictEqual(preFilter.description,
@@ -196,7 +196,7 @@ odoo.define('web.filter_menu_generator_tests', function (require) {
                 props: {
                     fields: this.fields,
                 },
-                handlers: {
+                intercepts: {
                     'create-new-filters'(ev) {
                         const preFilter = ev.detail.preFilters[0];
                         assert.strictEqual(preFilter.description,

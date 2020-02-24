@@ -1,7 +1,7 @@
 odoo.define('web.test_utils_create_control_panel', function (require) {
     "use strict";
 
-    const { click, returnAfterNextAnimationFrame: nextTick, triggerEvent } = require('web.test_utils_dom');
+    const { click, triggerEvent } = require('web.test_utils_dom');
     const ControlPanel = require('web.ControlPanel');
     const ControlPanelModel = require('web.ControlPanelModel');
     const { editInput, editSelect, editAndTrigger } = require('web.test_utils_fields');
@@ -236,7 +236,10 @@ odoo.define('web.test_utils_create_control_panel', function (require) {
         const config = params.cpStoreConfig || {};
         const debug = params.debug || false;
         const env = params.env || {};
-        const props = params.cpProps || {};
+        const props = Object.assign({
+            action: {},
+            fields: {},
+        }, params.cpProps);
 
         class Parent extends Component {
             constructor() {

@@ -20,27 +20,23 @@ odoo.define('web.test_env', async function (require) {
         const RamStorageService = AbstractStorageService.extend({
             storage: new RamStorage(),
         });
-        const databaseParams = {
-            code: "en_US",
-            date_format: '%m/%d/%Y',
-            decimal_point: ".",
-            direction: 'ltr',
-            grouping: [],
-            thousands_sep: ",",
-            time_format: '%H:%M:%S',
+        const database = {
+            parameters: {
+                code: "en_US",
+                date_format: '%m/%d/%Y',
+                decimal_point: ".",
+                direction: 'ltr',
+                grouping: [],
+                thousands_sep: ",",
+                time_format: '%H:%M:%S',
+            },
         };
         let testEnv = {};
         const defaultEnv = {
-            _t: env._t || Object.assign((s => s), {
-                database: { parameters: databaseParams },
-            }),
-            _lt: env._lt || Object.assign((s => s), {
-                database: { parameters: databaseParams },
-            }),
+            _t: env._t || Object.assign((s => s), { database }),
+            _lt: env._lt || Object.assign((s => s), { database }),
             bus: new Bus(),
-            device: Object.assign({
-                isMobile: false,
-            }, env.device),
+            device: Object.assign({ isMobile: false }, env.device),
             isDebug: env.isDebug || (() => false),
             qweb: new owl.QWeb({ templates: session.owlTemplates }),
             services: Object.assign({
@@ -60,9 +56,7 @@ odoo.define('web.test_env', async function (require) {
                 },
                 local_storage: new RamStorageService(),
                 session_storage: new RamStorageService(),
-                notification: {
-                    notify: () => {}
-                }
+                notification: { notify() { } },
             }, env.services),
             session: Object.assign({
                 rpc(route, params, options) {
@@ -82,6 +76,7 @@ odoo.define('web.test_env', async function (require) {
      */
     QUnit.on('OdooBeforeTestHook', function () {
         owl.Component.env = makeTestEnvironment();
+        owl.config.mode = "dev";
     });
 
     return makeTestEnvironment;

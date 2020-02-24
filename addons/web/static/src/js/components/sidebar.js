@@ -67,7 +67,7 @@ odoo.define('web.Sidebar', function (require) {
         get printItems() {
             const printActions = this.props.items.print || [];
             const printItems = printActions.map(
-                action => ({ action, description: action.name })
+                action => ({ action, description: action.name, key: action.id })
             );
             return printItems;
         }
