@@ -445,17 +445,6 @@ action = model.setting_init_bank_account_action()
             </field>
         </record>
 
-        <record id="account_tag_action" model="ir.actions.act_window">
-            <field name="name">Account Tags</field>
-            <field name="res_model">account.account.tag</field>
-            <field name="search_view_id" ref="account_tag_view_search"/>
-            <field name="help" type="html">
-              <p class="o_view_nocontent_smiling_face">
-                Add a new tag
-              </p>
-            </field>
-        </record>
-
         <!-- Bank statement -->
 
         <record id="view_account_bnk_stmt_cashbox" model="ir.ui.view">
@@ -770,14 +759,6 @@ action = model.setting_init_bank_account_action()
                 the related sale or puchase invoice(s).
               </p>
             </field>
-        </record>
-
-        <record id="action_bank_statement_draft_tree" model="ir.actions.act_window">
-            <field name="name">Draft statements</field>
-            <field name="res_model">account.bank.statement</field>
-            <field name="view_mode">tree,form</field>
-            <field name="domain">[('state','=','draft')]</field>
-            <field name="filter" eval="True"/>
         </record>
 
         <record id="view_account_reconcile_model_form" model="ir.ui.view">
@@ -1239,13 +1220,6 @@ action = model.setting_init_bank_account_action()
                 </tree>
             </field>
         </record>
-        <record id="action_tax_group" model="ir.actions.act_window">
-            <field name="name">Tax Groups</field>
-            <field name="res_model">account.tax.group</field>
-            <field name="view_mode">tree</field>
-            <field name="domain" eval="False"/> <!-- Force empty -->
-            <field name="view_id" ref="view_tax_group_tree"/>
-        </record>
 
         <!-- Full Reconcile -->
         <record id="view_full_reconcile_form" model="ir.ui.view">
@@ -1449,12 +1423,6 @@ action = model.setting_init_bank_account_action()
                    </group>
                 </search>
             </field>
-        </record>
-        <record id="action_account_template_form" model="ir.actions.act_window">
-            <field name="name">Account Templates</field>
-            <field name="res_model">account.account.template</field>
-            <field name="view_mode">tree,form</field>
-            <field name="search_view_id" ref="view_account_template_search"/>
         </record>
 
         <!-- Chart of Accounts Templates -->
@@ -1676,18 +1644,6 @@ action = model.setting_init_bank_account_action()
             </field>
         </record>
 
-        <record id="action_account_fiscal_position_template_form" model="ir.actions.act_window">
-            <field name="name">Fiscal Position</field>
-            <field name="res_model">account.fiscal.position.template</field>
-            <field name="view_mode">tree,form</field>
-            <field name="search_view_id" ref="view_account_position_template_search"/>
-            <field name="help" type="html">
-              <p class="o_view_nocontent_smiling_face">
-                Create a new fiscal position
-              </p>
-            </field>
-        </record>
-
         <record id="account_bank_statement_pivot" model="ir.ui.view">
             <field name="name">account.bank.statement.pivot</field>
             <field name="model">account.bank.statement</field>
@@ -1830,18 +1786,6 @@ action = model.setting_init_bank_account_action()
                     <field name="name"/>
                     <field name="company_id" groups="base.group_multi_company"/>
                 </tree>
-            </field>
-        </record>
-
-        <record id="action_account_group_tree" model="ir.actions.act_window">
-            <field name="name">Account Groups</field>
-            <field name="res_model">account.group</field>
-            <field name="view_mode">tree,form</field>
-            <field name="search_view_id" ref="view_account_group_search"/>
-            <field name="help" type="html">
-                <p class="o_view_nocontent_smiling_face">
-                    Create a new account group
-                </p>
             </field>
         </record>
 

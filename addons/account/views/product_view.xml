@@ -49,5 +49,7 @@
                 </group>
             </field>
         </record>
+
+        <menuitem id="menu_product_product_categories" action="product.product_category_action_form" parent="account.account_account_menu" sequence="3"/>
     </data>
 </odoo>
