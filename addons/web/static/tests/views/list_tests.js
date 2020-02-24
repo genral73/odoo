@@ -93,7 +93,7 @@ QUnit.module('Views', {
                     name: {string: "name", type: "char"},
                 },
                 records: [
-                    {id: "2-20170808020000", name: "virtual"},
+                    {id: 69, name: "virtual"},
                 ]
             },
             "ir.translation": {
@@ -4042,7 +4042,7 @@ QUnit.module('Views', {
             assert.deepEqual(_.pick(event.data, 'mode', 'model', 'res_id', 'view_type'), {
                 mode: 'readonly',
                 model: 'event',
-                res_id: '2-20170808020000',
+                res_id: 69,
                 view_type: 'form',
             }, "should trigger a switch_view event to the form view for the record virtual id");
         });
