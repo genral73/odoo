@@ -20,3 +20,6 @@ class ResConfigSettings(models.TransientModel):
         and widgets to help the encoding. All reporting will still be expressed in hours (default value).""")
     timesheet_min_duration = fields.Integer('Minimal duration', default=15, config_parameter='hr_timesheet.timesheet_min_duration')
     timesheet_rounding = fields.Integer('Rounding up', default=15, config_parameter='hr_timesheet.timesheet_rounding')
+    # Used to hide "timesheet_min_duration" and "timesheet_rounding" in view.
+    # If (timesheet_encode_uom_name = 'Days') and (module_project_timesheet_synchro = False), they are hidden.
+    timesheet_encode_uom_name = fields.Char(string="Encoding Unit Name", related='timesheet_encode_uom_id.name')
