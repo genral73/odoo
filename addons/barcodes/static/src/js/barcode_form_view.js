@@ -89,58 +89,54 @@ FormController.include({
      * @private
      */
     _barcodePagerFirst: async function () {
-        await this.mutex.exec(() => {});
-        const state = this.model.get(this.handle, { raw: true });
-        const pagerProps = this._getPagerProps(state);
-        if (!pagerProps) {
-            return this.do_warn(_t('Error: Pager not available'));
-        }
-        pagerProps.currentMinimum = 1;
-        return this._reloadPagerProps(pagerProps);
+        return this._changePagerProps(() => 1);
     },
     /**
      * @private
      */
     _barcodePagerLast: async function () {
-        await this.mutex.exec(() => {});
-        const state = this.model.get(this.handle, { raw: true });
-        const pagerProps = this._getPagerProps(state);
-        if (!pagerProps) {
-            return this.do_warn(_t('Error: Pager not available'));
-        }
-        pagerProps.currentMinimum = state.count;
-        return this._reloadPagerProps(pagerProps);
+        return this._changePagerProps((min, state) => state.count);
     },
     /**
      * @private
      */
-    _barcodePagerNext: async function () {
-        await this.mutex.exec(() => {});
-        const state = this.model.get(this.handle, { raw: true });
-        const pagerProps = this._getPagerProps(state);
-        if (!pagerProps) {
-            return this.do_warn(_t('Error: Pager not available'));
-        }
-        pagerProps.currentMinimum++;
-        if (pagerProps.currentMinimum > state.count) {
-            pagerProps.currentMinimum = 1;
-        }
-        return this._reloadPagerProps(pagerProps);
+    _barcodePagerNext: function () {
+        return this._changePagerProps((min, state) => {
+            min += 1;
+            if (min > state.count) {
+                min = 1;
+            }
+            return min;
+        });
     },
     /**
      * @private
      */
-    _barcodePagerPrevious: async function () {
+    _barcodePagerPrevious: function () {
+        return this._changePagerProps((min, state) => {
+            min -= 1;
+            if (min < 1) {
+                min = state.count;
+            }
+            return min;
+        });
+    },
+    /**
+     * Change the current minimum value of the pager using provided function.
+     * This function will be given the current minimum and state and must return
+     * the updated value.
+     *
+     * @private
+     * @param {Function(currentMin:Number)} modifier
+     */
+    _changePagerProps: async function (modifier) {
         await this.mutex.exec(() => {});
         const state = this.model.get(this.handle, { raw: true });
         const pagerProps = this._getPagerProps(state);
         if (!pagerProps) {
             return this.do_warn(_t('Error: Pager not available'));
         }
-        pagerProps.currentMinimum--;
-        if (pagerProps.currentMinimum < 1) {
-            pagerProps.currentMinimum = state.count;
-        }
+        pagerProps.currentMinimum = modifier(pagerProps.currentMinimum, state);
         return this._reloadPagerProps(pagerProps);
     },
     /**
