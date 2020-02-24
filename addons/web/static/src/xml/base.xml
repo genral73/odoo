@@ -81,6 +81,55 @@
 
 <t t-name="ControlPanelMobile" owl="1">
     <div class="o_control_panel">
+        <!-- Mobile search view open -->
+        <div t-if="state.isFiltering" class="o_searchview">
+            <div class="o_mobile_search">
+                <div class="o_mobile_search_header">
+                    <button type="button"
+                        class="o_mobile_search_button btn float-left"
+                        t-on-click.stop="state.isFiltering = !state.isFiltering"
+                        >
+                        <i class="fa fa-arrow-left"/>
+                        <strong class="ml8">FILTER</strong>
+                    </button>
+                    <button type="button"
+                        class="o_mobile_search_button btn"
+                        t-on-click.stop="dispatch('clearQuery')"
+                        >
+                        CLEAR
+                    </button>
+                </div>
+                <SearchBar t-if="props.withSearchBar" fields="props.fields"/>
+                <div class="o_mobile_search_filter o_search_options"
+                    t-ref="searchViewButtons"
+                    >
+                    <FilterMenu t-if="props.searchMenuTypes.includes('filter')"
+                        class="o_filters_menu"
+                        fields="props.fields"
+                    />
+                    <GroupByMenu t-if="props.searchMenuTypes.includes('groupBy')"
+                        class="o_group_bys_menu"
+                        fields="props.fields"
+                    />
+                    <TimeRangeMenu t-if="props.searchMenuTypes.includes('timeRange')"
+                        class="o_time_range_menu"
+                        fields="props.fields"
+                    />
+                    <FavoriteMenu t-if="props.searchMenuTypes.includes('favorite')"
+                        class="o_favorites_menu"
+                        fields="props.fields"
+                        viewType="props.viewType"
+                    />
+                </div>
+                <button type="button"
+                    class="btn btn-primary o_mobile_search_show_result fixed-bottom"
+                    t-on-click.stop="state.isFiltering = !state.isFiltering"
+                    >
+                    SEE RESULT
+                </button>
+            </div>
+        </div>
+        <!-- Standard control panel display -->
         <div class="o_cp_top">
             <ol t-if="props.withBreadcrumbs and !state.isSearching" class="breadcrumb" role="navigation">
                 <t t-set="breadcrumb" t-value="props.breadcrumbs[props.breadcrumbs.length - 1]"/>
@@ -97,53 +146,7 @@
                 t-ref="searchView"
                 >
                 <div t-if="props.withSearchBar" class="o_searchview" role="search" aria-autocomplete="list">
-                    <!-- Mobile search view open -->
-                    <div t-if="state.isFiltering" class="o_mobile_search">
-                        <div class="o_mobile_search_header">
-                            <button type="button"
-                                class="o_mobile_search_button btn float-left"
-                                t-on-click.stop="state.isFiltering = !state.isFiltering"
-                                >
-                                <i class="fa fa-arrow-left"/>
-                                <strong class="ml8">FILTER</strong>
-                            </button>
-                            <button type="button"
-                                class="o_mobile_search_button btn"
-                                t-on-click.stop="dispatch('clearQuery')"
-                                >
-                                CLEAR
-                            </button>
-                        </div>
-                        <SearchBar t-if="props.withSearchBar" fields="props.fields"/>
-                        <div class="o_mobile_search_filter o_search_options"
-                            t-ref="searchViewButtons"
-                            >
-                            <FilterMenu t-if="props.searchMenuTypes.includes('filter')"
-                                class="o_filters_menu"
-                                fields="props.fields"
-                            />
-                            <GroupByMenu t-if="props.searchMenuTypes.includes('groupBy')"
-                                class="o_group_bys_menu"
-                                fields="props.fields"
-                            />
-                            <TimeRangeMenu t-if="props.searchMenuTypes.includes('timeRange')"
-                                class="o_time_range_menu"
-                                fields="props.fields"
-                            />
-                            <FavoriteMenu t-if="props.searchMenuTypes.includes('favorite')"
-                                class="o_favorites_menu"
-                                fields="props.fields"
-                                viewType="props.viewType"
-                            />
-                        </div>
-                        <button type="button"
-                            class="btn btn-primary o_mobile_search_show_result fixed-bottom"
-                            t-on-click.stop="state.isFiltering = !state.isFiltering"
-                            >
-                            SEE RESULT
-                        </button>
-                    </div>
-                    <t t-else="">
+                    <t t-if="!state.isFiltering">
                         <t t-if="state.isSearching">
                             <SearchBar t-if="props.withSearchBar" fields="props.fields"/>
                             <button type="button"

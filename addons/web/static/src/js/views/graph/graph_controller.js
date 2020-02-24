@@ -11,6 +11,15 @@ const DropdownMenu = require('web.DropdownMenu');
 const { DEFAULT_INTERVAL, INTERVAL_OPTIONS } = require('web.controlPanelParameters');
 const { qweb } = require('web.core');
 
+class GroupByMenu extends DropdownMenu {
+    /**
+     * @override
+     */
+    get displayCaret() {
+        return true;
+    }
+}
+
 var GraphController = AbstractController.extend({
     custom_events: _.extend({}, AbstractController.prototype.custom_events, {
         item_selected: '_onItemSelected',
@@ -100,8 +109,9 @@ var GraphController = AbstractController.extend({
             if (this.isEmbedded) {
                 const self = this;
                 const activeGroupBys = this.model.get().groupBy;
-                this.groupByMenuWrapper = new ComponentWrapper(this, DropdownMenu, {
+                this.groupByMenuWrapper = new ComponentWrapper(this, GroupByMenu, {
                     title: "Group By",
+                    icon: 'fa fa-bars',
                     items: this._getGroupBys(activeGroupBys),
                 });
                 this.groupByMenuWrapper.mount(this.$buttons[0]).then(() => {
@@ -170,7 +180,7 @@ var GraphController = AbstractController.extend({
             return groupBy;
         }).sort((gb1, gb2) => {
             return gb1.description.localeCompare(gb2.description);
-        })
+        });
         return groupBys;
     },
 

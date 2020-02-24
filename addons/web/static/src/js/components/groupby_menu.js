@@ -38,6 +38,7 @@ odoo.define('web.GroupByMenu', function (require) {
         // Getters
         //--------------------------------------------------------------------------
 
+
         get items() {
             return this.getters.getFiltersOfType('groupBy');
         }
