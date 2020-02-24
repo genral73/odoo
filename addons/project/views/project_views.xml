@@ -533,11 +533,8 @@
                                             <div t-if="record.rating_active.raw_value" class="mt8 text-primary" title="Percentage of happy ratings over the past 30 days." groups="project.group_project_rating">
                                                 <b>
                                                     <a name="action_view_all_rating" type="object" context="{'search_default_rating_last_30_days':1}">
-                                                        <t t-if="record.rating_percentage_satisfaction.value == -1">
-                                                            <i class="fa fa-smile-o"/> No rating yet
-                                                        </t>
                                                         <t t-if="record.rating_percentage_satisfaction.value != -1">
-                                                                <i class="fa fa-smile-o" role="img" aria-label="Percentage of satisfaction" title="Percentage of satisfaction"/> <t t-esc="record.rating_percentage_satisfaction.value"/>%
+                                                            <i class="fa fa-smile-o" role="img" aria-label="Percentage of satisfaction" title="Percentage of satisfaction"/> <t t-esc="record.rating_percentage_satisfaction.value"/>%
                                                         </t>
                                                     </a>
                                                 </b>
