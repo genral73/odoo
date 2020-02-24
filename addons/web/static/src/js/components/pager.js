@@ -190,7 +190,6 @@ odoo.define('web.Pager', function (require) {
         editable: Boolean,
         hiddenInSinglePage: Boolean,
         limit: { validate: l => !isNaN(l), optional: 1 },
-        role: { type: String, optional: 1 },
         size: { type: Number, optional: 1 },
         validate: Function,
         withAccessKey: Boolean,

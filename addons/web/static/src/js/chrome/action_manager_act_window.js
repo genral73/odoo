@@ -18,9 +18,6 @@ ActionManager.include({
         execute_action: '_onExecuteAction',
         switch_view: '_onSwitchView',
     }),
-    events: _.extend({}, ActionManager.prototype.events, {
-        switch_view: '_onSwitchView',
-    }),
 
     //--------------------------------------------------------------------------
     // Public
@@ -709,10 +706,9 @@ ActionManager.include({
      */
     _onSwitchView: function (ev) {
         ev.stopPropagation();
-        const detail = ev.detail || ev.data;
-        const viewType = detail.view_type;
+        const viewType = ev.data.view_type;
         const currentController = this.getCurrentController();
-        if (currentController.jsID === detail.controllerID) {
+        if (currentController.jsID === ev.data.controllerID) {
             // only switch to the requested view if the controller that
             // triggered the request is the current controller
             const action = this.actions[currentController.actionID];
@@ -720,10 +716,10 @@ ActionManager.include({
             action.controllerState = _.extend({}, action.controllerState, currentControllerState);
             const options = {
                 controllerState: action.controllerState,
-                currentId: detail.res_id,
+                currentId: ev.data.res_id,
             };
-            if (detail.mode) {
-                options.mode = detail.mode;
+            if (ev.data.mode) {
+                options.mode = ev.data.mode;
             }
             this._switchController(action, viewType, options);
         }

@@ -213,10 +213,8 @@
         <link rel="stylesheet" type="text/scss" href="/web/static/src/scss/kanban_column_progressbar.scss"/>
         <link rel="stylesheet" type="text/scss" href="/web/static/src/scss/kanban_view.scss"/>
         <link rel="stylesheet" type="text/scss" href="/web/static/src/scss/web_calendar.scss"/>
-        <link rel="stylesheet" type="text/scss" href="/web/static/src/scss/web_calendar_mobile.scss"/>
         <link rel="stylesheet" type="text/scss" href="/web/static/src/scss/search_view.scss"/>
         <link rel="stylesheet" type="text/scss" href="/web/static/src/scss/search_panel.scss"/>
-        <link rel="stylesheet" type="text/scss" href="/web/static/src/scss/search_view_mobile.scss"/>
         <link rel="stylesheet" type="text/scss" href="/web/static/src/scss/dropdown_menu.scss"/>
         <link rel="stylesheet" type="text/scss" href="/web/static/src/scss/search_view_extra.scss"/>
         <link rel="stylesheet" type="text/scss" href="/web/static/src/scss/data_export.scss"/>
@@ -324,9 +322,7 @@
         <script type="text/javascript" src="/web/static/src/js/views/basic/basic_renderer.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/control_panel_model.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/control_panel.js"></script>
-        <script type="text/javascript" src="/web/static/src/js/views/control_panel/control_panel_wrapper.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/control_panel_x2many.js"></script>
-        <script type="text/javascript" src="/web/static/src/js/views/control_panel/control_panel_mobile.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/control_panel_parameters.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/search_panel.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/field_manager_mixin.js"></script>

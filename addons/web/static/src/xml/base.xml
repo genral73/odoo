@@ -68,130 +68,13 @@
                         />
                     </t>
                 </div>
-                <Pager class="o_cp_pager" role="'search'" t-ref="pager" t-props="props.pager"/>
+                <div class="o_cp_pager" role="search" t-ref="pager">
+                    <Pager t-if="props.pager and props.pager.limit" t-props="props.pager"/>
+                </div>
                 <nav t-if="props.views.length &gt; 1" class="btn-group o_cp_switch_buttons" role="toolbar" aria-label="View switcher">
                     <t t-foreach="props.views" t-as="view" t-key="view.type">
                         <t t-call="ViewSwitcherButton"/>
                     </t>
-                </nav>
-            </div>
-        </div>
-    </div>
-</t>
-
-<t t-name="ControlPanelMobile" owl="1">
-    <div class="o_control_panel">
-        <!-- Mobile search view open -->
-        <div t-if="state.isFiltering" class="o_searchview">
-            <div class="o_mobile_search">
-                <div class="o_mobile_search_header">
-                    <button type="button"
-                        class="o_mobile_search_button btn float-left"
-                        t-on-click.stop="state.isFiltering = !state.isFiltering"
-                        >
-                        <i class="fa fa-arrow-left"/>
-                        <strong class="ml8">FILTER</strong>
-                    </button>
-                    <button type="button"
-                        class="o_mobile_search_button btn"
-                        t-on-click.stop="dispatch('clearQuery')"
-                        >
-                        CLEAR
-                    </button>
-                </div>
-                <SearchBar t-if="props.withSearchBar" fields="props.fields"/>
-                <div class="o_mobile_search_filter o_search_options"
-                    t-ref="searchViewButtons"
-                    >
-                    <FilterMenu t-if="props.searchMenuTypes.includes('filter')"
-                        class="o_filters_menu"
-                        fields="props.fields"
-                    />
-                    <GroupByMenu t-if="props.searchMenuTypes.includes('groupBy')"
-                        class="o_group_bys_menu"
-                        fields="props.fields"
-                    />
-                    <TimeRangeMenu t-if="props.searchMenuTypes.includes('timeRange')"
-                        class="o_time_range_menu"
-                        fields="props.fields"
-                    />
-                    <FavoriteMenu t-if="props.searchMenuTypes.includes('favorite')"
-                        class="o_favorites_menu"
-                        fields="props.fields"
-                        viewType="props.viewType"
-                    />
-                </div>
-                <button type="button"
-                    class="btn btn-primary o_mobile_search_show_result fixed-bottom"
-                    t-on-click.stop="state.isFiltering = !state.isFiltering"
-                    >
-                    SEE RESULT
-                </button>
-            </div>
-        </div>
-        <!-- Standard control panel display -->
-        <div class="o_cp_top">
-            <ol t-if="props.withBreadcrumbs and !state.isSearching" class="breadcrumb" role="navigation">
-                <t t-set="breadcrumb" t-value="props.breadcrumbs[props.breadcrumbs.length - 1]"/>
-                <li t-if="breadcrumb"
-                    class="breadcrumb-item o_back_button btn btn-secondary"
-                    accesskey="b"
-                    t-on-click.prevent="trigger('breadcrumb_clicked', { controllerID: breadcrumb.controllerID })"
-                />
-                <li class="breadcrumb-item active" t-esc="props.title"/>
-            </ol>
-            <div class="o_cp_searchview"
-                t-att-class="{ o_searchview_quick: state.isSearching }"
-                role="search"
-                t-ref="searchView"
-                >
-                <div t-if="props.withSearchBar" class="o_searchview" role="search" aria-autocomplete="list">
-                    <t t-if="!state.isFiltering">
-                        <t t-if="state.isSearching">
-                            <SearchBar t-if="props.withSearchBar" fields="props.fields"/>
-                            <button type="button"
-                                class="o_toggle_searchview_full btn fa fa-filter"
-                                t-on-click.stop="state.isFiltering = !state.isFiltering"
-                            />
-                        </t>
-                        <button type="button"
-                            t-attf-class="o_enable_searchview btn btn-link fa fa-{{ state.isSearching ? 'close' : 'search' }}"
-                            t-on-click.stop="state.isSearching = !state.isSearching"
-                        />
-                    </t>
-                </div>
-            </div>
-        </div>
-        <div class="o_cp_bottom">
-            <div class="o_cp_left">
-                <div class="o_cp_buttons" role="toolbar" aria-label="Control panel toolbar" t-ref="buttons">
-                    <t t-slot="buttons"/>
-                </div>
-            </div>
-            <div class="o_cp_right">
-                <Pager class="o_cp_pager" role="'search'" t-ref="pager" t-props="props.pager"/>
-                <nav t-if="props.views and props.views.length &gt; 1"
-                    class="btn-group o_cp_switch_buttons"
-                    t-att-class="{ show: state.viewSwitcherOpen }"
-                    role="toolbar"
-                    aria-label="View switcher"
-                    t-on-switch_view="state.viewSwitcherOpen = false"
-                    >
-                    <button type="button"
-                        class="btn btn-link btn-sm"
-                        t-attf-aria-expanded="{{ state.viewSwitcherOpen ? 'true' : 'false' }}"
-                        t-on-click="state.viewSwitcherOpen = !state.viewSwitcherOpen"
-                        >
-                        <span class="fa fa-lg" t-att-class="props.views.find(v => v.type === props.viewType).icon"/>
-                    </button>
-                    <ul t-if="state.viewSwitcherOpen"
-                        class="dropdown-menu dropdown-menu-right list-inline"
-                        t-att-class="{ show: state.viewSwitcherOpen }"
-                        >
-                        <li t-foreach="props.views" t-as="view" t-key="view.type">
-                            <t t-call="ViewSwitcherButton"/>
-                        </li>
-                    </ul>
                 </nav>
             </div>
         </div>
@@ -203,7 +86,9 @@
         <div class="o_cp_buttons" role="toolbar" aria-label="Control panel toolbar" t-ref="buttons">
             <t t-slot="buttons"/>
         </div>
-        <Pager class="o_cp_pager" role="'toolbar'" t-props="props.pager"/>
+        <div class="o_cp_pager" role="search" t-ref="pager">
+            <Pager t-if="props.pager and props.pager.limit" t-props="props.pager"/>
+        </div>
     </div>
 </t>
 
@@ -606,48 +491,47 @@
 </t>
 
 <t t-name="Pager" owl="1">
-    <nav t-att-role="props.role" aria-label="Pager">
-        <div t-if="props.limit and !(props.hiddenInSinglePage and singlePage)" class="o_pager">
-            <span class="o_pager_counter" t-on-click.stop="">
-                <input t-if="state.editing" type="text"
-                    class="o_pager_value o_input"
-                    autofocus=""
-                    t-att-value="value"
-                    t-on-blur="state.editing = false"
-                    t-on-change="_onValueChange"
-                    t-on-keydown.stop="_onValueKeydown"
-                />
-                <span t-else=""
-                    class="o_pager_value"
-                    t-esc="value"
-                    t-on-click="_onEdit"
-                />
-                <span> / </span>
-                <span class="o_pager_limit" t-esc="props.size"/>
-            </span>
-            <span class="btn-group" aria-atomic="true">
-                <!-- accesskeys not wanted in X2Many widgets -->
-                <button type="button"
-                    class="fa fa-chevron-left btn btn-secondary o_pager_previous"
-                    t-att-disabled="singlePage"
-                    t-att-accesskey="props.withAccessKey ? 'p' : false"
-                    aria-label="Previous"
-                    title="Previous"
-                    tabindex="-1"
-                    t-on-click="_changeSelection(-1)"
-                />
-                <button type="button"
-                    class="fa fa-chevron-right btn btn-secondary o_pager_next"
-                    t-att-disabled="singlePage"
-                    t-att-accesskey="props.withAccessKey ? 'n' : false"
-                    aria-label="Next"
-                    title="Next"
-                    tabindex="-1"
-                    t-on-click="_changeSelection(1)"
-                />
-            </span>
-        </div>
+    <nav t-if="!props.hiddenInSinglePage || !singlePage" class="o_pager" aria-label="Pager">
+        <span class="o_pager_counter" t-on-click.stop="">
+            <input t-if="state.editing" type="text"
+                class="o_pager_value o_input"
+                autofocus=""
+                t-att-value="value"
+                t-on-blur="state.editing = false"
+                t-on-change="_onValueChange"
+                t-on-keydown.stop="_onValueKeydown"
+            />
+            <span t-else=""
+                class="o_pager_value"
+                t-esc="value"
+                t-on-click="_onEdit"
+            />
+            <span> / </span>
+            <span class="o_pager_limit" t-esc="props.size"/>
+        </span>
+        <span class="btn-group" aria-atomic="true">
+            <!-- accesskeys not wanted in X2Many widgets -->
+            <button type="button"
+                class="fa fa-chevron-left btn btn-secondary o_pager_previous"
+                t-att-disabled="singlePage"
+                t-att-accesskey="props.withAccessKey ? 'p' : false"
+                aria-label="Previous"
+                title="Previous"
+                tabindex="-1"
+                t-on-click="_changeSelection(-1)"
+            />
+            <button type="button"
+                class="fa fa-chevron-right btn btn-secondary o_pager_next"
+                t-att-disabled="singlePage"
+                t-att-accesskey="props.withAccessKey ? 'n' : false"
+                aria-label="Next"
+                title="Next"
+                tabindex="-1"
+                t-on-click="_changeSelection(1)"
+            />
+        </span>
     </nav>
+    <div t-else="o_pager_single_page"/>
 </t>
 
 <t t-name="SearchBar" owl="1">
@@ -793,7 +677,7 @@
         t-attf-title="View {{view.type}}"
         data-toggle="tooltip"
         tabindex="-1"
-        t-on-click="trigger('switch_view', { view_type: view.type })"
+        t-on-click="trigger('switch-view', { view_type: view.type })"
     />
 </t>
 

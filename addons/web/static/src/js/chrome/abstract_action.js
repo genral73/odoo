@@ -12,8 +12,7 @@ var ActionMixin = require('web.ActionMixin');
 var ControlPanel = require('web.ControlPanel');
 var ControlPanelModel = require('web.ControlPanelModel');
 var Widget = require('web.Widget');
-const { WidgetAdapterMixin } = require('web.OwlCompatibility');
-const ControlPanelWrapper = require('web.ControlPanelWrapper');
+const { ComponentWrapper, WidgetAdapterMixin } = require('web.OwlCompatibility');
 
 var AbstractAction = Widget.extend(ActionMixin, WidgetAdapterMixin, {
     config: {
@@ -135,7 +134,7 @@ var AbstractAction = Widget.extend(ActionMixin, WidgetAdapterMixin, {
             if ('title' in this.controlPanelProps) {
                 this._setTitle(this.controlPanelProps.title);
             }
-            this._controlPanelWrapper = new ControlPanelWrapper(this, ControlPanel, this.controlPanelProps);
+            this._controlPanelWrapper = new ComponentWrapper(this, ControlPanel, this.controlPanelProps);
             await this._controlPanelWrapper.mount(this.el, { position: 'first-child' });
 
         }

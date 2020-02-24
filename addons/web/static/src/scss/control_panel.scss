@@ -84,13 +84,13 @@
             text-align: center;
             user-select: none;
 
-            > div {
+            .o_pager {
                 display: flex;
                 align-items: center;
-            }
 
-            .o_pager_counter {
-                margin-right: 5px;
+                .o_pager_counter {
+                    margin-right: 5px;
+                }
             }
         }
 

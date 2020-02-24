@@ -3787,7 +3787,7 @@ QUnit.module('Views', {
         const cpGroupHelpers = getCPHelpers(list.el, '.o_group_header');
         assert.strictEqual(list.$('.o_group_header').css('height'), headerHeight,
             "height of group header shouldn't have changed");
-        assert.hasClass(list.$('.o_group_header th:eq(1) > nav > div'), 'o_pager',
+        assert.hasClass(list.$('.o_group_header th:eq(1) > nav'), 'o_pager',
             "last cell of open group header should have classname 'o_pager'");
 
         assert.strictEqual(cpGroupHelpers.getPagerValue(), '1-3',

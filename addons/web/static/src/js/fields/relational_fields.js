@@ -18,7 +18,6 @@ var basicFields = require('web.basic_fields');
 var concurrency = require('web.concurrency');
 // var ControlPanelRenderer = require('web.ControlPanelRenderer');
 const ControlPanelX2Many = require('web.ControlPanelX2Many');
-const ControlPanelWrapper = require('web.ControlPanelWrapper');
 var core = require('web.core');
 var data = require('web.data');
 var Dialog = require('web.Dialog');
@@ -28,7 +27,7 @@ const Domain = require('web.Domain');
 var KanbanRecord = require('web.KanbanRecord');
 var KanbanRenderer = require('web.KanbanRenderer');
 var ListRenderer = require('web.ListRenderer');
-const { WidgetAdapterMixin } = require('web.OwlCompatibility');
+const { ComponentWrapper, WidgetAdapterMixin } = require('web.OwlCompatibility');
 
 var _t = core._t;
 var _lt = core._lt;
@@ -1047,7 +1046,7 @@ var FieldX2Many = AbstractField.extend(WidgetAdapterMixin, {
         const _super = this._super.bind(this);
         if (this.view) {
             this._renderButtons();
-            this._controlPanelWrapper = new ControlPanelWrapper(this, ControlPanelX2Many, {
+            this._controlPanelWrapper = new ComponentWrapper(this, ControlPanelX2Many, {
                 cp_content: { $buttons: this.$buttons },
                 pager: this.pagerState,
             });

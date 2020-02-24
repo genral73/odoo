@@ -15,12 +15,11 @@ odoo.define('web.AbstractController', function (require) {
 var ActionMixin = require('web.ActionMixin');
 var ajax = require('web.ajax');
 var concurrency = require('web.concurrency');
-var mvc = require('web.mvc');
-var { WidgetAdapterMixin } = require('web.OwlCompatibility');
-
-var session = require('web.session');
-const ControlPanelWrapper = require('web.ControlPanelWrapper');
+const { ComponentWrapper, WidgetAdapterMixin } = require('web.OwlCompatibility');
 const ControlPanel = require('web.ControlPanel');
+var mvc = require('web.mvc');
+var session = require('web.session');
+
 
 var AbstractController = mvc.Controller.extend(ActionMixin, WidgetAdapterMixin, {
     custom_events: _.extend({}, ActionMixin.custom_events, {
@@ -102,7 +101,7 @@ var AbstractController = mvc.Controller.extend(ActionMixin, WidgetAdapterMixin, 
         const promises = [this._super(...arguments)];
         if (this.withControlPanel) {
             this._updateControlPanelProps(this.initialState);
-            this._controlPanelWrapper = new ControlPanelWrapper(this, ControlPanel, this.controlPanelProps);
+            this._controlPanelWrapper = new ComponentWrapper(this, ControlPanel, this.controlPanelProps);
             this._controlPanelWrapper.env.bus.on('focus-view', this, () => this.renderer.giveFocus());
             promises.push(this._controlPanelWrapper.mount(this.el, { position: 'first-child' }));
         }

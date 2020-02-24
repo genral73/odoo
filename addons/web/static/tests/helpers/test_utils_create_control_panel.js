@@ -181,7 +181,7 @@ odoo.define('web.test_utils_create_control_panel', function (require) {
             await click(dropdown);
         },
 
-        // pager interactions
+        // Pager interactions
         async pagerPrevious({ el, rootEl }) {
             await click(el.querySelector(`${rootEl} .o_pager button.o_pager_previous`));
         },
