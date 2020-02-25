@@ -137,7 +137,7 @@ class Digest(models.Model):
         tip.user_ids += user
         body = tools.html_sanitize(tip.tip_description)
         # FIXME: sanitize ? links ,
-        tip_description = self.env['mail.template']._render_template(body, 'digest.tip', [self.id])[self.id]
+        tip_description = self.env['mail.render.mixin']._render_template(body, 'digest.tip', [self.id])[self.id]
         return tip_description
 
     def compute_kpis_actions(self, company, user):
