@@ -94,6 +94,10 @@ odoo.define('web.controlPanelParameters', function (require) {
     };
     const OPTION_GENERATORS = Object.assign({}, MONTH_OPTIONS, QUARTER_OPTIONS, YEAR_OPTIONS);
 
+    function rankPeriod(oId) {
+        return Object.keys(OPTION_GENERATORS).indexOf(oId);
+    }
+
     // GroupBy menu parameters
     const GROUPABLE_TYPES = ['many2one', 'char', 'boolean', 'selection', 'date', 'datetime', 'integer'];
     const DEFAULT_INTERVAL = 'month';
@@ -138,5 +142,7 @@ odoo.define('web.controlPanelParameters', function (require) {
         OPTION_GENERATORS,
         TIME_RANGE_OPTIONS,
         YEAR_OPTIONS,
+
+        rankPeriod,
     };
 });

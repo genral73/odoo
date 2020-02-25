@@ -127,7 +127,8 @@ odoo.define('web.ControlPanelModel', function (require) {
     const { COMPARISON_TIME_RANGE_OPTIONS,
         DEFAULT_INTERVAL, DEFAULT_PERIOD,
         INTERVAL_OPTIONS, OPTION_GENERATORS,
-        TIME_RANGE_OPTIONS, YEAR_OPTIONS } = require('web.controlPanelParameters');
+        TIME_RANGE_OPTIONS, YEAR_OPTIONS,
+        rankPeriod } = require('web.controlPanelParameters');
 
     const FAVORITE_PRIVATE_GROUP = 1;
     const FAVORITE_SHARED_GROUP = 2;
@@ -442,7 +443,11 @@ odoo.define('web.ControlPanelModel', function (require) {
                 (facets, group) => {
                     const { activities, type, id } = group;
                     const filters = activities.map(
-                        ({ filter, filterQueryElements }) => this._enrichFilterCopy(filter, filterQueryElements)
+                        ({ filter, filterQueryElements }) => {
+                            const filterCopy = this._enrichFilterCopy(filter, filterQueryElements);
+                            this._setDescriptionInFacet(filterCopy, filterQueryElements);
+                            return filterCopy;
+                        }
                     );
                     const facet = { group: { type, id }, filters };
                     facets.push(facet);
@@ -942,6 +947,50 @@ odoo.define('web.ControlPanelModel', function (require) {
         }
 
         /**
+         * For filter of type 'filter' with hasOptions=true,
+         * returns an array of domains or descriptions according to key
+         *
+         * @param {Object} filter
+         * @param {Object[]} filterQueryElements
+         * @param {'domain'|'description'} key
+         * @param {boolean} [sort=false]
+         */
+        _extractInfoFromBasicDomains(filter, filterQueryElements, key, sort=false) {
+            const results = [];
+            const yearIds = [];
+            const otherOptionIds = [];
+            filterQueryElements.forEach(({ optionId }) => {
+                if (YEAR_OPTIONS[optionId]) {
+                    yearIds.push(optionId);
+                } else {
+                    otherOptionIds.push(optionId);
+                }
+            });
+
+            if (sort) {
+                const sortOptionIds = (a, b) => rankPeriod(a) - rankPeriod(b);
+                yearIds.sort(sortOptionIds);
+                otherOptionIds.sort(sortOptionIds);
+            }
+
+            // the following case corresponds to years selected only
+            if (otherOptionIds.length === 0) {
+                yearIds.forEach(yearId => {
+                    const d = filter.basicDomains[yearId];
+                    results.push(d[key]);
+                });
+            } else {
+                otherOptionIds.forEach(optionId => {
+                    yearIds.forEach(yearId => {
+                        const d = filter.basicDomains[`${yearId}__${optionId}`];
+                        results.push(d[key]);
+                    });
+                });
+            }
+            return results;
+        }
+
+        /**
          * Construct a timeRange object from the given fieldName, rangeId, comparisonRangeId
          * parameters.
          *
@@ -1070,6 +1119,9 @@ odoo.define('web.ControlPanelModel', function (require) {
             return domains;
         }
 
+
+
+
         /**
          * Compute the string representation of the current domain associated to a date filter
          * starting from its corresponding query elements.
@@ -1080,30 +1132,7 @@ odoo.define('web.ControlPanelModel', function (require) {
          * @returns {string}
          */
         _getDateFilterDomain(filter, filterQueryElements) {
-            const domains = [];
-            const yearIds = [];
-            const otherOptionIds = [];
-            filterQueryElements.forEach(({ optionId }) => {
-                if (YEAR_OPTIONS[optionId]) {
-                    yearIds.push(optionId);
-                } else {
-                    otherOptionIds.push(optionId);
-                }
-            });
-            // the following case corresponds to years selected only
-            if (otherOptionIds.length === 0) {
-                yearIds.forEach(yearId => {
-                    const d = filter.basicDomains[yearId];
-                    domains.push(d.domain);
-                });
-            } else {
-                otherOptionIds.forEach(optionId => {
-                    yearIds.forEach(yearId => {
-                        const d = filter.basicDomains[`${yearId}__${optionId}`];
-                        domains.push(d.domain);
-                    });
-                });
-            }
+            const domains = this._extractInfoFromBasicDomains(filter, filterQueryElements, 'domain');
             return pyUtils.assembleDomains(domains, 'OR');
         }
 
@@ -1660,6 +1689,43 @@ odoo.define('web.ControlPanelModel', function (require) {
             preFilter.serverSideId = serverSideId;
 
             return preFilter;
+        }
+
+
+        /**
+         * Set the key descriptionInFacet in enriched filter copy sent
+         * to the SearchFacet component.
+         *
+         * @private
+         * @param {Object} filter
+         * @returns {string}
+         */
+        _setDescriptionInFacet(filter, filterQueryElements) {
+            let descriptionInFacet;
+
+            if (filter.type === 'timeRange') {
+                descriptionInFacet = `${filter.fieldDescription}: ${filter.rangeDescription}`;
+                if (filter.comparisonRangeDescription) {
+                    descriptionInFacet += ` / ${filter.comparisonRangeDescription}`;
+                }
+                filter.descriptionInFacet = descriptionInFacet;
+                return;
+            } else if (filter.type === 'field') {
+                filter.descriptionInFacet = filter.autoCompleteValues.map(value => value.label);
+                return;
+            }
+            descriptionInFacet = filter.description;
+            if (filter.hasOptions) {
+                let descriptions;
+                if (filter.type === 'filter') {
+                    descriptions = this._extractInfoFromBasicDomains(filter, filterQueryElements, 'description', true);
+                } else {
+                    const currentOptions = filter.options.filter(o => o.isActive);
+                    descriptions = currentOptions.map(o => o.description);
+                }
+                descriptionInFacet += `: ${descriptions.join(" / ")}`;
+            }
+            filter.descriptionInFacet = descriptionInFacet;
         }
 
         /**
