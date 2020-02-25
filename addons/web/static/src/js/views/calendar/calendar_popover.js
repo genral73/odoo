@@ -51,6 +51,28 @@ var CalendarPopover = Widget.extend(StandaloneFieldManagerMixin, {
     //--------------------------------------------------------------------------
 
     /**
+     * Returns the AbstractField specialization that should be used for the
+     * given field informations. If there is no mentioned specific widget to
+     * use, determines one according the field type.
+     *
+     * @private
+     * @param {string} viewType
+     * @param {Object} field
+     * @param {Object} attrs
+     * @returns {function|null} AbstractField specialization Class
+     */
+    _getFieldWidgetClass(field, attrs) {
+        let FieldWidget;
+        if (attrs.widget) {
+            FieldWidget = fieldRegistry.getAny(['form' + "." + attrs.widget, attrs.widget]);
+            if (!FieldWidget) {
+                console.warn("Missing widget: ", attrs.widget, " for field", attrs.name, "of type", field.type);
+            }
+        }
+        return FieldWidget || fieldRegistry.getAny(['form' + "." + field.type, field.type, "abstract"]);
+    },
+
+    /**
      * Generate fields to render into popover
      *
      * @private
@@ -59,8 +81,12 @@ var CalendarPopover = Widget.extend(StandaloneFieldManagerMixin, {
     _processFields: function () {
         var self = this;
         var fieldsToGenerate = [];
+        const fieldInformation = {};
         _.each(this.displayFields, function (displayFieldInfo, fieldName) {
             var fieldInfo = self.fields[fieldName];
+            fieldInformation[fieldName] = {
+                Widget: self._getFieldWidgetClass(fieldInfo, displayFieldInfo.attrs),
+            };
             var field = {
                 name: fieldName,
                 string: displayFieldInfo.attrs.string || fieldInfo.string,
@@ -91,10 +117,12 @@ var CalendarPopover = Widget.extend(StandaloneFieldManagerMixin, {
         });
 
         this.$fieldsList = [];
-        return this.model.makeRecord(this.modelName, fieldsToGenerate).then(function (recordID) {
+        return this.model.makeRecord(this.modelName, fieldsToGenerate, fieldInformation).then(async function (recordID) {
             var defs = [];
 
             var record = self.model.get(recordID);
+            record.res_id = self.event.record.id;
+            await self.model._fetchSpecialData(record);
             _.each(fieldsToGenerate, function (field) {
                 var FieldClass = fieldRegistry.getAny([field.widget, field.type]);
                 var fieldWidget = new FieldClass(self, field.name, record, self.displayFields[field.name]);
