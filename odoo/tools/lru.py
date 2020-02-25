@@ -15,7 +15,9 @@ class LRU(object):
     def __init__(self, count, pairs=()):
         self._lock = threading.RLock()
         self.count = max(count, 1)
-        self.d = collections.OrderedDict(pairs)
+        self.d = collections.OrderedDict()
+        for key, value in pairs:
+            self[key] = value
 
     @synchronized()
     def __contains__(self, obj):
