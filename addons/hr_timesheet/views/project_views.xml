@@ -65,17 +65,18 @@
             <field name="inherit_id" ref="hr_timesheet.project_invoice_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//div[@id='timesheet_settings']" position="after">
-                        <div class="col-lg-6 o_setting_box"  attrs="{'invisible': [('allow_timesheets', '=', False)]}">
-                            <div class="o_setting_left_pane">
-                                <field name="allow_timesheet_timer"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="allow_timesheet_timer"/>
-                                <div class="text-muted">
-                                    Track your time using a timer
-                                </div>
+                    <field name="display_allow_timesheet_timer" invisible="1"/>
+                    <div class="col-lg-6 o_setting_box"  attrs="{'invisible': [('display_allow_timesheet_timer', '=', False)]}">
+                        <div class="o_setting_left_pane">
+                            <field name="allow_timesheet_timer"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="allow_timesheet_timer"/>
+                            <div class="text-muted">
+                                Track your time using a timer
                             </div>
                         </div>
+                    </div>
                 </xpath>
             </field>
         </record>

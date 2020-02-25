@@ -22,6 +22,8 @@ class Project(models.Model):
         readonly=False,
         store=True,
         help="Use a timer to record timesheets on tasks")
+    # Used to hide "allow_timesheet_timer" feature in form view.
+    display_allow_timesheet_timer = fields.Char(compute='_compute_display_allow_timesheet_timer')
 
     timesheet_ids = fields.One2many('account.analytic.line', 'project_id', 'Associated Timesheets')
 
@@ -44,6 +46,12 @@ class Project(models.Model):
     def _compute_allow_timesheet_timer(self):
         for project in self:
             project.allow_timesheet_timer = project.allow_timesheets
+
+    @api.depends('allow_timesheets')
+    def _compute_display_allow_timesheet_timer(self):
+        is_uom_hour = self.env.company.timesheet_encode_uom_id == self.env.ref('uom.product_uom_hour')
+        for project in self:
+            project.display_allow_timesheet_timer = project.allow_timesheets and is_uom_hour
 
     @api.model
     def name_create(self, name):
