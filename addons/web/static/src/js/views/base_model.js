@@ -4,7 +4,21 @@ odoo.define('web.base_model', function (require) {
     const { Context, Component, core } = owl;
     const { Observer } = core;
 
+    /**
+     * The purpose of the class BaseModel and the corresponding hooks
+     * is to offers something similar to an owl store but with no automatic
+     * notification of components when the observed state changes.
+     * Instead, one should call the __notifyComponents function whenever
+     * it should be useful. Nevertheless, when the dispatch method is
+     * properly called, a notifcation do take place automatically.
+     */
+
     class BaseModel extends Context {
+        /**
+         * @param {Object} config
+         * @param {Object} config.env
+         * @param {Object} config.state
+         */
         constructor(config) {
             super(config.state);
             // avoid automatic notification via notifyCB of Context
@@ -17,22 +31,55 @@ odoo.define('web.base_model', function (require) {
             this.updateFunctions = [];
         }
 
-        _registerGetter(getter) {
-            this.getters[getter] = this[getter].bind(this);
-        }
+        //-------------------------------------------------------------------------
+        // Public
+        //-------------------------------------------------------------------------
 
-        _registerMutation(mutation) {
-            this.mutations[mutation] = 1;
-        }
-
+        /**
+         * Call the base model method with given name with the arguments
+         * determined by the dispatch extra arguments.
+         * A preleminary check that the method has been assed to be
+         * a mutation is done.
+         *
+         * @param {string} mutation
+         * @param  {...any} payload
+         * @returns {any}
+         */
         async dispatch(mutation, ...payload) {
             if (!this.mutations[mutation]) {
                 throw new Error(`[Error] mutation ${mutation} is undefined`);
             }
-            return await this[mutation](...payload);
+            const result = await this[mutation](...payload);
+            return result;
+        }
+
+        //-------------------------------------------------------------------------
+        // Private
+        //-------------------------------------------------------------------------
+
+        /**
+         * Expose a method of the base model with given name 'getter'
+         * in the getters object accessible via the hook useGetters.
+         *
+         * @param {string} getter
+         */
+        _registerGetter(getter) {
+            this.getters[getter] = this[getter].bind(this);
+        }
+
+        /**
+         * Allow to use a method of the base model with given name 'mutation'
+         * via the dispatch method.
+         *.
+         * @param {string} mutation
+         */
+        _registerMutation(mutation) {
+            this.mutations[mutation] = 1;
         }
     }
 
+    // This function is just a copy of the same function in owl.js
+    // The fact is that it is not exported.
     function useContextWithCB(ctx, component, method) {
         const __owl__ = component.__owl__;
         const id = __owl__.id;
