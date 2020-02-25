@@ -171,6 +171,7 @@ class MailRenderMixin(models.AbstractModel):
         if not template_txt:
             return results
 
+        # TDE FIXME: check 6dde919bb9850912f618b561cd2141bffe41340c
         # try to load the template
         try:
             jinja_env = jinja_safe_template_env if self.env.context.get('safe') else jinja_template_env
