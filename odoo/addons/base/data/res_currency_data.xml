@@ -22,8 +22,9 @@
 
         <record id="CAD" model="res.currency">
             <field name="name">CAD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">CA$</field>
             <field name="rounding">0.01</field>
+            <field name="position">before</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -60,7 +61,7 @@
 
         <record id="COP" model="res.currency">
             <field name="name">COP</field>
-            <field name="symbol">$</field>
+            <field name="symbol">CO$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
@@ -163,7 +164,7 @@
 
         <record id="ARS" model="res.currency">
             <field name="name">ARS</field>
-            <field name="symbol">$</field>
+            <field name="symbol">AR$</field>
             <field name="rounding">0.01</field>
             <field name="position">before</field>
             <field name="active" eval="False"/>
@@ -182,7 +183,7 @@
 
         <record id="AUD" model="res.currency">
             <field name="name">AUD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">AU$</field>
             <field name="position">before</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
@@ -210,9 +211,10 @@
 
         <record id="HKD" model="res.currency">
             <field name="name">HKD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">HK$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -292,7 +294,7 @@
 
         <record id="MXN" model="res.currency">
             <field name="name">MXN</field>
-            <field name="symbol">$</field>
+            <field name="symbol">MX$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
@@ -311,10 +313,11 @@
 
         <record id="NZD" model="res.currency">
             <field name="name">NZD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">NZ$</field>
             <field name="position">before</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -330,9 +333,10 @@
 
         <record id="SGD" model="res.currency">
             <field name="name">SGD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">S$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -408,18 +412,20 @@
 
         <record id="CLP" model="res.currency">
             <field name="name">CLP</field>
-            <field name="symbol">$</field>
+            <field name="symbol">CL$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Peso</field>
             <field name="currency_subunit_label">Centavos</field>
         </record>
 
         <record id="UYU" model="res.currency">
             <field name="name">UYU</field>
-            <field name="symbol">$</field>
+            <field name="symbol">$U</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Peso</field>
             <field name="currency_subunit_label">Centesimos</field>
         </record>
@@ -444,9 +450,10 @@
 
         <record id="XCD" model="res.currency">
             <field name="name">XCD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">EC$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -483,6 +490,7 @@
             <field name="symbol">B$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -510,6 +518,7 @@
             <field name="symbol">Bds$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -537,6 +546,7 @@
             <field name="symbol">BZ$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -546,6 +556,7 @@
             <field name="symbol">BD$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -606,9 +617,10 @@
 
         <record id="KYD" model="res.currency">
             <field name="name">KYD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">CL$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -633,9 +645,10 @@
 
         <record id="CUP" model="res.currency">
             <field name="name">CUP</field>
-            <field name="symbol">$</field>
+            <field name="symbol">$MN</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Peso</field>
             <field name="currency_subunit_label">Centavos</field>
         </record>
@@ -736,6 +749,7 @@
             <field name="symbol">FJ$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -778,9 +792,10 @@
 
         <record id="GYD" model="res.currency">
             <field name="name">GYD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">G$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -832,9 +847,10 @@
 
         <record id="JMD" model="res.currency">
             <field name="name">JMD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">J$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -916,6 +932,7 @@
             <field name="symbol">L$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -934,6 +951,7 @@
             <field name="symbol">MOP$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Pataca</field>
             <field name="currency_subunit_label">Sin</field>
         </record>
@@ -1021,9 +1039,10 @@
 
         <record id="BND" model="res.currency">
             <field name="name">BND</field>
-            <field name="symbol">$</field>
+            <field name="symbol">BN$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -1084,9 +1103,10 @@
 
         <record id="NAD" model="res.currency">
             <field name="name">NAD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">N$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -1114,6 +1134,7 @@
             <field name="symbol">C$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Cordoba</field>
             <field name="currency_subunit_label">Centavos</field>
         </record>
@@ -1141,6 +1162,7 @@
             <field name="symbol">Z$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -1226,9 +1248,10 @@
 
         <record id="TTD" model="res.currency">
             <field name="name">TTD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">TT$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -1238,6 +1261,7 @@
             <field name="symbol">T$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Paanga</field>
             <field name="currency_subunit_label">Seniti</field>
         </record>
@@ -1274,6 +1298,7 @@
             <field name="symbol">NT$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -1298,9 +1323,10 @@
 
         <record id="SRD" model="res.currency">
             <field name="name">SRD</field>
-            <field name="symbol">$</field>
+            <field name="symbol">Sr$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -1354,6 +1380,7 @@
             <field name="symbol">SI$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
         </record>
@@ -1417,6 +1444,7 @@
             <field name="symbol">WS$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Tala</field>
             <field name="currency_subunit_label">Sene</field>
         </record>
@@ -1513,9 +1541,10 @@
 
         <record id="CVE" model="res.currency">
             <field name="name">CVE</field>
-            <field name="symbol">$</field>
+            <field name="symbol">CV$</field>
             <field name="rounding">0.01</field>
             <field name="active" eval="False"/>
+            <field name="position">before</field>
             <field name="currency_unit_label">Escudo</field>
             <field name="currency_subunit_label">Centavo</field>
         </record>
