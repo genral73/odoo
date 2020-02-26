@@ -7,7 +7,6 @@ from datetime import timedelta
 from odoo import api, fields, models, tools, SUPERUSER_ID, _
 from odoo.exceptions import UserError, AccessError, ValidationError
 from odoo.tools.misc import format_date
-from odoo.tools import safe_eval
 
 
 class ProjectTaskType(models.Model):
@@ -49,7 +48,7 @@ class ProjectTaskType(models.Model):
         help="Automatically modify the kanban state when the customer replies to the feedback for this stage.\n"
             " * A good feedback from the customer will update the kanban state to 'ready for the new stage' (green bullet).\n"
             " * A medium or a bad feedback will set the kanban state to 'blocked' (red bullet).\n")
-    projects_rating_disabled = fields.Text(compute='_compute_project_rating_disabled_warning')
+    disabled_rating_warning = fields.Text(compute='_compute_disabled_rating_warning')
 
     def unlink(self):
         stages = self
@@ -63,9 +62,9 @@ class ProjectTaskType(models.Model):
         return super(ProjectTaskType, stages).unlink()
 
     @api.depends('project_ids', 'project_ids.rating_active')
-    def _compute_project_rating_disabled_warning(self):
-        for r in self:
-            r.projects_rating_disabled = '\n'.join(map(lambda p: '- ' + str(p.name), r.project_ids._origin.filtered(lambda p: not p.rating_active)))
+    def _compute_disabled_rating_warning(self):
+        for stage in self:
+            stage.disabled_rating_warning = '\n'.join(map(lambda p: '- ' + str(p.name), stage.project_ids._origin.filtered(lambda p: not p.rating_active)[:5]))
 
 
 class Project(models.Model):
@@ -410,7 +409,7 @@ class Project(models.Model):
         """ return the action to see all the rating of the project and activate default filters"""
         action = self.env['ir.actions.act_window'].for_xml_id('project', 'rating_rating_action_view_project_rating')
         action['name'] = _('Ratings of %s') % (self.name,)
-        action_context = safe_eval(action['context']) if action['context'] else {}
+        action_context = ast.literal_eval(action['context']) if action['context'] else {}
         action_context.update(self._context)
         action_context['search_default_parent_res_name'] = self.name
         action_context.pop('group_by', None)

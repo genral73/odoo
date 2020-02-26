@@ -42,7 +42,7 @@ class Rating(models.Model):
     rated_partner_id = fields.Many2one('res.partner', string="Rated person", help="Owner of the rated resource")
     partner_id = fields.Many2one('res.partner', string='Customer', help="Author of the rating")
     rating = fields.Float(string="Rating Number", group_operator="avg", default=0, help="Rating value: 0=Unhappy, 5=Happy")
-    rating_for_image = fields.Float(string="Adjusted Rating for Image", compute='_compute_rating_for_image', default=0, help="Rating floored to image value (1-3-5)")
+    rating_for_image = fields.Float(string="Adjusted Rating for Image", compute='_compute_rating_for_image', help="Rating floored to image value (1-3-5)")
     rating_image = fields.Binary('Image', compute='_compute_rating_image')
     rating_text = fields.Selection([
         ('satisfied', 'Satisfied'),
@@ -70,13 +70,14 @@ class Rating(models.Model):
     @api.depends('rating')
     def _compute_rating_for_image(self):
         for rating in self:
-            rating.rating_for_image = 0
             if rating.rating >= RATING_LIMIT_SATISFIED:
                 rating.rating_for_image = 5
             elif rating.rating >= RATING_LIMIT_OK:
                 rating.rating_for_image = 3
             elif rating.rating >= RATING_LIMIT_MIN:
                 rating.rating_for_image = 1
+            else:
+                rating.rating_for_image = 0
 
     @api.depends('rating_for_image')
     def _compute_rating_image(self):
