@@ -493,7 +493,6 @@ odoo.define('web.ControlPanelModel', function (require) {
          */
         async dispatch() {
             const result = await super.dispatch(...arguments);
-            this.__notifyComponents();
             this.trigger('search', this.getQuery());
             return result;
         }
