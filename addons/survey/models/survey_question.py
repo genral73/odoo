@@ -79,7 +79,7 @@ class SurveyQuestion(models.Model):
         ('datetime', 'Datetime'),
         ('simple_choice', 'Multiple choice: only one answer'),
         ('multiple_choice', 'Multiple choice: multiple answers allowed'),
-        ('matrix', 'Matrix')], string='Question Type')
+        ('matrix', 'Matrix')], string='Question Type', compute='_compute_question_type', store=True, readonly=False)
     # -- char_box
     save_as_email = fields.Boolean(
         "Save as user email", compute='_compute_save_as_email', readonly=False, store=True, copy=True,
@@ -112,7 +112,7 @@ class SurveyQuestion(models.Model):
     comments_message = fields.Char('Comment Message', translate=True, default=lambda self: _("If other, please specify:"))
     comment_count_as_answer = fields.Boolean('Comment Field is an Answer Choice')
     # question validation
-    validation_required = fields.Boolean('Validate entry')
+    validation_required = fields.Boolean('Validate entry', compute='_compute_validation_required', store=True, readonly=False)
     validation_email = fields.Boolean('Input must be an email')
     validation_length_min = fields.Integer('Minimum Text Length')
     validation_length_max = fields.Integer('Maximum Text Length')
@@ -156,15 +156,17 @@ class SurveyQuestion(models.Model):
         ('validation_datetime', 'CHECK (validation_min_datetime <= validation_max_datetime)','Max datetime cannot be smaller than min datetime!')
     ]
 
-    @api.onchange('validation_email')
-    def _onchange_validation_email(self):
-        if self.validation_email:
-            self.validation_required = False
+    @api.depends('validation_email')
+    def _compute_validation_required(self):
+        for question in self:
+            if question.validation_required is None or question.validation_email:
+                self.validation_required = False
 
-    @api.onchange('is_page')
-    def _onchange_is_page(self):
-        if self.is_page:
-            self.question_type = False
+    @api.depends('is_page')
+    def _compute_question_type(self):
+        for question in self:
+            if question.question_type is None or question.is_page:
+                question.question_type = False
 
     @api.depends('survey_id.question_and_page_ids.is_page', 'survey_id.question_and_page_ids.sequence')
     def _compute_question_ids(self):
