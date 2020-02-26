@@ -50,6 +50,7 @@ odoo.define('web.base_model', function (require) {
                 throw new Error(`[Error] mutation ${mutation} is undefined`);
             }
             const result = await this[mutation](...payload);
+            this.__notifyComponents();
             return result;
         }
 
@@ -124,6 +125,11 @@ odoo.define('web.base_model', function (require) {
 
     const isStrictEqual = (a, b) => a === b;
 
+    //-------------------------------------------------------------------------
+    // Hooks
+    //-------------------------------------------------------------------------
+
+
     function useBaseModel(selector, options = {}) {
         const component = Component.current;
         const componentId = component.__owl__.id;
@@ -163,9 +169,9 @@ odoo.define('web.base_model', function (require) {
                 return component.render();
             }
         });
-        // onWillUpdateProps(props => {
-        //     selectCompareUpdate(baseModel.state, props);
-        // });
+        onWillUpdateProps(props => {
+            selectCompareUpdate(baseModel.state, props);
+        });
         const __destroy = component.__destroy;
         component.__destroy = parent => {
             delete baseModel.updateFunctions[componentId];
