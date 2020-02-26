@@ -656,7 +656,14 @@ form: module.record_id""" % (xml_id,)
         return self.env['ir.model.data'].xmlid_to_res_model_res_id(id_str, raise_if_not_found=raise_if_not_found)
 
     def _tag_root(self, el):
-        for rec in el:
+        def skip_root(root):
+            for node in root:
+                if node.tag in self.DATA_ROOTS:
+                    yield from skip_root(node)
+                else:
+                    yield node
+
+        for rec in skip_root(el):
             f = self._tags.get(rec.tag)
             if f is None:
                 continue
@@ -703,8 +710,6 @@ form: module.record_id""" % (xml_id,)
             'template': self._tag_template,
             'report': self._tag_report,
             'act_window': self._tag_act_window,
-
-            **dict.fromkeys(self.DATA_ROOTS, self._tag_root)
         }
 
     def parse(self, de):
