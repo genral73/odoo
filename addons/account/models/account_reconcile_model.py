@@ -768,12 +768,12 @@ class AccountReconcileModel(models.Model):
 
         return rslt, new_reconciled_aml_ids, new_treated_aml_ids
 
-    def _filter_candidates(self, candidates, amls_ids_to_exclude, reconciled_amls_ids):
+    def _filter_candidates(self, candidates, amls_ids_to_exclude, reconciled_amls_ids): #TODO OCO DOC
         candidates_by_priority = self._sort_reconciliation_candidates_by_priority(candidates, amls_ids_to_exclude, reconciled_amls_ids)
         candidates = itertools.chain.from_iterable(candidates_by_priority.values()) # candidates_by_priority may have filtered out less interesting candidates
         return list(candidates), candidates_by_priority
 
-    def _get_writeoff_suggestion_rule_result(self, st_line, partner_map):
+    def _get_writeoff_suggestion_rule_result(self, st_line, partner_map):  #TODO OCO DOC
         rslt = {
             'model': self,
             'status': 'write_off',
