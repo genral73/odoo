@@ -597,7 +597,7 @@
             <field name="name">project.task.kanban</field>
             <field name="model">project.task</field>
             <field name="arch" type="xml">
-                <kanban default_group_by="stage_id" class="o_kanban_small_column o_kanban_project_tasks" on_create="quick_create" quick_create_view="project.quick_create_task_form" examples="project">
+                <kanban default_group_by="stage_id" class="o_kanban_small_column o_kanban_project_tasks" on_create="quick_create" quick_create_view="project.quick_create_task_form" examples="project" js_class="project_kanban">
                     <field name="color"/>
                     <field name="priority"/>
                     <field name="stage_id" options='{"group_by_tooltip": {"description": "Description"}}'/>
@@ -879,7 +879,7 @@
             <field name="name">project.task.type.form</field>
             <field name="model">project.task.type</field>
             <field name="arch" type="xml">
-                <form string="Task Stage">
+                <form string="Task Stage" delete="0">
                     <sheet>
                         <group>
                             <group>
@@ -978,6 +978,15 @@
                 solving a task or an issue.
               </p>
             </field>
+        </record>
+
+        <record id="unlink_task_type_action" model="ir.actions.server">
+            <field name="name">Delete</field>
+            <field name="model_id" ref="project.model_project_task_type"/>
+            <field name="binding_model_id" ref="project.model_project_task_type"/>
+            <field name="binding_view_types">form</field>
+            <field name="state">code</field>
+            <field name="code">action = records.unlink_wizard(stage_view=True)</field>
         </record>
 
         <menuitem id="menu_tasks_config" name="GTD" parent="menu_project_config" sequence="2"/>

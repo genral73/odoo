@@ -37,6 +37,7 @@
         'data/digest_data.xml',
         'data/project_mail_template_data.xml',
         'data/project_data.xml',
+        'wizard/project_task_type_delete_views.xml',
     ],
     'demo': ['data/project_demo.xml'],
     'test': [

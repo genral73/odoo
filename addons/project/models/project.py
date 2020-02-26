@@ -49,14 +49,50 @@ class ProjectTaskType(models.Model):
             " * A good feedback from the customer will update the kanban state to 'ready for the new stage' (green bullet).\n"
             " * A medium or a bad feedback will set the kanban state to 'blocked' (red bullet).\n")
 
+    def unlink_wizard(self, stage_view=False):
+        self.ensure_one()
+        self = self.with_context(active_test=False)
+        # retrieves all the projects with a least 1 task in that stage
+        # a task can be in a stage even if the project is not assigned to the stage
+        readgroup = self.with_context(active_test=False).env['project.task'].read_group([('stage_id', 'in', self.ids)], ['project_id'], ['project_id'])
+        project_ids = list(set([project['project_id'][0] for project in readgroup] + self.project_ids.ids))
+
+        if not len(project_ids):
+            self.unlink()
+            if stage_view:
+                action = self.env.ref('project.open_task_type_form').read()[0]
+            else:
+                action = self.env.ref('project.action_view_all_task').read()[0]
+            action['target'] = 'main'
+            return action
+
+        wizard = self.with_context(project_ids=project_ids).env['project.task.type.delete.wizard'].create({
+            'project_ids': project_ids,
+            'stage_id': self.id
+        })
+
+        context = dict(self.env.context)
+        context.update({'stage_view': stage_view})
+
+        return {
+            'name': _('Delete Stage'),
+            'view_mode': 'form',
+            'res_model': 'project.task.type.delete.wizard',
+            'views': [(self.env.ref('project.view_project_task_type_delete_wizard').id, 'form')],
+            'type': 'ir.actions.act_window',
+            'res_id': wizard.id,
+            'target': 'new',
+            'context': context,
+        }
+
     def unlink(self):
         stages = self
-        default_project_id = self.env.context.get('default_project_id')
-        if default_project_id:
-            shared_stages = self.filtered(lambda x: len(x.project_ids) > 1 and default_project_id in x.project_ids.ids)
-            tasks = self.env['project.task'].with_context(active_test=False).search([('project_id', '=', default_project_id), ('stage_id', 'in', self.ids)])
+        default_project_ids = self.env.context.get('default_project_ids') or [self.env.context.get('default_project_id'), ]
+        if default_project_ids:
+            shared_stages = self.filtered(lambda x: len(x.project_ids) > 1)
+            tasks = self.env['project.task'].with_context(active_test=False).search([('project_id', 'in', default_project_ids), ('stage_id', 'in', self.ids)])
             if shared_stages and not tasks:
-                shared_stages.write({'project_ids': [(3, default_project_id)]})
+                shared_stages.write({'project_ids': [(3, default_project_id) for default_project_id in default_project_ids]})
                 stages = self.filtered(lambda x: x not in shared_stages)
         return super(ProjectTaskType, stages).unlink()
 

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_project_task_type_delete_wizard" model="ir.ui.view">
+        <field name="name">project.task.type.delete.wizard.form</field>
+        <field name="model">project.task.type.delete.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Delete Stage">
+                <field name="stage_id" invisible="1" />
+                <field name="task_count" invisible="1" />
+                <field name="single_project" invisible="1" />
+                <field name="project_ids" invisible="1"/>
+                <div attrs="{'invisible': ['|', ('single_project', '=', False), ('task_count', '>', 0)]}">
+                    <p>Are you sure you want to delete this stage?</p>
+                </div>
+                <div attrs="{'invisible': [('single_project', '=', True), ('task_count', '=', 0)]}">
+                    <p>Tasks contained in this stage must be moved to another one before it can be deleted.</p>
+                    <p>Alternatively, you can delete the tasks contained in this stage.</p>
+                    <group>
+                        <group>
+                            <field name="action" nolabel="1" widget="radio" colspan="2" />
+                            <separator/>
+                            <field name="delete_from" widget="radio" attrs="{'invisible': [('single_project', '=', True)], 'required': [('single_project', '=', False)]}" />
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="move_line_ids" nolabel="1" attrs="{'invisible': ['|', '|', ('action', '=', 'delete'), ('single_project', '=', True), ('delete_from', '!=', 'all')]}" colspan="2">
+                                <tree editable="bottom">
+                                    <field name="stage_id" invisible="1" />
+                                    <field name="project_id" options="{'no_open': True, 'no_create': True, 'no_edit': True}" required="1" />
+                                    <field name="new_stage_id" context="{'default_project_ids': [project_id]}" required="1" />
+                                </tree>
+                            </field>
+                            <field name="project_id" attrs="{'invisible': ['|', ('single_project', '=', True), ('delete_from', '!=', 'single')], 'required': [('single_project', '=', False), ('delete_from', '=', 'single')]}"/>
+                            <field name="new_stage_id" context="{'default_project_ids': [project_id]}" attrs="{'invisible': ['|', ('action', '=', 'delete'), ('delete_from', '!=', 'single')], 'required': [('action', '=', 'move'), ('delete_from', '=', 'single'), ('task_count', '>', 0)]}" />
+                        </group>
+                    </group>
+                </div>
+
+                <footer attrs="{'invisible': ['|', ('single_project', '=', False), ('task_count', '>', 0)]}">
+                    <button string="Confirm" type="object" name="move" class="btn btn-primary" />
+                    <button string="Discard" special="cancel" />
+                </footer>
+                <footer attrs="{'invisible': [('single_project', '=', True), ('task_count', '=', 0)]}">
+                    <button string="Move and delete" type="object" name="move" class="btn btn-primary" attrs="{'invisible': [('action', '=', 'delete')]}" />
+                    <button string="Delete" type="object" name="move" class="btn btn-primary" attrs="{'invisible': [('action', '=', 'move')]}" confirm="Are you sure you want to delete the stage and all of its tasks?" />
+                    <button string="Discard" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
