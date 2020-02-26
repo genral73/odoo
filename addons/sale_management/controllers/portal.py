@@ -44,11 +44,16 @@ class CustomerPortal(CustomerPortal):
         if quantity < 0:
             quantity = 0.0
         order_line.write({'product_uom_qty': quantity})
+        order_line._onchange_discount()
+        product = order_line.product_id.with_context(lang=order_line.order_id.partner_id.lang, quantity=order_line.product_uom_qty)
+        order_line.price_unit = order_line._get_display_price(product)
         currency = order_sudo.currency_id
         format_price = partial(formatLang, request.env, digits=currency.decimal_places)
 
         results = {
             'order_line_product_uom_qty': str(quantity),
+            'order_line_price_unit': format_price(order_line.price_unit),
+            'order_line_discount': str(order_line.discount),
             'order_line_price_total': format_price(order_line.price_total),
             'order_line_price_subtotal': format_price(order_line.price_subtotal),
             'order_amount_total': format_price(order_sudo.amount_total),

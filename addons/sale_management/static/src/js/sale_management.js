@@ -89,6 +89,8 @@ publicWidget.registry.SaleUpdateLineButton = publicWidget.Widget.extend({
         var orderTotalsTable = $(data.order_totals_table);
 
         var lineProductUomQty = data.order_line_product_uom_qty;
+        var linePriceUnit = data.order_line_price_unit;
+        var lineDiscount = data.order_line_discount;
         var linePriceTotal = data.order_line_price_total;
         var linePriceSubTotal = data.order_line_price_subtotal;
 
@@ -99,6 +101,12 @@ publicWidget.registry.SaleUpdateLineButton = publicWidget.Widget.extend({
         }
         if (this.elems.$linePriceSubTotal.length && linePriceSubTotal !== undefined) {
             this.elems.$linePriceSubTotal.text(linePriceSubTotal);
+        }
+        if (this.elems.$linePriceUnit !== undefined) {
+            this.elems.$linePriceUnit.text(linePriceUnit);
+        }
+        if (this.elems.$lineDiscount !== undefined) {
+            this.elems.$lineDiscount.text(lineDiscount);
         }
 
         if (orderAmountUntaxed !== undefined) {
@@ -126,6 +134,8 @@ publicWidget.registry.SaleUpdateLineButton = publicWidget.Widget.extend({
      */
     _getUpdatableElements: function () {
         var $parentTr = this.$el.parents('tr:first');
+        var $linePriceUnit = $parentTr.find('.oe_order_line_price_unit');
+        var $lineDiscount = $parentTr.find('.oe_order_line_discount');
         var $linePriceTotal = $parentTr.find('.oe_order_line_price_total .oe_currency_value');
         var $linePriceSubTotal = $parentTr.find('.oe_order_line_price_subtotal .oe_currency_value');
 
@@ -144,6 +154,8 @@ publicWidget.registry.SaleUpdateLineButton = publicWidget.Widget.extend({
 
         return {
             $lineQuantity: this.$el.closest('.input-group').find('.js_quantity'),
+            $linePriceUnit: $linePriceUnit,
+            $lineDiscount: $lineDiscount,
             $linePriceSubTotal: $linePriceSubTotal,
             $linePriceTotal: $linePriceTotal,
             $orderAmountUntaxed: $orderAmountUntaxed,
