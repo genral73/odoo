@@ -48,6 +48,7 @@ class ProjectTaskType(models.Model):
         help="Automatically modify the kanban state when the customer replies to the feedback for this stage.\n"
             " * A good feedback from the customer will update the kanban state to 'ready for the new stage' (green bullet).\n"
             " * A medium or a bad feedback will set the kanban state to 'blocked' (red bullet).\n")
+    is_closed = fields.Boolean('Is a close stage', help="Tasks in this stage are considered as closed.")
 
     def unlink(self):
         stages = self
@@ -89,7 +90,7 @@ class Project(models.Model):
             ])
 
     def _compute_task_count(self):
-        task_data = self.env['project.task'].read_group([('project_id', 'in', self.ids), '|', ('stage_id.fold', '=', False), ('stage_id', '=', False)], ['project_id'], ['project_id'])
+        task_data = self.env['project.task'].read_group([('project_id', 'in', self.ids), '|', '&', ('stage_id.is_closed', '=', False), ('stage_id.fold', '=', False), ('stage_id', '=', False)], ['project_id'], ['project_id'])
         result = dict((data['project_id'][0], data['project_id_count']) for data in task_data)
         for project in self:
             project.task_count = result.get(project.id, 0)
@@ -476,7 +477,7 @@ class Task(models.Model):
         project_id = self.env.context.get('default_project_id')
         if not project_id:
             return False
-        return self.stage_find(project_id, [('fold', '=', False)])
+        return self.stage_find(project_id, [('fold', '=', False), ('is_closed', '=', False)])
 
     @api.model
     def _default_company_id(self):
@@ -551,6 +552,7 @@ class Task(models.Model):
     legend_blocked = fields.Char(related='stage_id.legend_blocked', string='Kanban Blocked Explanation', readonly=True, related_sudo=False)
     legend_done = fields.Char(related='stage_id.legend_done', string='Kanban Valid Explanation', readonly=True, related_sudo=False)
     legend_normal = fields.Char(related='stage_id.legend_normal', string='Kanban Ongoing Explanation', readonly=True, related_sudo=False)
+    is_closed = fields.Boolean(related="stage_id.is_closed", string="Is Closed", readonly=True, related_sudo=False)
     parent_id = fields.Many2one('project.task', string='Parent Task', index=True)
     child_ids = fields.One2many('project.task', 'parent_id', string="Sub-tasks", context={'active_test': False})
     subtask_project_id = fields.Many2one('project.project', related="project_id.subtask_project_id", string='Sub-task Project', readonly=True)
@@ -675,7 +677,7 @@ class Task(models.Model):
                 self.partner_id = self.project_id.partner_id
             # find stage
             if self.project_id not in self.stage_id.project_ids:
-                self.stage_id = self.stage_find(self.project_id.id, [('fold', '=', False)])
+                self.stage_id = self.stage_find(self.project_id.id, [('fold', '=', False), ('is_closed', '=', False)])
             # keep multi company consistency
             self.company_id = self.project_id.company_id
         else:
@@ -754,6 +756,7 @@ class Task(models.Model):
     def create(self, vals):
         # context: no_log, because subtype already handle this
         context = dict(self.env.context)
+        stage_id = vals.get('stage_id') or context.get('default_stage_id') or False
         # for default stage
         if vals.get('project_id') and not context.get('default_project_id'):
             context['default_project_id'] = vals.get('project_id')
@@ -761,8 +764,8 @@ class Task(models.Model):
         if vals.get('user_id'):
             vals['date_assign'] = fields.Datetime.now()
         # Stage change: Update date_end if folded stage and date_last_stage_update
-        if vals.get('stage_id'):
-            vals.update(self.update_date_end(vals['stage_id']))
+        if stage_id:
+            vals.update(self.update_date_end(stage_id))
             vals['date_last_stage_update'] = fields.Datetime.now()
         task = super(Task, self.with_context(context)).create(vals)
         return task
@@ -790,7 +793,7 @@ class Task(models.Model):
 
     def update_date_end(self, stage_id):
         project_task_type = self.env['project.task.type'].browse(stage_id)
-        if project_task_type.fold:
+        if project_task_type.fold or project_task_type.is_closed:
             return {'date_end': fields.Datetime.now()}
         return {'date_end': False}
 
