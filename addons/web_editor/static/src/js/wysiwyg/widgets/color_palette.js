@@ -2,7 +2,7 @@ odoo.define('web_editor.ColorPalette', function (require) {
 'use strict';
 
 const core = require('web.core');
-const {ColorpickerDialog, ColorpickerWidget} = require('web.Colorpicker');
+const ColorpickerWidget = require('web.Colorpicker').ColorpickerWidget;
 const Widget = require('web.Widget');
 const summernoteCustomColors = require('web_editor.rte.summernote_custom_colors');
 
@@ -18,7 +18,10 @@ const ColorPaletteWidget = Widget.extend({
         'mouseenter button': '_onColorButtonEnter',
         'mouseleave button': '_onColorButtonLeave',
         'click .o_colorpicker_reset': '_onColorResetButtonClick',
-        'click .o_add_custom_color': '_onCustomColorButtonClick',
+    },
+    custom_events: {
+        'colorpicker_update': '_onColorPickerUpdate',
+        'colorpicker_preview_update': '_onColorPickerPreviewUpdate',
     },
     /**
      * @override
@@ -66,7 +69,7 @@ const ColorPaletteWidget = Widget.extend({
      * @override
      */
     start: function () {
-        const res = this._super.apply(this, arguments);
+        const proms = [this._super.apply(this, arguments)];
 
         const $wrapper = this.$('.o_colorpicker_section_tabs');
         $(qweb.render('web_editor.colorpicker')).appendTo($wrapper);
@@ -124,12 +127,13 @@ const ColorPaletteWidget = Widget.extend({
         // Select selected Color
         if (this.options.selectedColor) {
             this.selectedColor = ColorpickerWidget.normalizeCSSColor(this.options.selectedColor);
-            this.selectedColor = this.colorToColorNames[this.selectedColor] || this.selectedColor;
-            const selectedButton = this.el.querySelector(`button[data-color="${this.selectedColor}"], button[style*="background-color:${this.selectedColor};"]`);
-            selectedButton && selectedButton.classList.add('selected');
+            this._markSelectedColor();
         }
 
-        return res;
+        // Colorpicker
+        proms.push(this._addColorPicker());
+
+        return Promise.all(proms);
     },
     /**
      * Return a list of the color names used in the color palette
@@ -141,6 +145,21 @@ const ColorPaletteWidget = Widget.extend({
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
+
+    /**
+     * @private
+     */
+    _addColorPicker: function () {
+        let defaultColor = this.selectedColor;
+        if (defaultColor && !ColorpickerWidget.isCSSColor(defaultColor)) {
+            defaultColor = ColorpickerWidget.normalizeCSSColor(this.style.getPropertyValue('--' + defaultColor).trim());
+        }
+        this.colorPicker && this.colorPicker.destroy();
+        this.colorPicker = new ColorpickerWidget(this, {
+            defaultColor: defaultColor,
+        });
+        return this.colorPicker.prependTo(this.$el);
+    },
 
     /**
      * Hardcode some existing colors (but make them hidden in the colorpicker)
@@ -167,9 +186,10 @@ const ColorPaletteWidget = Widget.extend({
         if (this.options.excluded.includes('custom')) {
             return;
         }
+        this.el.querySelectorAll('.o_custom_color').forEach(el => el.remove());
         const existingColors = new Set(this.summernoteCustomColorsArray.concat(
-            [...this.el.querySelectorAll('.o_custom_color')].map(el => {
-                return ColorpickerWidget.normalizeCSSColor(el.style.backgroundColor);
+            [...this.el.querySelectorAll('[data-color]')].map(el => {
+                return ColorpickerWidget.normalizeCSSColor(this.style.getPropertyValue('--' + el.dataset.color).trim());
             })
         ));
         this.trigger_up('get_custom_colors', {
@@ -242,6 +262,18 @@ const ColorPaletteWidget = Widget.extend({
     _selectColor: function (colorInfo) {
         this.selectedColor = colorInfo.color = this.colorToColorNames[colorInfo.color] || colorInfo.color;
         this.trigger_up('color_picked', colorInfo);
+        this._markSelectedColor();
+    },
+    /**
+     * Mark the selected color
+     *
+     * @private
+     */
+    _markSelectedColor: function () {
+        this._buildCustomColors();
+        this.el.querySelectorAll('button.selected').forEach(el => el.classList.remove('selected'));
+        const selectedButton = this.el.querySelector(`button[data-color="${this.selectedColor}"], button[style*="background-color:${this.selectedColor};"]`);
+        selectedButton && selectedButton.classList.add('selected');
     },
 
     //--------------------------------------------------------------------------
@@ -258,6 +290,7 @@ const ColorPaletteWidget = Widget.extend({
         const buttonEl = ev.currentTarget;
         const colorInfo = this._getButtonInfo(buttonEl);
         this._selectColor(colorInfo);
+        this._addColorPicker();
     },
     /**
      * Called when a color button is entered.
@@ -302,27 +335,24 @@ const ColorPaletteWidget = Widget.extend({
         });
     },
     /**
-     * Called when the custom color button is clicked.
-     *
      * @private
      * @param {Event} ev
      */
-    _onCustomColorButtonClick: async function (ev) {
-        const target = ev.target;
-        let selectedColor = this.selectedColor;
-        if (!ColorpickerWidget.isCSSColor(selectedColor)) {
-            selectedColor = ColorpickerWidget.normalizeCSSColor(this.style.getPropertyValue('--' + selectedColor).trim());
-        }
-        const colorpicker = new ColorpickerDialog(this, {
-            defaultColor: selectedColor,
+    _onColorPickerPreviewUpdate: function (ev) {
+        this.trigger_up('color_hover', {
+            color: ev.data.cssColor,
+            target: this.colorPicker.el,
         });
-        colorpicker.on('colorpicker:saved', this, ev => {
-            this._selectColor({
-                color: ev.data.cssColor,
-                target: target,
-            });
+    },
+    /**
+     * @private
+     * @param {Event} ev
+     */
+    _onColorPickerUpdate: function (ev) {
+        this._selectColor({
+            color: ev.data.cssColor,
+            target: this.colorPicker.el,
         });
-        colorpicker.open();
     },
 });
 

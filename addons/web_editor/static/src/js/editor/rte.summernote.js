@@ -29,6 +29,12 @@ var applyColor = function (target, eventName, color) {
     $.summernote.pluginEvents[eventName](undefined, eventHandler.modules.editor, layoutInfo, color);
 };
 
+const processAndApplyColor = function (target, eventName, color) {
+    if (!ColorpickerWidget.isCSSColor(color)) {
+        color = (eventName === "foreColor" ? 'text-' : 'bg-') + color;
+    }
+    applyColor(target, eventName, color);
+};
 // Update and change the popovers content, and add history button
 renderer.createPalette = function ($container, options) {
     const $dropdownContent = $container.find(".colorPalette");
@@ -40,6 +46,10 @@ renderer.createPalette = function ($container, options) {
         const mutex = new concurrency.MutexedDropPrevious();
         const $dropdown = $(elem).closest('.btn-group, .dropdown');
         let manualOpening = false;
+        // Prevent dropdown closing on dropdown click
+        $dropdown.on('click', '.dropdown-menu', (ev) => {
+            ev.stopPropagation();
+        });
         $dropdown.on('show.bs.dropdown', () => {
             if (manualOpening) {
                 return true;
@@ -51,17 +61,32 @@ renderer.createPalette = function ($container, options) {
                 const r = range.create();
                 const targetNode = r.sc;
                 const targetElement = targetNode.nodeType === Node.ELEMENT_NODE ? targetNode : targetNode.parentNode;
+                let currentColor = $(targetElement).css(eventName === "foreColor" ? 'color' : 'backgroundColor');
                 colorpicker = new ColorPaletteWidget(parent, {
                     excluded: ['transparent_grayscale'],
                     $editable: rte.Class.prototype.editable(), // Our parent is the root widget, we can't retrieve the editable section from it...
-                    selectedColor: $(targetElement).css(eventName === "foreColor" ? 'color' : 'backgroundColor'),
+                    selectedColor: currentColor,
+                });
+                colorpicker.on('color_picked color_hover', null, ev => {
+                    // Reset the correct range. This will prevent unwanted selections
+                    // while dragging the colorpicker pointer and also reset the selection
+                    // after it has been putted on the colorpicker pointer on click.
+                    const correctRange = document.createRange();
+                    correctRange.setStart(r.sc, r.so);
+                    correctRange.setEnd(r.ec, r.eo);
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(correctRange);
                 });
                 colorpicker.on('color_picked', null, ev => {
-                    let color = ev.data.color;
-                    if (!ColorpickerWidget.isCSSColor(color)) {
-                        color = (eventName === "foreColor" ? 'text-' : 'bg-') + color;
-                    }
-                    applyColor(ev.data.target, eventName, color);
+                    currentColor = ev.data.color;
+                    processAndApplyColor(ev.data.target, eventName, currentColor);
+                });
+                colorpicker.on('color_hover', null, ev => {
+                    processAndApplyColor(ev.data.target, eventName, ev.data.color);
+                });
+                colorpicker.on('color_leave', null, ev => {
+                    applyColor(ev.data.target, eventName, currentColor);
                 });
                 colorpicker.on('color_reset', null, ev => applyColor(ev.data.target, eventName, 'inherit'));
                 return colorpicker.replace(hookEl).then(() => {

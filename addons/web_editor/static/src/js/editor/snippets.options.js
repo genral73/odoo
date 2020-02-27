@@ -721,8 +721,10 @@ const SelectUserValueWidget = UserValueWidget.extend({
     _onClick: function () {
         if (!this.menuTogglerEl.classList.contains('active')) {
             this.trigger_up('user_value_widget_opening');
+            this.menuTogglerEl.classList.add('active');
+        } else {
+            this.close();
         }
-        this.menuTogglerEl.classList.toggle('active');
         const activeButton = this._userValueWidgets.find(widget => widget.isActive());
         if (activeButton) {
             this.menuEl.scrollTop = activeButton.el.offsetTop - (this.menuEl.offsetHeight / 2);
@@ -980,6 +982,9 @@ const ColorpickerUserValueWidget = SelectUserValueWidget.extend({
         'color_leave': '_onColorLeft',
         'color_reset': '_onColorReset',
     }),
+    events: _.extend({}, SelectUserValueWidget.prototype.events, {
+        'click we-select-menu': '_onMenuClick',
+    }),
 
     /**
      * @override
@@ -1026,6 +1031,14 @@ const ColorpickerUserValueWidget = SelectUserValueWidget.extend({
      */
     isContainer: function () {
         return false;
+    },
+    /**
+     * @override
+     */
+    close: function () {
+        this._super(...arguments);
+        this._previewColor = false;
+        this._onUserValueChange();
     },
 
     //--------------------------------------------------------------------------
@@ -1078,15 +1091,15 @@ const ColorpickerUserValueWidget = SelectUserValueWidget.extend({
     //--------------------------------------------------------------------------
 
     /**
-     * Called when a color button is clicked -> confirms the preview.
+     * Called when a color button is clicked -> preview the color
+     * and set the current value. Update of this value on close !
      *
      * @private
      * @param {Event} ev
      */
     _onColorPicked: function (ev) {
-        this._previewColor = false;
-        this._value = ev.data.color;
-        this._onUserValueChange(ev);
+        this._value = this._previewColor = ev.data.color;
+        this._onUserValuePreview(ev);
     },
     /**
      * Called when a color button is entered -> previews the background color.
@@ -1117,6 +1130,14 @@ const ColorpickerUserValueWidget = SelectUserValueWidget.extend({
     _onColorReset: function (ev) {
         this._value = '';
         this._onUserValueChange(ev);
+    },
+    /**
+     * Prevent select closing on click
+     *
+     * @private
+     */
+    _onMenuClick: function (ev) {
+        ev.stopPropagation();
     },
 });
 

@@ -165,7 +165,7 @@ QUnit.module('web_editor', {}, function () {
         });
 
         QUnit.test('colorpicker', async function (assert) {
-            assert.expect(6);
+            assert.expect(7);
 
             var form = await testUtils.createView({
                 View: FormView,
@@ -202,6 +202,11 @@ QUnit.module('web_editor', {}, function () {
                 "should display the color picker");
 
             await testUtils.dom.click($field.find('.note-toolbar .note-back-color-preview button[style="background-color:#00FFFF;"]'));
+
+            assert.ok($field.find('.note-back-color-preview').hasClass('show'),
+                "should not close the color picker");
+
+            await testUtils.dom.click($field.find('.note-toolbar .note-back-color-preview button.dropdown-toggle'));
 
             assert.ok(!$field.find('.note-back-color-preview').hasClass('show'),
                 "should close the color picker");

@@ -407,7 +407,7 @@ body.editor_enable.editor_has_snippets {
                 z-index: $zindex-dropdown;
                 border: 1px solid var(--o-we-color);
                 background-color: var(--o-we-bg-color-dark);
-                max-height: 400px;
+                max-height: 600px;
                 overflow-y: auto;
             }
         }
@@ -607,6 +607,7 @@ body.editor_enable.editor_has_snippets {
 
 // SNIPPET OPTIONS
 .colorpicker {
+    padding: 3px;
     .o_colorpicker_sections {
         font-size: 14px;
 

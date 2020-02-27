@@ -40,17 +40,19 @@ var ColorpickerWidget = Widget.extend({
         this.opacitySliderFlag = false;
         this.colorComponents = {};
 
-        var self = this;
-        var $body = $(document.body);
-        $body.on('mousemove.colorpicker', _.throttle(function (ev) {
-            self._onMouseMovePicker(ev);
-            self._onMouseMoveSlider(ev);
-            self._onMouseMoveOpacitySlider(ev);
+        const $document = $(document);
+        $document.on('mousemove.colorpicker', _.throttle((ev) => {
+            this._onMouseMovePicker(ev);
+            this._onMouseMoveSlider(ev);
+            this._onMouseMoveOpacitySlider(ev);
         }, 10));
-        $body.on('mouseup.colorpicker', _.throttle(function (ev) {
-            self.pickerFlag = false;
-            self.sliderFlag = false;
-            self.opacitySliderFlag = false;
+        $document.on('mouseup.colorpicker', _.throttle((ev) => {
+            if (this.pickerFlag || this.sliderFlag || this.opacitySliderFlag) {
+                this._updateColorPickerStatus();
+            }
+            this.pickerFlag = false;
+            this.sliderFlag = false;
+            this.opacitySliderFlag = false;
         }, 10));
 
         this.options = _.clone(options);
@@ -72,7 +74,7 @@ var ColorpickerWidget = Widget.extend({
             this._updateRgba(rgba.red, rgba.green, rgba.blue, rgba.opacity);
         }
         this._updateUI();
-        return this._super.apply(this, arguments);
+        return this._super.apply(this, arguments).then(this.started = true);
     },
     /**
      * @override
@@ -207,6 +209,14 @@ var ColorpickerWidget = Widget.extend({
         this._updateCssColor();
     },
     /**
+     * Trigger an event to annonce that the widget value has changed
+     *
+     * @private
+     */
+    _updateColorPickerStatus: function () {
+        this.trigger_up('colorpicker_update', this.colorComponents);
+    },
+    /**
      * Updates css color representation.
      *
      * @private
@@ -219,6 +229,9 @@ var ColorpickerWidget = Widget.extend({
         _.extend(this.colorComponents,
             {cssColor: ColorpickerWidget.convertRgbaToCSSColor(r, g, b, a)}
         );
+        if (this.started) {
+            this.trigger_up('colorpicker_preview_update', this.colorComponents);
+        }
     },
 
     //--------------------------------------------------------------------------
@@ -344,6 +357,7 @@ var ColorpickerWidget = Widget.extend({
                 break;
         }
         this._updateUI();
+        this._updateColorPickerStatus();
     },
 });
 
@@ -598,7 +612,9 @@ const ColorpickerDialog = Dialog.extend({
      */
     start: function () {
         const proms = [this._super(...arguments)];
-        this.colorPicker = new ColorpickerWidget(this, this.options);
+        this.colorPicker = new ColorpickerWidget(this, _.extend({
+            colorPreview: true,
+        }, this.options));
         proms.push(this.colorPicker.appendTo(this.$el));
         return Promise.all(proms);
     },
