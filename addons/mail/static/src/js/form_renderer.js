@@ -3,6 +3,7 @@ odoo.define('mail.form_renderer', function (require) {
 
 var Chatter = require('mail.Chatter');
 var FormRenderer = require('web.FormRenderer');
+var pyUtils = require('web.py_utils');
 
 /**
  * Include the FormRenderer to instanciate the chatter area containing (a
@@ -53,9 +54,11 @@ FormRenderer.include({
         var self = this;
         if (node.tag === 'div' && node.attrs.class === 'oe_chatter') {
             if (!this.chatter) {
+                const options = node.attrs.options ? pyUtils.py_eval(node.attrs.options) : {};
                 this.chatter = new Chatter(this, this.state, this.mailFields, {
                     isEditable: this.activeActions.edit,
                     viewType: 'form',
+                    disable_attachment_box: options.disable_attachment_box,
                 });
 
                 var $temporaryParentDiv = $('<div>');
