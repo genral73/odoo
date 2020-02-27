@@ -4,7 +4,7 @@ odoo.define('web_editor.rte.summernote', function (require) {
 var Class = require('web.Class');
 const concurrency = require('web.concurrency');
 var core = require('web.core');
-const ColorpickerDialog = require('web.ColorpickerDialog');
+const ColorpickerWidget = require('web.Colorpicker').ColorpickerWidget;
 var ColorPaletteWidget = require('web_editor.ColorPalette').ColorPaletteWidget;
 var mixins = require('web.mixins');
 var fonts = require('wysiwyg.fonts');
@@ -58,7 +58,7 @@ renderer.createPalette = function ($container, options) {
                 });
                 colorpicker.on('color_picked', null, ev => {
                     let color = ev.data.color;
-                    if (!ColorpickerDialog.isCSSColor(color)) {
+                    if (!ColorpickerWidget.isCSSColor(color)) {
                         color = (eventName === "foreColor" ? 'text-' : 'bg-') + color;
                     }
                     applyColor(ev.data.target, eventName, color);

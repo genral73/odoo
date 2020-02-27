@@ -2,7 +2,7 @@ odoo.define('web_editor.snippets.options', function (require) {
 'use strict';
 
 var core = require('web.core');
-const ColorpickerDialog = require('web.ColorpickerDialog');
+const ColorpickerWidget = require('web.Colorpicker').ColorpickerWidget;
 const Dialog = require('web.Dialog');
 const time = require('web.time');
 var Widget = require('web.Widget');
@@ -1063,7 +1063,7 @@ const ColorpickerUserValueWidget = SelectUserValueWidget.extend({
         this.colorPreviewEl.style.removeProperty('background-color');
 
         if (this._value) {
-            if (ColorpickerDialog.isCSSColor(this._value)) {
+            if (ColorpickerWidget.isCSSColor(this._value)) {
                 this.colorPreviewEl.style.backgroundColor = this._value;
             } else {
                 this.colorPreviewEl.classList.add('bg-' + this._value);
@@ -1905,7 +1905,7 @@ const SnippetOptionWidget = Widget.extend({
      */
     _normalizeWidgetValue: function (value) {
         value = `${value}`.trim(); // Force to a trimmed string
-        value = ColorpickerDialog.normalizeCSSColor(value); // If is a css color, normalize it
+        value = ColorpickerWidget.normalizeCSSColor(value); // If is a css color, normalize it
         return value;
     },
     /**
