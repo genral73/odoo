@@ -368,6 +368,8 @@ actual arch.
     def _check_xml(self):
         # Sanity checks: the view should not break anything upon rendering!
         # Any exception raised below will cause a transaction rollback.
+        if not self.pool.ready and not config['test_enable']:
+            return
         for view in self:
             if not view.arch:
                 continue
