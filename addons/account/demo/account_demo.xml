@@ -46,5 +46,20 @@
         <record id="base.res_partner_1" model="res.partner">
             <field name="property_supplier_payment_term_id" ref="account.account_payment_term_end_following_month"/>
         </record>
+
+        <record id="ir_cron_auto_post_draft_entry" model="ir.cron">
+            <!-- This needs to be done after the installation because wkhtmltopdf tries to download the css
+            from the server, but it can't do it at installation time, leading to a dead lock-->
+            <field name="name">Account; Print demo invoices</field>
+            <field name="nextcall" eval="(DateTime.now() + relativedelta(years=-1)).strftime('%Y-%m-%d %H:%M:%S')" />
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="priority" eval="0"/>
+            <field name="code">
+model.env['ir.actions.report'].search([('report_name', '=', 'account.report_invoice')]).render_qweb_pdf(
+    model.search([('move_type', 'in', ('out_invoice', 'out_refund')), ('message_main_attachment_id', '=', False)]).ids
+)
+            </field>
+            <field name="state">code</field>
+        </record>
     </data>
 </odoo>
