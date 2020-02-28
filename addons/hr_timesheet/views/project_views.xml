@@ -103,14 +103,20 @@
                     <field name="analytic_account_active" invisible="1"/>
                     <field name="allow_timesheets" invisible="1"/>
                     <field name="allow_subtasks" invisible="1"/>
+                    <field name="encoded_uom_in_days" invisible="1"/>
                     <page string="Timesheets" id="timesheets_tab" attrs="{'invisible': [('allow_timesheets', '=', False)]}">
                         <group>
                             <group>
-                                <field name="planned_hours" widget="float_time"/>
-                                    <label for="subtask_planned_hours" groups="project.group_subtask_project" attrs="{'invisible': ['|', ('allow_subtasks', '=', False), ('subtask_count', '=', 0)]}"/>
-                                    <div class="o_row" groups="project.group_subtask_project" attrs="{'invisible': ['|', ('allow_subtasks', '=', False), ('subtask_count', '=', 0)]}">
-                                        <field name="subtask_planned_hours" widget="float_time"/><span> planned hours</span>
-                                    </div>
+                                <label for="planned_hours" string="Planned Hours" attrs="{'invisible': [('encoded_uom_in_days', '=', True)]}"/>
+                                <field name="planned_hours" widget="float_time" attrs="{'invisible': [('encoded_uom_in_days', '=', True)]}" nolabel="1" />
+                                <label for="planned_hours" string="Planned Days" attrs="{'invisible': [('encoded_uom_in_days', '=', False)]}"/>
+                                <field name="planned_hours" widget="float_factor" attrs="{'invisible': [('encoded_uom_in_days', '=', False)]}" nolabel="1" />
+                                <label for="subtask_planned_hours" groups="project.group_subtask_project" attrs="{'invisible': ['|', ('allow_subtasks', '=', False), ('subtask_count', '=', 0)]}"/>
+                                <div class="o_row" groups="project.group_subtask_project" attrs="{'invisible': ['|', ('allow_subtasks', '=', False), ('subtask_count', '=', 0)]}">
+                                    <field name="subtask_planned_hours" widget="timesheet_uom"/>
+                                    <span attrs="{'invisible': [('encoded_uom_in_days', '=', True)]}"> planned hours</span>
+                                    <span attrs="{'invisible': [('encoded_uom_in_days', '=', False)]}"> planned days</span>
+                                </div>
                             </group>
                             <group>
                                 <field name="progress" widget="progressbar"/>
@@ -179,11 +185,31 @@
                     </field>
                     <group attrs="{'invisible': [('analytic_account_active', '=', False)]}">
                         <group class="oe_subtotal_footer oe_right" name="project_hours">
-                            <field name="effective_hours" widget="float_time" />
-                            <button name="action_view_subtask_timesheet" string="Sub-tasks Hours Spent:" type="object" class="oe_inline oe_link pl-0" attrs="{'invisible' : ['|', ('allow_subtasks', '=', False), ('subtask_effective_hours', '=', 0.0)]}"/>
-                            <field name="subtask_effective_hours" widget="float_time" attrs="{'invisible' : ['|', ('allow_subtasks', '=', False), ('subtask_effective_hours', '=', 0.0)]}" nolabel="1"/>
-                            <field name="total_hours_spent" widget="float_time" class="oe_subtotal_footer_separator" attrs="{'invisible' : ['|', ('allow_subtasks', '=', False), ('subtask_effective_hours', '=', 0.0)]}" />
-                            <field name="remaining_hours" widget="float_time" class="oe_subtotal_footer_separator" attrs="{'invisible' : [('planned_hours', '=', 0.0)]}"/>
+                            <span>
+                                <label class="font-weight-bold" for="effective_hours" string="Hours Spent" attrs="{'invisible': [('encoded_uom_in_days', '=', True)]}"/>
+                                <label class="font-weight-bold" for="effective_hours" string="Days Spent" attrs="{'invisible': [('encoded_uom_in_days', '=', False)]}"/>
+                            </span>
+                            <field name="effective_hours" widget="timesheet_uom" nolabel="1"/>
+                            <button name="action_view_subtask_timesheet" type="object" class="oe_inline oe_link pl-0" attrs="{'invisible' : ['|', ('allow_subtasks', '=', False), ('subtask_effective_hours', '=', 0.0)]}">
+                                <span attrs="{'invisible' : [('encoded_uom_in_days', '=', True)]}">Sub-tasks Hours Spent:</span>
+                                <span attrs="{'invisible' : [('encoded_uom_in_days', '=', False)]}">Sub-tasks Days Spent:</span>
+                            </button>
+                            <field name="subtask_effective_hours" widget="timesheet_uom" attrs="{'invisible' : ['|', ('allow_subtasks', '=', False), ('subtask_effective_hours', '=', 0.0)]}" nolabel="1"/>
+                            <span>
+                                <label class="font-weight-bold" for="total_hours_spent" string="Total Hours"
+                                       attrs="{'invisible': ['|', '|', ('allow_subtasks', '=', False), ('subtask_effective_hours', '=', 0.0), ('encoded_uom_in_days', '=', True)]}"/>
+                                <label class="font-weight-bold" for="total_hours_spent" string="Total Days"
+                                       attrs="{'invisible': ['|', '|', ('allow_subtasks', '=', False), ('subtask_effective_hours', '=', 0.0), ('encoded_uom_in_days', '=', False)]}"/>
+                            </span>
+                            <field name="total_hours_spent" widget="timesheet_uom" class="oe_subtotal_footer_separator" nolabel="1"
+                                   attrs="{'invisible' : ['|', ('allow_subtasks', '=', False), ('subtask_effective_hours', '=', 0.0)]}" />
+                            <span>
+                                <label class="font-weight-bold" for="remaining_hours" string="Remaining Hours"
+                                       attrs="{'invisible': ['|', ('planned_hours', '=', 0.0), ('encoded_uom_in_days', '=', True)]}"/>
+                                <label class="font-weight-bold" for="remaining_hours" string="Remaining Days"
+                                       attrs="{'invisible': ['|', ('planned_hours', '=', 0.0), ('encoded_uom_in_days', '=', False)]}"/>
+                            </span>
+                            <field name="remaining_hours" widget="timesheet_uom" class="oe_subtotal_footer_separator"  attrs="{'invisible' : [('planned_hours', '=', 0.0)]}" nolabel="1"/>
                         </group>
                     </group>
                 </page>

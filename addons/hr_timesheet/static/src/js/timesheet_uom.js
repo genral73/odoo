@@ -153,6 +153,7 @@ if (widgetName === 'float_toggle') {
 }
 
 fieldRegistry.add('timesheet_uom', FieldTimesheetUom);
+fieldRegistry.add('float_factor', FieldTimesheetFactor);
 
 
 // bind the formatter and parser method, and tweak the options

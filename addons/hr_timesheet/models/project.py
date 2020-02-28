@@ -130,6 +130,13 @@ class Task(models.Model):
     display_timesheet_timer = fields.Boolean("Display Timesheet Time", compute='_compute_display_timesheet_timer')
 
     display_timer_start_secondary = fields.Boolean(compute='_compute_display_timer_buttons')
+    # Used to know if duration has to be displayed in hours or days
+    encoded_uom_in_days = fields.Boolean(compute='_compute_encode_uom_in_days')
+
+    def _compute_encode_uom_in_days(self):
+        is_uom_day = self.env.company.timesheet_encode_uom_id == self.env.ref('uom.product_uom_day')
+        for task in self:
+            task.encoded_uom_in_days = is_uom_day
 
     @api.depends('display_timesheet_timer', 'timer_start', 'timer_pause', 'total_hours_spent')
     def _compute_display_timer_buttons(self):
