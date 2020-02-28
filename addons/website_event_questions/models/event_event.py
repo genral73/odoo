@@ -27,11 +27,15 @@ class EventEvent(models.Model):
     def _onchange_type(self):
         super(EventEvent, self)._onchange_type()
         if self.event_type_id.use_questions and self.event_type_id.question_ids:
-            self.question_ids = [(5, 0, 0)] + [
+            self.with_context(duplicate_from_event_type_id=self.event_type_id.id).question_ids = [(5, 0, 0)] + [
                 (0, 0, {
                     'title': question.title,
                     'sequence': question.sequence,
                     'is_individual': question.is_individual,
+                    # 'answer_ids': [
+                    #     (0, 0, {'name': answer.name, 'sequence': answer.sequence})
+                    #     for answer in question.answer_ids
+                    # ],
                 })
                 for question in self.event_type_id.question_ids
             ]
