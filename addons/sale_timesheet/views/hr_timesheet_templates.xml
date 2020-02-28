@@ -49,7 +49,8 @@
                             </div>
 
                             <div class="o_title">
-                                <h2>Hours recorded and Profitability</h2>
+                                <h2 t-if="is_uom_day">Days recorded and Profitability</h2>
+                                <h2 t-else="">Hours recorded and Profitability</h2>
                             </div>
 
                             <t t-set="display_cost" t-value="dashboard['profit']['expense_cost'] != 0.0"/>
@@ -59,11 +60,17 @@
                                         <table class="table">
                                             <tbody>
                                                 <th>
-                                                    <a type="action" data-model="account.analytic.line" t-att-data-domain="json.dumps(timesheet_domain)" data-context='{"pivot_row_groupby": ["date:month"],"pivot_column_groupby": ["timesheet_invoice_type"], "pivot_measures": ["unit_amount"]}' data-views='[[0, "pivot"], [0, "list"]]' tabindex="-1">Hours</a>
+                                                    <a type="action" data-model="account.analytic.line" t-att-data-domain="json.dumps(timesheet_domain)"
+                                                       data-context='{"pivot_row_groupby": ["date:month"],"pivot_column_groupby": ["timesheet_invoice_type"], "pivot_measures": ["unit_amount"]}'
+                                                       data-views='[[0, "pivot"], [0, "list"]]' tabindex="-1">
+                                                        <span t-if="is_uom_day">Days</span>
+                                                        <span t-else="">Hours</span>
+                                                    </a>
                                                 </th>
                                                 <tr>
                                                     <td class="o_timesheet_plan_dashboard_cell">
-                                                        <t t-esc="dashboard['hours']['billable_time']" t-options="{'widget': 'float_time'}"/>
+                                                        <t t-if="is_uom_day" t-esc="dashboard['hours']['billable_time']" t-options="{'widget': 'timesheet_uom'}"/>
+                                                        <t t-else="" t-esc="dashboard['hours']['billable_time']" t-options="{'widget': 'float_time'}"/>
                                                     </td>
                                                     <td class="o_timesheet_plan_dashboard_cell">
                                                         (<t t-esc="dashboard['rates']['billable_time']"/> %)
@@ -74,7 +81,8 @@
                                                 </tr>
                                                 <tr>
                                                     <td class="o_timesheet_plan_dashboard_cell">
-                                                        <t t-esc="dashboard['hours']['billable_fixed']" t-options="{'widget': 'float_time'}"/>
+                                                        <t t-if="is_uom_day" t-esc="dashboard['hours']['billable_fixed']" t-options="{'widget': 'timesheet_uom'}"/>
+                                                        <t t-else="" t-esc="dashboard['hours']['billable_fixed']" t-options="{'widget': 'float_time'}"/>
                                                     </td>
                                                     <td class="o_timesheet_plan_dashboard_cell">
                                                         (<t t-esc="dashboard['rates']['billable_fixed']"/> %)
@@ -85,7 +93,8 @@
                                                 </tr>
                                                 <tr t-if="dashboard['hours']['non_billable_project'] != 0">
                                                     <td class="o_timesheet_plan_dashboard_cell">
-                                                        <t t-esc="dashboard['hours']['non_billable_project']" t-options="{'widget': 'float_time'}"/>
+                                                        <t t-if="is_uom_day" t-esc="dashboard['hours']['non_billable_project']" t-options="{'widget': 'timesheet_uom'}"/>
+                                                        <t t-else="" t-esc="dashboard['hours']['non_billable_project']" t-options="{'widget': 'float_time'}"/>
                                                     </td>
                                                     <td class="o_timesheet_plan_dashboard_cell">
                                                         (<t t-esc="dashboard['rates']['non_billable_project']"/> %)
@@ -96,7 +105,8 @@
                                                 </tr>
                                                 <tr>
                                                     <td class="o_timesheet_plan_dashboard_cell">
-                                                        <t t-esc="dashboard['hours']['non_billable']" t-options="{'widget': 'float_time'}"/>
+                                                        <t t-if="is_uom_day" t-esc="dashboard['hours']['non_billable']" t-options="{'widget': 'timesheet_uom'}"/>
+                                                        <t t-else="" t-esc="dashboard['hours']['non_billable']" t-options="{'widget': 'float_time'}"/>
                                                     </td>
                                                     <td class="o_timesheet_plan_dashboard_cell">
                                                         (<t t-esc="dashboard['rates']['non_billable']"/> %)
@@ -117,7 +127,8 @@
                                                 </tr>
                                                 <tr t-if="dashboard['hours']['canceled'] > 0">
                                                     <td class="o_timesheet_plan_dashboard_cell">
-                                                        <t t-esc="dashboard['hours']['canceled']" t-options="{'widget': 'float_time'}"/>
+                                                        <t t-if="is_uom_day" t-esc="dashboard['hours']['canceled']" t-options="{'widget': 'timesheet_uom'}"/>
+                                                        <t t-else="" t-esc="dashboard['hours']['canceled']" t-options="{'widget': 'float_time'}"/>
                                                     </td>
                                                     <td class="o_timesheet_plan_dashboard_cell">
                                                         (<t t-esc="dashboard['rates']['canceled']"/> %)
@@ -127,7 +138,12 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="o_timesheet_plan_dashboard_total"><b><t t-esc="dashboard['hours']['total']" t-options="{'widget': 'float_time'}"/></b></td>
+                                                    <td class="o_timesheet_plan_dashboard_total">
+                                                        <b>
+                                                            <t t-if="is_uom_day" t-esc="dashboard['hours']['total']" t-options="{'widget': 'timesheet_uom'}"/>
+                                                            <t t-else="" t-esc="dashboard['hours']['total']" t-options="{'widget': 'float_time'}"/>
+                                                        </b>
+                                                    </td>
                                                     <td><b>Total</b></td>
                                                     <td></td>
                                                 </tr>
@@ -244,7 +260,8 @@
                                                         </a>
                                                     </td>
                                                     <td class="text-right pr-5" style="width: 10%">
-                                                        <t t-esc="employee['total']" t-options="{'widget': 'float_time'}"/>
+                                                        <t t-if="is_uom_day" t-esc="employee['total']" t-options="{'widget': 'timesheet_uom'}"/>
+                                                        <t t-else="" t-esc="employee['total']" t-options="{'widget': 'float_time'}"/>
                                                     </td>
                                                     <td>
                                                         <div t-if="repartition_employee_max" class="progress" t-attf-style="width: {{max(0, employee['total'] / repartition_employee_max * 100)}}%">
@@ -347,15 +364,24 @@
                                                             <t t-if="row_value_index != 0">
                                                                 <t t-if="row_value_index &lt; len(row)-2">
                                                                     <t t-if="row_is_milestone">
-                                                                        <i t-att-class="'text-muted' if not row_value else ''"><t t-esc="row_value" t-options="{'widget': 'float_time'}"/></i>
+                                                                        <i t-att-class="'text-muted' if not row_value else ''">
+                                                                            <t t-if="is_uom_day" t-esc="row_value" t-options="{'widget': 'timesheet_uom'}"/>
+                                                                            <t t-else="" t-esc="row_value" t-options="{'widget': 'float_time'}"/>
+                                                                        </i>
                                                                     </t>
                                                                     <t t-else="">
-                                                                        <span t-att-class="'text-muted' if not row_value else ''"><t t-esc="row_value" t-options="{'widget': 'float_time'}"/></span>
+                                                                        <span t-att-class="'text-muted' if not row_value else ''">
+                                                                            <t t-if="is_uom_day" t-esc="row_value" t-options="{'widget': 'timesheet_uom'}"/>
+                                                                            <t t-else="" t-esc="row_value" t-options="{'widget': 'float_time'}"/>
+                                                                        </span>
                                                                     </t>
                                                                 </t>
                                                                 <t t-else="">
                                                                     <t t-if="not row_is_milestone and not row[0].get('type') == 'hr_employee'">
-                                                                        <span t-att-class="'text-muted' if not row_value else ''"><t t-esc="row_value" t-options="{'widget': 'float_time'}"/></span>
+                                                                        <span t-att-class="'text-muted' if not row_value else ''">
+                                                                            <t t-if="is_uom_day" t-esc="row_value" t-options="{'widget': 'timesheet_uom'}"/>
+                                                                            <t t-else="" t-esc="row_value" t-options="{'widget': 'float_time'}"/>
+                                                                        </span>
                                                                     </t>
                                                                 </t>
                                                             </t>
@@ -386,7 +412,9 @@
     <template id="progressbar" name="project overview progressbar segments">
         <t t-set="amount" t-value="employee[key]"/>
         <t t-if="amount &gt; 0">
-            <t t-set="title"><t t-esc="label"/>: <t t-esc="amount" t-options="{'widget': 'float_time'}"/></t>
+            <t t-set="title">
+                <t t-esc="label"/>: <t t-if="is_uom_day" t-esc="amount" t-options="{'widget': 'timesheet_uom'}"/><t t-else="" t-esc="amount" t-options="{'widget': 'float_time'}"/>
+            </t>
             <a t-attf-class="progress-bar o_progress_{{key}}"
                t-attf-style="width: {{amount / total * 100}}%"
                type="action" data-model="account.analytic.line"
