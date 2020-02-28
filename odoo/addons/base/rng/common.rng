@@ -21,7 +21,7 @@
                         <!-- Replace all children with content -->
                         <rng:value>inside</rng:value>
                         <!-- Replace matched element itself with content -->
-                        <rng:value>replace</rng:value>
+                        <!-- <rng:value>replace</rng:value> -->
                     </rng:choice>
                 </rng:attribute>
                 <rng:group>
@@ -35,6 +35,20 @@
                             <rng:text />
                         </rng:element>
                     </rng:oneOrMore>
+                </rng:group>
+                <rng:group>
+                    <rng:attribute name="position">
+                        <!-- Edit element attributes -->
+                        <rng:value>replace</rng:value>
+                    </rng:attribute>
+                    <rng:optional>
+                        <rng:attribute name="replace_mode">
+                        <rng:choice>
+                            <rng:value>inner</rng:value>
+                            <rng:value>outer</rng:value>
+                        </rng:choice>
+                        </rng:attribute>
+                    </rng:optional>
                 </rng:group>
             </rng:choice>
         </rng:optional>
