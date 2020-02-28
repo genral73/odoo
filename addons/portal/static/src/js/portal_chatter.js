@@ -83,18 +83,12 @@ var PortalChatter = publicWidget.Widget.extend({
         // set options and parameters
         this.set('message_count', this.options['message_count']);
         this.set('messages', this.preprocessMessages(this.result['messages']));
+        // bind bus event: this (portal.chatter) and 'portal.rating.composer' in portal_rating
+        // are speparate and sibling widgets, this event is to be triggered from portal.rating.composer, 
+        // hence bus event is binded to achive usage of the event in another widget.
+        core.bus.on('post_message', this, this._reloadAfteraPost)
 
-
-        var defs = [];
-        defs.push(this._super.apply(this, arguments));
-
-        // instanciate and insert composer widget
-        if (this.options['display_composer']) {
-            this._composer = new portalComposer.PortalComposer(this, this.options);
-            defs.push(this._composer.replace(this.$('.o_portal_chatter_composer')));
-        }
-
-        return Promise.all(defs);
+        return Promise.all([this._super.apply(this, arguments), this._reloadComposerWidget()]);
     },
 
     //--------------------------------------------------------------------------
@@ -136,6 +130,32 @@ var PortalChatter = publicWidget.Widget.extend({
     // Private
     //--------------------------------------------------------------------------
 
+    /**
+     * Reloads chatter and message count after posting message
+     * @private
+     */
+    _reloadAfteraPost: function (newMessage) {
+        this.messageFetch();
+    },
+    /**
+     * Destroy current composer widget and instanciate and insert new widget
+     * @private
+     */
+    _reloadComposerWidget: function (newMessage) {
+        // destroy existing composer
+        var oldComposer = this._composer;
+        if (oldComposer) {
+            oldComposer.destroy();
+            // load last message for portal chatter
+            core.bus.trigger('post_message', newMessage);
+        }
+        // instanciate and insert composer widget
+        if (this.options['display_composer']) {
+            this._composer = new portalComposer.PortalComposer(this, this.options);
+            this._composer.appendTo(this.$('.o_portal_chatter_composer'));
+            this._composer.on('reload_composer_widget', null, this._reloadComposerWidget.bind(this));
+        }
+    },
     /**
      * @private
      * @returns {Deferred}

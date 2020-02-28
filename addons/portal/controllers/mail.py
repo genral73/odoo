@@ -8,7 +8,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 from odoo import http, _
 from odoo.http import request
 from odoo.osv import expression
-from odoo.tools import consteq, plaintext2html
+from odoo.tools import consteq, plaintext2html, html2plaintext
 from odoo.addons.mail.controllers.main import MailController
 from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.exceptions import AccessError, MissingError, UserError
@@ -113,21 +113,17 @@ class PortalChatter(http.Controller):
             except (AccessError, MissingError):
                 raise UserError(_("The attachment %s does not exist or you do not have the rights to access it.") % attachment_id)
 
-    @http.route(['/mail/chatter_post'], type='http', methods=['POST'], auth='public', website=True)
-    def portal_chatter_post(self, res_model, res_id, message, redirect=None, attachment_ids='', attachment_tokens='', **kw):
-        """Create a new `mail.message` with the given `message` and/or
-        `attachment_ids` and redirect the user to the newly created message.
+    @http.route(['/mail/chatter_post'], type='json', methods=['POST'], auth='public', website=True)
+    def portal_chatter_post(self, res_model, res_id, message, redirect=None, attachment_ids=None, attachment_tokens=None, **kw):
+        """Create a new `mail.message` with the given `message` and/or `attachment_ids` and return new message.
 
         The message will be associated to the record `res_id` of the model
         `res_model`. The user must have access rights on this target document or
         must provide valid identifiers through `kw`. See `_message_post_helper`.
         """
-        url = redirect or (request.httprequest.referrer and request.httprequest.referrer + "#discussion") or '/my'
 
         res_id = int(res_id)
 
-        attachment_ids = [int(attachment_id) for attachment_id in attachment_ids.split(',') if attachment_id]
-        attachment_tokens = [attachment_token for attachment_token in attachment_tokens.split(',') if attachment_token]
         self._portal_post_check_attachments(attachment_ids, attachment_tokens)
 
         if message or attachment_ids:
@@ -144,7 +140,10 @@ class PortalChatter(http.Controller):
             post_values.update((fname, kw.get(fname)) for fname in self._portal_post_filter_params())
             message = _message_post_helper(**post_values)
 
-        return request.redirect(url)
+            return {
+                'message_id': message.id,
+                'message': html2plaintext(message.body)
+            }
 
     @http.route('/mail/chatter_init', type='json', auth='public', website=True)
     def portal_chatter_init(self, res_model, res_id, domain=False, limit=False, **kwargs):

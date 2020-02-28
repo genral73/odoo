@@ -47,9 +47,8 @@ var PortalComposer = publicWidget.Widget.extend({
         this.$attachmentButton = this.$('.o_portal_chatter_attachment_btn');
         this.$fileInput = this.$('.o_portal_chatter_file_input');
         this.$sendButton = this.$('.o_portal_chatter_composer_btn');
-        this.$attachments = this.$('.o_portal_chatter_composer_form .o_portal_chatter_attachments');
-        this.$attachmentIds = this.$('.o_portal_chatter_attachment_ids');
-        this.$attachmentTokens = this.$('.o_portal_chatter_attachment_tokens');
+        this.$attachments = this.$('.o_portal_chatter_composer_input .o_portal_chatter_attachments');
+        this.$inputTextarea = this.$('.o_portal_chatter_composer_input textarea[name="message"]');
 
         return this._super.apply(this, arguments).then(function () {
             if (self.options.default_attachment_ids) {
@@ -138,15 +137,39 @@ var PortalComposer = publicWidget.Widget.extend({
         });
     },
     /**
-     * Returns a Promise that is never resolved to prevent sending the form
-     * twice when clicking twice on the button, in combination with the `async`
-     * in the event definition.
-     *
+     * prepares data to send for message
      * @private
-     * @returns {Promise}
      */
-    _onSubmitButtonClick: function () {
-        return new Promise(function (resolve, reject) {});
+    _prepareMessageData: function () {
+        return _.extend(this.options || {}, {
+            'message': this.$('textarea[name="message"]').val(),
+            'attachment_ids': _.pluck(this.attachments, 'id'),
+            'attachment_tokens': _.pluck(this.attachments, 'access_token'),
+        });
+    },
+    /**
+     * check if message (message and attachment) is empty
+     */
+    isEmpty: function () {
+        return !this.$inputTextarea.val().trim() && !this.attachments.length;
+    },
+    /**
+     * Send message using rpc call and display new message and message count
+     * @private
+     * @param {Event} ev
+     */
+    _onSubmitButtonClick: function (ev) {
+        ev.preventDefault();
+        if (this.isEmpty()) {
+            return;
+        }
+        const self = this;
+        return this._rpc({
+            route: ev.currentTarget.getAttribute('data-action'),
+            params: this._prepareMessageData(),
+        }).then((result) => {
+            self.trigger_up('reload_composer_widget', result);
+        });
     },
 
     //--------------------------------------------------------------------------
@@ -157,8 +180,6 @@ var PortalComposer = publicWidget.Widget.extend({
      * @private
      */
     _updateAttachments: function () {
-        this.$attachmentIds.val(_.pluck(this.attachments, 'id'));
-        this.$attachmentTokens.val(_.pluck(this.attachments, 'access_token'));
         this.$attachments.html(qweb.render('portal.Chatter.Attachments', {
             attachments: this.attachments,
             showDelete: true,

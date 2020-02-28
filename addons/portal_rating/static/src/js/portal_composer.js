@@ -61,12 +61,12 @@ PortalComposer.include({
         var self = this;
         return this._super.apply(this, arguments).then(function () {
             // rating stars
-            self.$input = self.$('input[name="rating_value"]');
+            self.$inputRating = self.$('input[name="rating_value"]');
             self.$star_list = self.$('.stars').find('i');
 
             // set the default value to trigger the display of star widget and update the hidden input value.
             self.set("star_value", self.options.default_rating_value); 
-            self.$input.val(self.options.default_rating_value * STAR_RATING_RATIO);
+            self.$inputRating.val(self.options.default_rating_value * STAR_RATING_RATIO);
         });
     },
 
@@ -74,6 +74,25 @@ PortalComposer.include({
     // Handlers
     //--------------------------------------------------------------------------
 
+    /**
+     * @override
+     * @private
+     */
+    _onSubmitButtonClick: function (ev) {
+        //close rating bootstrap modal
+        this.$el.closest('#ratingpopupcomposer').modal('hide');
+        return this._super.apply(this, arguments);
+    },
+    /**
+     * @override
+     * @private
+     */
+    _prepareMessageData: function () {
+        return _.extend(this._super.apply(this, arguments) || {}, {
+            'message_id': this.options.default_message_id,
+            'rating_value': this.$inputRating.val()
+        });
+    },
     /**
      * @private
      */
@@ -97,7 +116,7 @@ PortalComposer.include({
         var index = this.$('.stars i').index(ev.currentTarget);
         this.set("star_value", index + 1);
         this.user_click = true;
-        this.$input.val(this.get("star_value") * STAR_RATING_RATIO);
+        this.$inputRating.val(this.get("star_value") * STAR_RATING_RATIO);
     },
     /**
      * @private
@@ -119,7 +138,7 @@ PortalComposer.include({
      */
     _onMoveLeaveStar: function () {
         if (!this.user_click) {
-            this.set("star_value", parseInt(this.$input.val()));
+            this.set("star_value", parseInt(this.$inputRating.val()));
         }
         this.user_click = false;
     },

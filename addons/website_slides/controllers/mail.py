@@ -8,35 +8,40 @@ from werkzeug.exceptions import NotFound, Forbidden
 from odoo import http
 from odoo.http import request
 from odoo.addons.portal.controllers.mail import _check_special_access, PortalChatter
-from odoo.tools import plaintext2html
+from odoo.tools import plaintext2html, html2plaintext
 
 
 class SlidesPortalChatter(PortalChatter):
 
-    @http.route(['/mail/chatter_post'], type='http', methods=['POST'], auth='public', website=True)
+    @http.route(['/mail/chatter_post'], type='json', methods=['POST'], auth='public', website=True)
     def portal_chatter_post(self, res_model, res_id, message, **kw):
         result = super(SlidesPortalChatter, self).portal_chatter_post(res_model, res_id, message, **kw)
+        attachments = request.env['mail.message'].browse(result['message_id']).attachment_ids
+        result.update({'default_attachment_ids': attachments.sudo().read(['id', 'name', 'mimetype', 'file_size', 'access_token'])})
         if res_model == 'slide.channel':
             rating_value = kw.get('rating_value', False)
             slide_channel = request.env[res_model].sudo().browse(int(res_id))
             if rating_value and slide_channel and request.env.user.partner_id.id == int(kw.get('pid')):
                 # apply karma gain rule only once
                 request.env.user.add_karma(slide_channel.karma_gen_channel_rank)
+            result.update({
+                'rating_value': rating_value,
+                'ratingAvg': slide_channel.rating_avg,
+                'rating_count': slide_channel.rating_count
+                })
         return result
 
     @http.route([
         '/slides/mail/update_comment',
         '/mail/chatter_update',
-        ], type='http', auth="user")
-    def mail_update_message(self, res_model, res_id, message, message_id, redirect=None, attachment_ids='', attachment_tokens='', **post):
+        ], type='json', auth="user")
+    def mail_update_message(self, res_model, res_id, message, message_id, redirect=None, attachment_ids=None, attachment_tokens=None, **post):
         # keep this mecanism intern to slide currently (saas 12.5) as it is
         # considered experimental
         if res_model != 'slide.channel':
             raise Forbidden()
         res_id = int(res_id)
 
-        attachment_ids = [int(attachment_id) for attachment_id in attachment_ids.split(',') if attachment_id]
-        attachment_tokens = [attachment_token for attachment_token in attachment_tokens.split(',') if attachment_token]
         self._portal_post_check_attachments(attachment_ids, attachment_tokens)
 
         pid = int(post['pid']) if post.get('pid') else False
@@ -69,7 +74,13 @@ class SlidesPortalChatter(PortalChatter):
             rating.write({
                 'rating': float(post['rating_value'])
             })
-
-        # redirect to specified or referrer or simply channel page as fallback
-        redirect_url = redirect or (request.httprequest.referrer and request.httprequest.referrer + '#review') or '/slides/%s' % res_id
-        return werkzeug.utils.redirect(redirect_url, 302)
+        channel = request.env[res_model].browse(res_id)
+        return {
+            'message_id': message.id,
+            'message': html2plaintext(message.body),
+            'rating_value': message.rating_value,
+            'ratingAvg': channel.rating_avg,
+            'rating_count': channel.rating_count,
+            'attachment_ids': message.attachment_ids,
+            'default_attachment_ids': message.attachment_ids.sudo().read(['id', 'name', 'mimetype', 'file_size', 'access_token'])
+        }

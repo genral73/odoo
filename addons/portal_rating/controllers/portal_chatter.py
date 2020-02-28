@@ -23,11 +23,7 @@ class PortalChatter(PortalChatter):
     @http.route()
     def portal_chatter_init(self, res_model, res_id, domain=False, limit=False, **kwargs):
         result = super(PortalChatter, self).portal_chatter_init(res_model, res_id, domain=domain, limit=limit, **kwargs)
-        # get the rating statistics about the record
-        if kwargs.get('rating_include'):
-            record = request.env[res_model].browse(res_id)
-            if hasattr(record, 'rating_get_stats'):
-                result['rating_stats'] = record.sudo().rating_get_stats()
+        result.update(self.portal_rating_stats(res_model, res_id, **kwargs))
         return result
 
     @http.route()
@@ -38,3 +34,12 @@ class PortalChatter(PortalChatter):
             context['rating_include'] = True
             request.context = context
         return super(PortalChatter, self).portal_message_fetch(res_model, res_id, domain=domain, limit=limit, offset=offset, **kw)
+
+    @http.route('/portal/rating_stats', type="json", auth='user', website=True)
+    def portal_rating_stats(self, res_model, res_id, **kwargs):
+        # get the rating statistics for the record
+        if kwargs.get('rating_include'):
+            record = request.env[res_model].browse(res_id)
+            if hasattr(record, 'rating_get_stats'):
+                return {'rating_stats': record.sudo().rating_get_stats()}
+        return {}

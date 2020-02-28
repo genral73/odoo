@@ -1,6 +1,7 @@
 odoo.define('portal.rating.composer', function (require) {
 'use strict';
 
+var core = require('web.core');
 var publicWidget = require('web.public.widget');
 var session = require('web.session');
 var portalComposer = require('portal.composer');
@@ -61,12 +62,39 @@ publicWidget.registry.RatingPopupComposer = publicWidget.Widget.extend({
      * @override
      */
     start: function () {
-        var ratingPopupData = this.$el.data();
-        var ratingPopup = new RatingPopupComposer(this, ratingPopupData);
+        this.ratingPopupData = this.$el.data();
+        this.ratingPopupData.display_composer = this.ratingPopupData.disable_composer ? false : !session.is_website_user;
+        this.ratingPopup = new RatingPopupComposer(this, this.ratingPopupData);
+        this.ratingPopup.on('reload_composer_widget', null, this._reloadRatingPopupComposerWidget.bind(this));
         return Promise.all([
             this._super.apply(this, arguments),
-            ratingPopup.appendTo(this.$el)
+            this.ratingPopup.appendTo(this.$el)
         ]);
+    },
+    _reloadRatingPopupComposerWidget: function (newMessage) {
+        // destroy existing ratingPopup
+        let data = newMessage.data;
+        var oldComposer = this.ratingPopup;
+        if (oldComposer) {
+            oldComposer.destroy();
+            // load last message value for portal chatter review
+            core.bus.trigger('post_message', newMessage);
+        }
+        // instanciate and insert ratingPopup widget
+        if (this.ratingPopupData['display_composer']) {
+            if (newMessage !== undefined) {
+                this.ratingPopupData.default_message = data.message;
+                this.ratingPopupData.default_message_id =data.message_id;
+                this.ratingPopupData.default_rating_value = data.rating_value;
+                this.ratingPopupData.default_attachment_ids = data.default_attachment_ids;
+                this.ratingPopupData.force_submit_url = '/slides/mail/update_comment';
+                this.ratingPopupData.ratingAvg = data.ratingAvg;
+                this.ratingPopupData.ratingTotal = data.rating_count;
+            }
+            this.ratingPopup = new RatingPopupComposer(this, this.ratingPopupData);
+            this.ratingPopup.appendTo(this.$el);
+            this.ratingPopup.on('reload_composer_widget', null, this._reloadRatingPopupComposerWidget.bind(this));
+        }
     },
 });
 });

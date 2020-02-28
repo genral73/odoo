@@ -110,23 +110,41 @@ PortalChatter.include({
     _chatterInit: function () {
         var self = this;
         return this._super.apply(this, arguments).then(function (result) {
-            if (!result['rating_stats']) {
-                return;
-            }
-            var ratingData = {
-                'avg': Math.round(result['rating_stats']['avg'] / STAR_RATING_RATIO * 100) / 100,
-                'percent': [],
-            };
-            _.each(_.keys(result['rating_stats']['percent']).reverse(), function (rating) {
-                if (rating % 2 === 0) {
-                    ratingData['percent'].push({
-                        'num': rating / STAR_RATING_RATIO,
-                        'percent': utils.round_precision(result['rating_stats']['percent'][rating], 0.01),
-                    });
-                }
-            });
-            self.set('rating_card_values', ratingData);
+            self._updateRatingCardValues(result);
         });
+    },
+    /**
+     * reload rating stats card after posting message
+     * @override
+     * @private
+     */
+    _reloadAfteraPost: async function (newMessage) {
+        await this._super.apply(this, arguments);
+        if (this.options['display_rating']) {
+            this._renderRatingCard();
+        }
+    },
+    /**
+     * Calculates and Updates rating values eg. average, percentage with new data
+     * @private
+     */
+    _updateRatingCardValues: function (result) {
+        if (!result['rating_stats']) {
+            return;
+        }
+        var ratingData = {
+            'avg': Math.round(result['rating_stats']['avg'] / STAR_RATING_RATIO * 100) / 100,
+            'percent': [],
+        };
+        _.each(_.keys(result['rating_stats']['percent']).reverse(), function (rating) {
+            if (rating % 2 === 0) {
+                ratingData['percent'].push({
+                    'num': rating / STAR_RATING_RATIO,
+                    'percent': utils.round_precision(result['rating_stats']['percent'][rating], 0.01),
+                });
+            }
+        });
+        this.set('rating_card_values', ratingData);
     },
     /**
      * @override
@@ -139,6 +157,24 @@ PortalChatter.include({
         return params;
     },
 
+    /**
+     * re-render rating card with new values
+     * @private
+     */
+    _renderRatingCard: function () {
+        var self = this;
+        this._rpc({
+            route: '/portal/rating_stats',
+            params: {
+                'res_model': this.options.res_model,
+                'res_id': this.options.res_id,
+                'rating_include': true
+                }
+        }).then((result) => {
+            self._updateRatingCardValues(result);
+            self.$el.find('.o_website_rating_card_container').replaceWith(qweb.render("portal_rating.rating_card", {widget: self}));
+        });
+    },
     /**
      * Default rating data for publisher comment qweb template
      * @private
