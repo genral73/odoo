@@ -275,7 +275,7 @@ class TestApplyInheritanceSpecs(ViewCase):
             E.field(name="target"),
             string="Title")
 
-    def test_replace(self):
+    def test_replace_outer(self):
         spec = E.field(
                 E.field(name="replacement"),
                 name="target", position="replace")
@@ -338,6 +338,20 @@ class TestApplyInheritanceSpecs(ViewCase):
                     E.field(name="inserted"),
                     E.field(name="inserted 2"),
                     name="target"),
+                string="Title"))
+
+    def test_replace_inner(self):
+        spec = E.field(
+            E.field(name="replacement"),
+            name="target", position="replace", mode="inner")
+
+        self.View.apply_inheritance_specs(self.base_arch, spec)
+
+        self.assertEqual(
+            self.base_arch,
+            E.form(
+                E.field(
+                    E.field(name="replacement"), name="target"),
                 string="Title"))
 
     def test_unpack_data(self):
