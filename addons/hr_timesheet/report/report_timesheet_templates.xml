@@ -32,6 +32,7 @@
                                     </tr>
                                </thead>
                                <tbody>
+                                    <t t-set='is_uom_day' t-value='docs._is_timesheet_endecode_uom_day()'/>
                                     <tr t-foreach="docs" t-as="l">
                                         <td>
                                            <span t-field="l.date"/>
@@ -49,7 +50,8 @@
                                             <t t-if="l.task_id"><span t-field="l.task_id.name"/></t>
                                         </td>
                                         <td class="text-right">
-                                            <span t-field="l.unit_amount" t-options="{'widget': 'duration', 'digital': True, 'unit': 'hour', 'round': 'minute'}"/>
+                                            <span t-if="is_uom_day" t-esc="l._get_timesheet_time_day()" t-options="{'widget': 'timesheet_uom'}"/>
+                                            <span t-else="" t-field="l.unit_amount" t-options="{'widget': 'duration', 'digital': True, 'unit': 'hour', 'round': 'minute'}"/>
                                         </td>
                                     </tr>
                                     <tr>
@@ -58,7 +60,10 @@
                                         <td t-if="show_project"/>
                                         <td t-if="show_task"/>
                                         <td class="text-right"><strong>Total</strong></td>
-                                        <td class="text-right"><strong t-esc="sum(docs.mapped('unit_amount'))" t-options="{'widget': 'duration', 'digital': True, 'unit': 'hour', 'round': 'minute'}"/></td>
+                                        <td class="text-right">
+                                            <strong t-if="is_uom_day" t-esc="docs._convert_hours_to_days(sum(docs.mapped('unit_amount')))" t-options="{'widget': 'timesheet_uom'}"/>
+                                            <strong t-else="" t-esc="sum(docs.mapped('unit_amount'))" t-options="{'widget': 'duration', 'digital': True, 'unit': 'hour', 'round': 'minute'}"/>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>

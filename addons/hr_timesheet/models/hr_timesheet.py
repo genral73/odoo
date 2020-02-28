@@ -234,7 +234,10 @@ class AccountAnalyticLine(models.Model):
         company_uom = self.env.company.timesheet_encode_uom_id
         return company_uom and company_uom == self.env.ref('uom.product_uom_day')
 
-    def _get_timesheet_time_day(self):
+    def _convert_hours_to_days(self, time):
         uom_hour = self.env.ref('uom.product_uom_hour')
         uom_day = self.env.ref('uom.product_uom_day')
-        return round(uom_hour._compute_quantity(self.unit_amount, uom_day, raise_if_failure=False), 2)
+        return round(uom_hour._compute_quantity(time, uom_day, raise_if_failure=False), 2)
+
+    def _get_timesheet_time_day(self):
+        return self._convert_hours_to_days(self.unit_amount)
