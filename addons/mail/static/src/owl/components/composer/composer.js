@@ -262,14 +262,7 @@ class Composer extends Component {
      * @param {MouseEvent} ev
      */
     _onClickSend(ev) {
-        if (
-            !this.storeProps.composer.textInputContent &&
-            this.storeProps.composer.attachmentLocalIds.length === 0
-        ) {
-            return;
-        }
-        ev.stopPropagation();
-        this._postMessage();
+        this._onSend(ev);
     }
 
     /**
@@ -332,23 +325,31 @@ class Composer extends Component {
 
     /**
      * @private
-     * @param {CustomEvent} ev
      */
-    _onTextInputKeydownEnter(ev) {
-        // TODO SEB this is the same code as _onClickSend
+    _onSend(ev) {
         if (
             !this.storeProps.composer.textInputContent &&
             this.storeProps.composer.attachmentLocalIds.length === 0
         ) {
             return;
         }
+        ev.stopPropagation();
         this._postMessage();
+    }
+
+    /**
+     * @private
+     * @param {CustomEvent} ev
+     */
+    _onTextInputKeydownEnter(ev) {
+        this._onSend(ev);
     }
 }
 
 Composer.components = { AttachmentList, DropZone, EmojisButton, FileUploader, TextInput };
 
 Composer.defaultProps = {
+    mentionedPartners: [],
     attachmentLocalIds: [],
     focusCounter: 0,
     hasCurrentPartnerAvatar: true,
@@ -365,6 +366,10 @@ Composer.defaultProps = {
 };
 
 Composer.props = {
+    mentionedPartners: {
+        type: Array,
+        element: Object,
+    },
     attachmentLocalIds: {
         type: Array,
         element: String,

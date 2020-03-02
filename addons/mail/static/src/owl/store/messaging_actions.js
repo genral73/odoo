@@ -1006,13 +1006,18 @@ const actions = {
         // linkification a bit everywhere. Ideally we want to keep the content
         // as text internally and only make html enrichment at display time but
         // the current design makes this quite hard to do.
+        body = dispatch('_generateLinks', body, composer.mentionedPartners);
         body = mailUtils.parseAndTransform(body, mailUtils.addLink);
         body = dispatch('_generateEmojisOnHtml', body);
+        const partner_ids = [];
+        for (const i in composer.partnerLocalIds) {
+            partner_ids.push(composer.partnerLocalIds[i].id)
+        }
         let postData = {
             attachment_ids: composer.attachmentLocalIds.map(localId =>
                     state.attachments[localId].id),
             body,
-            partner_ids: dispatch('_getMentionedPartnerIdsFromHtml', body),
+            partner_ids,
             message_type: 'comment',
         };
         if (thread._model === 'mail.channel') {
@@ -1269,6 +1274,7 @@ const actions = {
             textInputContent: data.textInputContent,
             textInputCursorStart: data.textInputCursorStart,
             textInputCursorEnd: data.textInputCursorEnd,
+            mentionedPartners: data.mentionedPartners,
         });
     },
     /**
@@ -1987,6 +1993,7 @@ const actions = {
         state.composers[composerLocalId] = {
             attachmentLocalIds: [],
             localId: composerLocalId,
+            mentionedPartners: [],
             textInputContent: '',
             textInputCursorStart: 0,
             textInputCursorEnd: 0,
@@ -2697,6 +2704,41 @@ const actions = {
     },
     /**
      * @private
+     * @param unused
+     * @param value
+     * @param partners
+     */
+    _generateLinks({ env }, value, partners) {
+        if (partners.length) {
+            const inputMentions = value.match(new RegExp("@"+'[^ ]+(?= |&nbsp;|$)', 'g'));
+            const substrings = [];
+            let startIndex = 0;
+            for (const i in inputMentions) {
+                const match = inputMentions[i];
+                const matchName = match.substring(1).replace(new RegExp('\u00a0', 'g'), ' ');
+                const endIndex = value.indexOf(match, startIndex) + match.length;
+                const partner = partners.find(partner => partner.name === matchName);
+                let mentionLink = "@" + matchName;
+                if (partner) {
+                    const baseHREF = env.session.url('/web');
+                    const href = "href='" + baseHREF + "#model=res.partner&id=" + partner.id + "' ";
+                    const att_class = "class='o_mail_redirect' ";
+                    const data_oe_id = "data-oe-id='" + partner.id + "' ";
+                    const data_oe_model = "data-oe-model='res.partner' ";
+                    const target = "target='_blank'";
+                    mentionLink = "<a " + href + att_class + data_oe_id + data_oe_model + target + " >" + "@" + matchName + "</a>";
+                }
+                substrings.push(value.substring(startIndex, value.indexOf(match, startIndex)));
+                substrings.push(mentionLink);
+                startIndex = endIndex;
+            }
+            substrings.push(value.substring(startIndex, value.length));
+            value = substrings.join('');
+        }
+        return value;
+    },
+    /**
+     * @private
      * @param {Object} unused
      * @param {string} content html content
      * @return {String|undefined} command, if any in the content
@@ -2706,25 +2748,6 @@ const actions = {
             return content.substring(1).split(/\s/)[0];
         }
         return undefined;
-    },
-    /**
-     * @private
-     * @param {Object} unused
-     * @param {string} content html content
-     * @return {integer[]} list of mentioned partner Ids (not duplicate)
-     */
-    _getMentionedPartnerIdsFromHtml(unused, content) {
-        const parser = new window.DOMParser();
-        const node = parser.parseFromString(content, 'text/html');
-        const mentions = [...node.querySelectorAll('.o_mention')];
-        const allPartnerIds = mentions
-            .filter(mention =>
-                (
-                    mention.dataset.oeModel === 'res.partner' &&
-                    !isNaN(Number(mention.dataset.oeId))
-                ))
-            .map(mention => Number(mention.dataset.oeId));
-        return [...new Set(allPartnerIds)];
     },
     /**
      * @private
@@ -4328,6 +4351,7 @@ const actions = {
      */
     _resetComposer({ dispatch, state }, composerLocalId) {
         Object.assign(state.composers[composerLocalId], {
+            mentionedPartners: [],
             textInputContent: '',
             textInputCursorStart: 0,
             textInputCursorEnd: 0,

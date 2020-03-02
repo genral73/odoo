@@ -175,17 +175,29 @@ QUnit.test('add emoji replaces (keyboard) text selection', async function (asser
     await nextAnimationFrame();
 });
 
-// Test skipped until mentions manager is ready
-QUnit.skip('display partner mention suggestions on typing "@"', async function (assert) {
+QUnit.test('display partner mention suggestions on typing "@"', async function (assert) {
     assert.expect(2);
 
-    await this.start();
+    await this.start({
+        async mockRPC(route, args) {
+            if (args.method === 'get_mention_suggestions') {
+                const result = [[{
+                        id: 2,
+                        name: "OdooBot",
+                        email: "odoobot@odoo.com"
+                }]];
+                return Promise.resolve(result)
+            }
+            return this._super(...arguments);
+        }
+    });
     const composerLocalId = this.env.store.dispatch('_createComposer');
     await this.createComposerComponent(composerLocalId);
-    assert.strictEqual(
-        document.querySelectorAll(`.tribute-container`).length,
-        0,
-        "should not display the tribute mention suggestions initially"
+    const mentionPropositionsList = document.querySelector('.o_mention_proposition_list')
+    assert.doesNotHaveClass(
+        mentionPropositionsList,
+        'show',
+        "should not display mention suggestions initially"
     );
 
     document.querySelector(`.o_ComposerTextInput_textarea`).focus();
@@ -195,22 +207,33 @@ QUnit.skip('display partner mention suggestions on typing "@"', async function (
     document.querySelector(`.o_ComposerTextInput_textarea`)
         .dispatchEvent(new window.KeyboardEvent('keyup'));
     await afterNextRender();
-    assert.strictEqual(
-        document.querySelectorAll(`.tribute-container`).length,
-        1,
-        "should display the tribute mention suggestions on typing '@'"
+    assert.hasClass(
+        mentionPropositionsList,
+        'show',
+        "should display mention suggestions on typing '@'"
     );
 });
 
-// Test skipped until mentions manager is ready
-QUnit.skip('mention a partner', async function (assert) {
-    assert.expect(4);
+QUnit.test('mention a partner', async function (assert) {
+    assert.expect(2);
 
-    await this.start();
+    await this.start({
+        async mockRPC(route, args) {
+            if (args.method === 'get_mention_suggestions') {
+                const result = [[{
+                        id: 2,
+                        name: "OdooBot",
+                        email: "odoobot@odoo.com"
+                }]];
+                return Promise.resolve(result);
+            }
+            return this._super(...arguments);
+        }
+    });
     const composerLocalId = this.env.store.dispatch('_createComposer');
     await this.createComposerComponent(composerLocalId);
     assert.strictEqual(
-        document.querySelector(`.o_ComposerTextInput_textarea`).textContent,
+        document.querySelector(`.o_ComposerTextInput_textarea`).value,
         "",
         "text content of composer should be empty initially"
     );
@@ -222,38 +245,42 @@ QUnit.skip('mention a partner', async function (assert) {
     document.querySelector(`.o_ComposerTextInput_textarea`)
         .dispatchEvent(new window.KeyboardEvent('keyup'));
     await afterNextRender();
-    document.querySelectorAll('.o_ComposerTextInput_mentionMenuItem')[0]
-        .dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true }));
+    document.querySelector('.o_mention_proposition').click();
     assert.strictEqual(
         document.querySelector(`.o_ComposerTextInput_textarea`).value.replace(/\s/, " "),
         "@OdooBot ",
         "text content of composer should have mentionned partner + additional whitespace afterwards"
     );
-    assert.strictEqual(
-        document.querySelectorAll(`.o_ComposerTextInput_textarea a.o_mention`).length,
-        1,
-        "there should be a mention link in the composer"
-    );
-    assert.strictEqual(
-        document.querySelector(`.o_ComposerTextInput_textarea a.o_mention`).value,
-        "@OdooBot",
-        "mention link should have textual '@mention' as text content"
-    );
 });
 
-// Test skipped until mentions manager is ready
-QUnit.skip('mention a partner after some text', async function (assert) {
-    assert.expect(4);
+QUnit.test('mention a partner after some text', async function (assert) {
+    assert.expect(3);
 
-    await this.start();
+    await this.start({
+        async mockRPC(route, args) {
+            if (args.method === 'get_mention_suggestions') {
+                const result = [[{
+                        id: 2,
+                        name: "OdooBot",
+                        email: "odoobot@odoo.com"
+                }]];
+                return Promise.resolve(result);
+            }
+            return this._super(...arguments);
+        }
+    });
     const composerLocalId = this.env.store.dispatch('_createComposer');
     await this.createComposerComponent(composerLocalId);
     document.querySelector(`.o_ComposerTextInput_textarea`).focus();
-    document.execCommand('insertText', false, "bluhbluh");
     assert.strictEqual(
         document.querySelector(`.o_ComposerTextInput_textarea`).value,
-        "bluhbluh",
+        "",
         "text content of composer should be empty initially"
+    );
+    document.execCommand('insertText', false, "bluhbluh ");
+    assert.strictEqual(
+        document.querySelector(`.o_ComposerTextInput_textarea`).value,
+        "bluhbluh "
     );
     document.execCommand('insertText', false, "@");
     document.querySelector(`.o_ComposerTextInput_textarea`)
@@ -261,30 +288,30 @@ QUnit.skip('mention a partner after some text', async function (assert) {
     document.querySelector(`.o_ComposerTextInput_textarea`)
         .dispatchEvent(new window.KeyboardEvent('keyup'));
     await afterNextRender();
-    document.querySelectorAll('.o_ComposerTextInput_mentionMenuItem')[0]
-        .dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true }));
+    document.querySelector('.o_mention_proposition').click();
     assert.strictEqual(
-        document.querySelector(`.o_ComposerTextInput_textarea`).textContent.replace(/\s/, " "),
-        "bluhbluh@OdooBot ",
+        document.querySelector(`.o_ComposerTextInput_textarea`).value.replace(/\s/, " "),
+        "bluhbluh @OdooBot ",
         "text content of composer should have previous content + mentionned partner + additional whitespace afterwards"
-    );
-    assert.strictEqual(
-        document.querySelectorAll(`.o_ComposerTextInput_textarea a.o_mention`).length,
-        1,
-        "there should be a mention link in the composer"
-    );
-    assert.strictEqual(
-        document.querySelector(`.o_ComposerTextInput_textarea a.o_mention`).textContent,
-        "@OdooBot",
-        "mention link should have textual '@mention' as text content"
     );
 });
 
-// Test skipped until mentions manager is ready
-QUnit.skip('add an emoji after a partner mention', async function (assert) {
-    assert.expect(4);
+QUnit.test('add an emoji after a partner mention', async function (assert) {
+    assert.expect(2);
 
-    await this.start();
+    await this.start({
+        async mockRPC(route, args) {
+            if (args.method === 'get_mention_suggestions') {
+                const result = [[{
+                        id: 2,
+                        name: "OdooBot",
+                        email: "odoobot@odoo.com"
+                }]];
+                return Promise.resolve(result);
+            }
+            return this._super(...arguments);
+        }
+    });
     const composerLocalId = this.env.store.dispatch('_createComposer');
     await this.createComposerComponent(composerLocalId);
     document.querySelector(`.o_ComposerTextInput_textarea`).focus();
@@ -294,8 +321,7 @@ QUnit.skip('add an emoji after a partner mention', async function (assert) {
     document.querySelector(`.o_ComposerTextInput_textarea`)
         .dispatchEvent(new window.KeyboardEvent('keyup'));
     await afterNextRender();
-    document.querySelectorAll('.o_ComposerTextInput_mentionMenuItem')[0]
-        .dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true }));
+    document.querySelector('.o_mention_proposition').click();
     assert.strictEqual(
         document.querySelector(`.o_ComposerTextInput_textarea`).value.replace(/\s/, " "),
         "@OdooBot ",
@@ -311,16 +337,6 @@ QUnit.skip('add an emoji after a partner mention', async function (assert) {
         document.querySelector(`.o_ComposerTextInput_textarea`).value.replace(/\s/, " "),
         "@OdooBot 😊",
         "text content of composer should have previous mention and selected emoji just after"
-    );
-    assert.strictEqual(
-        document.querySelectorAll(`.o_ComposerTextInput_textarea a.o_mention`).length,
-        1,
-        "there should still be a mention link in the composer"
-    );
-    assert.strictEqual(
-        document.querySelector(`.o_ComposerTextInput_textarea a.o_mention`).value,
-        "@OdooBot",
-        "mention link should still have textual '@mention' as text content (no emoji)"
     );
     // ensure popover is closed
     await nextAnimationFrame();

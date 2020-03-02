@@ -15,17 +15,45 @@
     overflow: auto
 }
 
-.o_ComposerTextInput_mentionMenuItem {
-    white-space: nowrap;
-    overflow: hidden;
 
-    &.o-mobile {
-        padding: 5px;
+
+.o_ComposerTextInput_mention_dropdown .o_mention_proposition_list {
+    max-width: 1398.48px;
+
+    .o_mention_proposition {
+        display: flex;
+        width: map-get($sizes, 100);
+        padding: map-get($spacers, 2) map-get($spacers, 4);
+        .o_mention_updatable_im_status {
+            padding-inline-end: map-get($spacers, 2);
+        }
+        .o_mention_name {
+            font-weight: $font-weight-bold;
+            padding-inline-end: map-get($spacers, 2);
+        }
+        .o_mention_info {
+            font-style: italic;
+            color: gray;
+        }
+        .fa {
+            font-size: $font-size-sm;
+        }
     }
+}
 
-    > .o_extra {
-        white-space: nowrap;
-        overflow: hidden;
+.o_mail_user_status {
+    font-size: $font-size-base;
+    position: relative;
+    &.o_user_online {
+        color: $o-enterprise-primary-color;
+    }
+    &.o_user_idle {
+        color: theme-color('warning');
+    }
+    &.fa-stack {
+        width: 1em;
+        height: 1em;
+        line-height: 1em;
     }
 }
 
@@ -39,20 +67,5 @@
 
     > .note-resizebar {
         display: none;
-    }
-}
-
-.o_ComposerTextInput_mentionMenuItem {
-    text-overflow: ellipsis;
-
-    .o_PartnerImStatusIcon {
-        display: inline-flex;
-        margin-right: 5px;
-    }
-
-    > .o_extra {
-        text-overflow: ellipsis;
-        font-style: italic;
-        color: gray('500');
     }
 }

@@ -3,7 +3,28 @@
 
     <t t-name="mail.component.ComposerTextInput" owl="1">
         <div class="o_ComposerTextInput">
-            <textarea class="o_ComposerTextInput_textarea" t-esc="storeProps.composer.textInputContent" placeholder="Write something..." t-on-keydown="_onKeydownTextarea" t-on-input="_onInputTextarea" t-ref="textarea" />
+            <div class="dropup o_ComposerTextInput_mention_dropdown">
+                <div class="dropdown-menu o_mention_proposition_list" t-ref="mention_dropdown" t-att-class="{ 'show': state.isMentionsOpen }">
+                    <t t-if="state.mentionSuggestions[0]" >
+                        <t t-foreach="state.mentionSuggestions[0]" t-as="mention" t-key="mention.id">
+                            <div role="separator" t-if="mention.divider" class="dropdown-divider"/>
+                            <a class="dropdown-item o_mention_proposition" t-att-class="{ 'active': mention.id === state.active_id }" href="#" role="menuitem"
+                               t-att-data-id="mention.id" t-on-click="_onClickMentionItem" t-on-mouseover="_onMouseOverMention">
+                                <span t-att-class="mention.id ? 'o_mention_updatable_im_status' : ''" t-att-data-partner-id="mention.id">
+                                    <i t-if="mention.im_status == 'online'" class="o_mail_user_status o_user_online fa fa-circle" title="Online" role="img" aria-label="User is online"/>
+                                    <i t-if="mention.im_status == 'away'" class="o_mail_user_status o_user_idle fa fa-circle" title="Idle" role="img" aria-label="User is idle"/>
+                                    <i t-if="mention.im_status == 'offline'" class="o_mail_user_status fa fa-circle-o" title="Offline" role="img" aria-label="User is offline"/>
+                                </span>
+                                <span class="o_mention_name"><t t-esc="mention.name"/></span>
+                                <t t-if="mention.email">
+                                    <span class="o_mention_info">(<t t-esc="mention.email"/>)</span>
+                                </t>
+                            </a>
+                        </t>
+                    </t>
+                </div>
+            </div>
+            <textarea class="o_ComposerTextInput_textarea" t-esc="storeProps.composer.textInputContent" placeholder="Write something..." t-on-keydown="_onKeydownTextarea" t-on-keyup="_onKeyupTextarea" t-on-input="_onInputTextarea" t-ref="textarea" />
         </div>
     </t>
 
