@@ -420,153 +420,151 @@ class AccountReconcileModel(models.Model):
         with_tables += ', partners_table AS (' + partners_table + ')'
         return with_tables
 
-    def _get_invoice_matching_query(self, st_lines, excluded_ids=None, partner_map=None): #TODO OCO refactorer ? + renommer pour le contexte d'appel ?
+    def _get_invoice_matching_query(self, st_lines, date_limit, excluded_ids=None, partner_map=None): #TODO OCO refactorer ? + renommer pour le contexte d'appel ?
         ''' Get the query applying all rules trying to match existing entries with the given statement lines.
         :param st_lines:        Account.bank.statement.lines recordset.
         :param excluded_ids:    Account.move.lines to exclude.
         :param partner_map:     Dict mapping each line with new partner eventually.
         :return:                (query, params)
         '''
-        if any(m.rule_type != 'invoice_matching' for m in self):
+        self.ensure_one()
+        if self.rule_type != 'invoice_matching':
             raise UserError(_('Programmation Error: Can\'t call _get_invoice_matching_query() for different rules than \'invoice_matching\''))
 
-        queries = []
-        all_params = []
-        for rule in self:
-            # N.B: 'communication_flag' is there to distinguish invoice matching through the number/reference
-            # (higher priority) from invoice matching using the partner (lower priority).
-            query = r'''
-            SELECT
-                %s                                  AS sequence,
-                %s                                  AS model_id,
-                st_line.id                          AS id,
-                aml.id                              AS aml_id,
-                aml.currency_id                     AS aml_currency_id,
-                aml.date_maturity                   AS aml_date_maturity,
-                aml.amount_residual                 AS aml_amount_residual,
-                aml.amount_residual_currency        AS aml_amount_residual_currency,
-                aml.balance                         AS aml_balance,
-                aml.amount_currency                 AS aml_amount_currency,
-                account.internal_type               AS account_internal_type,
+        # N.B: 'communication_flag' is there to distinguish invoice matching through the number/reference
+        # (higher priority) from invoice matching using the partner (lower priority).
+        query = r'''
+        SELECT
+            %s                                  AS sequence,
+            %s                                  AS model_id,
+            st_line.id                          AS id,
+            aml.id                              AS aml_id,
+            aml.currency_id                     AS aml_currency_id,
+            aml.date_maturity                   AS aml_date_maturity,
+            aml.amount_residual                 AS aml_amount_residual,
+            aml.amount_residual_currency        AS aml_amount_residual_currency,
+            aml.balance                         AS aml_balance,
+            aml.amount_currency                 AS aml_amount_currency,
+            account.internal_type               AS account_internal_type,
 
-                -- Determine a matching or not with the statement line communication using the aml.name, move.name or move.ref.
+            -- Determine a matching or not with the statement line communication using the aml.name, move.name or move.ref.
+            (
+                aml.name IS NOT NULL
+                AND
+                substring(REGEXP_REPLACE(aml.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*') != ''
+                AND
+                    regexp_split_to_array(substring(REGEXP_REPLACE(aml.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
+                    && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
+            )
+            OR
+                regexp_split_to_array(substring(REGEXP_REPLACE(move.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
+                && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
+            OR
+            (
+                move.ref IS NOT NULL
+                AND
+                substring(REGEXP_REPLACE(move.ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*') != ''
+                AND
+                    regexp_split_to_array(substring(REGEXP_REPLACE(move.ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
+                    && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
+            )                                   AS communication_flag,
+            -- Determine a matching or not with the statement line communication using the move.invoice_payment_ref.
+            (
+                move.invoice_payment_ref IS NOT NULL
+                AND
+                regexp_replace(move.invoice_payment_ref, '\s+', '', 'g') = regexp_replace(st_line.payment_ref, '\s+', '', 'g')
+            )                                   AS payment_reference_flag
+        FROM account_bank_statement_line st_line
+        JOIN account_move st_line_move          ON st_line_move.id = st_line.move_id
+        JOIN account_journal journal            ON journal.id = st_line_move.journal_id
+        LEFT JOIN jnl_precision                 ON jnl_precision.journal_id = journal.id
+        JOIN res_company company                ON company.id = st_line_move.company_id
+        LEFT JOIN partners_table line_partner   ON line_partner.line_id = st_line.id
+        , account_move_line aml
+        LEFT JOIN account_move move             ON move.id = aml.move_id AND move.state = 'posted'
+        LEFT JOIN account_account account       ON account.id = aml.account_id
+        WHERE st_line.id IN %s
+            AND aml.company_id = st_line_move.company_id
+            AND move.state = 'posted'
+            AND (
+                    -- the field match_partner of the rule might enforce the second part of
+                    -- the OR condition, later in _apply_conditions()
+                    line_partner.partner_id = 0
+                    OR
+                    aml.partner_id = line_partner.partner_id
+                )
+            AND CASE WHEN st_line.amount > 0.0
+                     THEN aml.balance > 0
+                     ELSE aml.balance < 0
+                END
+
+            -- if there is a partner, propose all aml of the partner, otherwise propose only the ones
+            -- matching the statement line communication
+            AND
+            (
                 (
-                    aml.name IS NOT NULL
+                    line_partner.partner_id != 0
                     AND
-                    substring(REGEXP_REPLACE(aml.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*') != ''
-                    AND
-                        regexp_split_to_array(substring(REGEXP_REPLACE(aml.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
-                        && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
+                    aml.partner_id = line_partner.partner_id
                 )
                 OR
-                    regexp_split_to_array(substring(REGEXP_REPLACE(move.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
-                    && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
-                OR
                 (
-                    move.ref IS NOT NULL
+                    line_partner.partner_id = 0
                     AND
-                    substring(REGEXP_REPLACE(move.ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*') != ''
+                    substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*') != ''
                     AND
-                        regexp_split_to_array(substring(REGEXP_REPLACE(move.ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
-                        && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
-                )                                   AS communication_flag,
-                -- Determine a matching or not with the statement line communication using the move.invoice_payment_ref.
-                (
-                    move.invoice_payment_ref IS NOT NULL
-                    AND
-                    regexp_replace(move.invoice_payment_ref, '\s+', '', 'g') = regexp_replace(st_line.payment_ref, '\s+', '', 'g')
-                )                                   AS payment_reference_flag
-            FROM account_bank_statement_line st_line
-            JOIN account_move st_line_move          ON st_line_move.id = st_line.move_id
-            JOIN account_journal journal            ON journal.id = st_line_move.journal_id
-            LEFT JOIN jnl_precision                 ON jnl_precision.journal_id = journal.id
-            JOIN res_company company                ON company.id = st_line_move.company_id
-            LEFT JOIN partners_table line_partner   ON line_partner.line_id = st_line.id
-            , account_move_line aml
-            LEFT JOIN account_move move             ON move.id = aml.move_id AND move.state = 'posted'
-            LEFT JOIN account_account account       ON account.id = aml.account_id
-            WHERE st_line.id IN %s
-                AND aml.company_id = st_line_move.company_id
-                AND move.state = 'posted'
-                AND (
-                        -- the field match_partner of the rule might enforce the second part of
-                        -- the OR condition, later in _apply_conditions()
-                        line_partner.partner_id = 0
-                        OR
-                        aml.partner_id = line_partner.partner_id
-                    )
-                AND CASE WHEN st_line.amount > 0.0
-                         THEN aml.balance > 0
-                         ELSE aml.balance < 0
-                    END
-
-                -- if there is a partner, propose all aml of the partner, otherwise propose only the ones
-                -- matching the statement line communication
-                AND
-                (
                     (
-                        line_partner.partner_id != 0
-                        AND
-                        aml.partner_id = line_partner.partner_id
-                    )
-                    OR
-                    (
-                        line_partner.partner_id = 0
-                        AND
-                        substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*') != ''
-                        AND
                         (
-                            (
-                                aml.name IS NOT NULL
-                                AND
-                                substring(REGEXP_REPLACE(aml.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*') != ''
-                                AND
-                                    regexp_split_to_array(substring(REGEXP_REPLACE(aml.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
-                                    && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
-                            )
-                            OR
-                                regexp_split_to_array(substring(REGEXP_REPLACE(move.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
+                            aml.name IS NOT NULL
+                            AND
+                            substring(REGEXP_REPLACE(aml.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*') != ''
+                            AND
+                                regexp_split_to_array(substring(REGEXP_REPLACE(aml.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
                                 && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
-                            OR
-                            (
-                                move.ref IS NOT NULL
-                                AND
-                                substring(REGEXP_REPLACE(move.ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*') != ''
-                                AND
-                                    regexp_split_to_array(substring(REGEXP_REPLACE(move.ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
-                                    && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
-                            )
-                            OR
-                            (
-                                move.invoice_payment_ref IS NOT NULL
-                                AND
-                                regexp_replace(move.invoice_payment_ref, '\s+', '', 'g') = regexp_replace(st_line.payment_ref, '\s+', '', 'g')
-                            )
+                        )
+                        OR
+                            regexp_split_to_array(substring(REGEXP_REPLACE(move.name, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
+                            && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
+                        OR
+                        (
+                            move.ref IS NOT NULL
+                            AND
+                            substring(REGEXP_REPLACE(move.ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*') != ''
+                            AND
+                                regexp_split_to_array(substring(REGEXP_REPLACE(move.ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'),'\s+')
+                                && regexp_split_to_array(substring(REGEXP_REPLACE(st_line.payment_ref, '[^0-9|^\s]', '', 'g'), '\S(?:.*\S)*'), '\s+')
+                        )
+                        OR
+                        (
+                            move.invoice_payment_ref IS NOT NULL
+                            AND
+                            regexp_replace(move.invoice_payment_ref, '\s+', '', 'g') = regexp_replace(st_line.payment_ref, '\s+', '', 'g')
                         )
                     )
                 )
-                AND account.reconcile IS TRUE
-                AND aml.reconciled IS FALSE
+            )
+            AND account.reconcile IS TRUE
+            AND aml.reconciled IS FALSE
+            AND aml.date >= %s
+        '''
+        # Filter on the same currency.
+        if self.match_same_currency:
+            query += '''
+                AND COALESCE(st_line.foreign_currency_id, st_line_move.currency_id) = COALESCE(aml.currency_id, company.currency_id)
             '''
-            # Filter on the same currency.
-            if rule.match_same_currency:
-                query += '''
-                    AND COALESCE(st_line.foreign_currency_id, st_line_move.currency_id) = COALESCE(aml.currency_id, company.currency_id)
-                '''
 
-            params = [rule.sequence, rule.id, tuple(st_lines.ids)]
-            # Filter out excluded account.move.line.
-            if excluded_ids:
-                query += 'AND aml.id NOT IN %s'
-                params += [tuple(excluded_ids)]
-            query, params = rule._apply_conditions(query, params)
-            queries.append(query)
-            all_params += params
-        full_query = self._get_with_tables(st_lines, partner_map=partner_map)
-        full_query += ' UNION ALL '.join(queries)
+        params = [self.sequence, self.id, tuple(st_lines.ids), date_limit] #TODO OCO gérer des params nommés, plutôt?
+        # Filter out excluded account.move.line.
+        if excluded_ids:
+            query += 'AND aml.id NOT IN %s'
+            params += [tuple(excluded_ids)]
+
+        query, params = self._apply_conditions(query, params)
+        full_query = self._get_with_tables(st_lines, partner_map=partner_map) + ' ' + query
         # Oldest due dates come first.
         full_query += ' ORDER BY aml_date_maturity, aml_id'
-        return full_query, all_params
+
+        return full_query, params
 
     def _get_writeoff_suggestion_query(self, st_lines, excluded_ids=None, partner_map=None): #TODO OCO refactorer ? > + renommer pour correspondre plus au contexte d'appel ?
         ''' Get the query applying all reconciliation rules.
@@ -575,50 +573,43 @@ class AccountReconcileModel(models.Model):
         :param partner_map:     Dict mapping each line with new partner eventually.
         :return:                (query, params)
         '''
-        if any(m.rule_type != 'writeoff_suggestion' for m in self):
+        self.ensure_one()
+
+        if self.rule_type != 'writeoff_suggestion':
             raise UserError(_("Programmation Error: Can't call _get_writeoff_suggestion_query() for different rules than 'writeoff_suggestion'"))
 
-        queries = []
-        all_params = []
-        for rule in self:
-            query = '''
-                SELECT
-                    %s                                  AS sequence,
-                    %s                                  AS model_id,
-                    st_line.id                          AS id
-                FROM account_bank_statement_line st_line
-                JOIN account_move st_line_move          ON st_line_move.id = st_line.move_id
-                LEFT JOIN account_journal journal       ON journal.id = st_line_move.journal_id
-                LEFT JOIN jnl_precision                 ON jnl_precision.journal_id = journal.id
-                LEFT JOIN res_company company           ON company.id = st_line_move.company_id
-                LEFT JOIN partners_table line_partner   ON line_partner.line_id = st_line.id
-                WHERE st_line.id IN %s
-            '''
-            params = [rule.sequence, rule.id, tuple(st_lines.ids)]
+        query = '''
+            SELECT
+                %s                                  AS sequence,
+                %s                                  AS model_id,
+                st_line.id                          AS id
+            FROM account_bank_statement_line st_line
+            JOIN account_move st_line_move          ON st_line_move.id = st_line.move_id
+            LEFT JOIN account_journal journal       ON journal.id = st_line_move.journal_id
+            LEFT JOIN jnl_precision                 ON jnl_precision.journal_id = journal.id
+            LEFT JOIN res_company company           ON company.id = st_line_move.company_id
+            LEFT JOIN partners_table line_partner   ON line_partner.line_id = st_line.id
+            WHERE st_line.id IN %s
+        '''
+        params = [self.sequence, self.id, tuple(st_lines.ids)]
+        query, params = self._apply_conditions(query, params)
+        full_query = self._get_with_tables(st_lines, partner_map=partner_map) + ' ' + query
 
-            query, params = rule._apply_conditions(query, params)
-            queries.append(query)
-            all_params += params
+        return full_query, params
 
-        full_query = self._get_with_tables(st_lines, partner_map=partner_map)
-        full_query += ' UNION ALL '.join(queries)
-        return full_query, all_params
+    def _get_candidates(self, st_lines, excluded_ids, partner_map, date_limit): #TODO OCO DOC
+        self.ensure_one()
 
-    def _get_candidates(self, st_lines, excluded_ids, partner_map): #TODO OCO DOC
-        #TODO OCO rendre ensure_one ?
         treatment_map = {
-            self.filtered(lambda m: m.rule_type == 'invoice_matching'): lambda x: x._get_invoice_matching_query(st_lines, excluded_ids, partner_map),
-            self.filtered(lambda m: m.rule_type == 'writeoff_suggestion'): lambda x: x._get_writeoff_suggestion_query(st_lines, excluded_ids, partner_map),
+            'invoice_matching': lambda x: x._get_invoice_matching_query(st_lines, date_limit, excluded_ids, partner_map),
+            'writeoff_suggestion': lambda x: x._get_writeoff_suggestion_query(st_lines, excluded_ids, partner_map),
         }
 
-        rslt = []
-        for rules, query_generator in treatment_map.items():
-            if rules:
-                query, params = query_generator(rules)
-                self._cr.execute(query, params)
-                rslt += self._cr.dictfetchall()
+        query_generator = treatment_map[self.rule_type]
+        query, params = query_generator(self)
+        self._cr.execute(query, params)
 
-        return rslt
+        return self._cr.dictfetchall()
 
     def _check_rule_propositions(self, statement_line, candidates):
         ''' Check restrictions that can't be handled for each move.line separately.
@@ -682,7 +673,7 @@ class AccountReconcileModel(models.Model):
 
         return candidates_by_priority
 
-    def _apply_rules(self, st_lines, excluded_ids=None, partner_map=None): #TODO OCO selon comment tu modifies la méthode, pour l'isoler, il faudra sans doute passer param de plus qui prend les lignes déjà sélectionnées (l'équivalent de amls_ids_to_exclude, avant la boucle un peu plus bas)
+    def _apply_rules(self, st_lines, date_limit, excluded_ids=None, partner_map=None): #TODO OCO selon comment tu modifies la méthode, pour l'isoler, il faudra sans doute passer param de plus qui prend les lignes déjà sélectionnées (l'équivalent de amls_ids_to_exclude, avant la boucle un peu plus bas)
         #TODO OCO peut-être reconsidérer la façon dont on passe la partner_map ?
         ''' Apply criteria to get candidates for all reconciliation models.
         :param st_lines:        Account.bank.statement.lines recordset.
@@ -702,7 +693,7 @@ class AccountReconcileModel(models.Model):
         for st_line in st_lines:
             for rec_model in available_models:
                 # If we don't have any candidate for this model, jump to the next one.
-                candidates = rec_model._get_candidates(st_line, excluded_ids, partner_map)
+                candidates = rec_model._get_candidates(st_line, excluded_ids, partner_map, date_limit)
                 if candidates:
                     model_rslt, new_reconciled_aml_ids, new_treated_aml_ids = rec_model._get_rule_result(st_line, candidates, amls_ids_to_exclude, reconciled_amls_ids, partner_map)
 

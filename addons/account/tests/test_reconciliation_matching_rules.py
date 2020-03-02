@@ -119,7 +119,7 @@ class TestReconciliationMatchingRules(AccountTestCommon):
         if statements is None:
             statements = self.bank_st + self.cash_st
         statement_lines = statements.mapped('line_ids').sorted()
-        matching_values = rules._apply_rules(statement_lines)
+        matching_values = rules._apply_rules(statement_lines) #TODO OCO ajouter date_limit
         for st_line_id, values in matching_values.items():
             values.pop('reconciled_lines', None)
             self.assertDictEqual(values, expected_values[st_line_id])
