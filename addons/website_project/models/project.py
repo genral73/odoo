@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import models
+from odoo.addons.http_routing.models.ir_http import slug
 
 
 class Project(models.Model):
@@ -21,5 +22,5 @@ class Project(models.Model):
             'type': 'ir.actions.act_url',
             'name': "Redirect to the Website Project Rating Page",
             'target': 'self',
-            'url': "/project/rating/%s" % (self.id,)
+            'url': "/project/rating/%s" % (slug(self))
         }
