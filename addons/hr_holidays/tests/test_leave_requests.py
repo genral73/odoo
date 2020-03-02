@@ -388,7 +388,6 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             'holiday_status_id': self.holidays_type_1.id,
         })
         leave = self.env['hr.leave'].with_user(self.user_employee_id).new(values)
-        leave._onchange_request_parameters()
         self.assertEqual(leave.number_of_days, number_of_days)
 
     @mute_logger('odoo.models.unlink', 'odoo.addons.mail.models.mail_mail')
