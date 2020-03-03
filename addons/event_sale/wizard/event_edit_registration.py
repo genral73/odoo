@@ -48,7 +48,7 @@ class RegistrationEditor(models.TransientModel):
 
     def action_make_registration(self):
         self.ensure_one()
-        for registration_line in self.event_registration_ids:
+        for registration_line in self.event_registration_ids.sorted('id', reverse=True):
             values = registration_line.get_registration_data()
             if registration_line.registration_id:
                 registration_line.registration_id.write(values)

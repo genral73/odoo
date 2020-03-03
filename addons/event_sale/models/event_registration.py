@@ -10,8 +10,8 @@ class EventRegistration(models.Model):
 
     is_paid = fields.Boolean('Is Paid')
     # TDE FIXME: maybe add an onchange on sale_order_id
-    sale_order_id = fields.Many2one('sale.order', string='Source Sales Order', ondelete='cascade')
-    sale_order_line_id = fields.Many2one('sale.order.line', string='Sales Order Line', ondelete='cascade')
+    sale_order_id = fields.Many2one('sale.order', string='Source Sales Order', ondelete='cascade', copy=False)
+    sale_order_line_id = fields.Many2one('sale.order.line', string='Sales Order Line', ondelete='cascade', copy=False)
     utm_campaign_id = fields.Many2one(compute='_compute_utm_campaign_id', copy=True, readonly=False, store=True)
     utm_source_id = fields.Many2one(compute='_compute_utm_source_id', copy=True, readonly=False, store=True)
     utm_medium_id = fields.Many2one(compute='_compute_utm_medium_id', copy=True, readonly=False, store=True)
@@ -48,7 +48,7 @@ class EventRegistration(models.Model):
                     self.env['sale.order.line'].browse(vals['sale_order_line_id'])
                 )
                 vals.update(so_line_vals)
-        registrations = super(EventRegistration, self).create(vals)
+        registrations = super(EventRegistration, self).create(vals_list)
         for registration in registrations:
             if registration.sale_order_id:
                 registration.message_post_with_view(

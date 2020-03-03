@@ -332,12 +332,15 @@ class WebsiteEventController(http.Controller):
 
     def _create_attendees_from_registration_post(self, event, registration_data):
         attendees_sudo = request.env['event.registration'].sudo()
-
+        first_registration = attendees_sudo
         for registration_values in registration_data:
             registration_values['event_id'] = event.id
+            registration_values['main_registration_id'] = first_registration.id
             if not registration_values.get('partner_id'):
                 registration_values['partner_id'] = request.env.user.partner_id.id
             attendees_sudo += request.env['event.registration'].sudo().create(registration_values)
+            if not first_registration:
+                first_registration = attendees_sudo[0]
 
         return attendees_sudo
 

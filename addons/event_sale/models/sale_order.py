@@ -87,13 +87,25 @@ class SaleOrderLine(models.Model):
             if cancel_to_draft:
                 existing_registrations.filtered(lambda self: self.state == 'cancel').action_set_draft()
 
+            first_registration = registration_data[0]['main_registration_id'] if registration_data else False
+            so_registrations = Registration.search([('sale_order_id', '=', so_line.order_id.id), ('event_id', '=', so_line.event_id.id)])
+            if not first_registration:
+                if so_registrations.main_registration_id:
+                    first_registration = so_registrations.main_registration_id.id
+                elif len(so_registrations) == 1:
+                    first_registration = so_registrations.id
             for count in range(int(so_line.product_uom_qty) - len(existing_registrations)):
                 registration_vals = {}
                 if registration_data:
                     registration_vals = registration_data.pop()
                 # TDE CHECK: auto confirmation
-                registration_vals['sale_order_line_id'] = so_line.id
-                Registration.create(registration_vals)
+                registration_vals.update({
+                    'sale_order_line_id': so_line.id,
+                    'main_registration_id': first_registration,
+                })
+                registration = Registration.create(registration_vals)
+                if not first_registration:
+                    first_registration = registration.id
         return True
 
     @api.onchange('product_id')

@@ -50,6 +50,8 @@ class EventRegistration(models.Model):
         ('draft', 'Unconfirmed'), ('cancel', 'Cancelled'),
         ('open', 'Confirmed'), ('done', 'Attended')],
         string='Status', default='draft', readonly=True, copy=False, tracking=True)
+    # technical field
+    main_registration_id = fields.Many2one('event.registration', string="Main Registration", copy=False, help="Contains the first registration when a batch is created")
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):

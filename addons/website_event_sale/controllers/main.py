@@ -30,10 +30,14 @@ class WebsiteEventSaleController(WebsiteEventController):
             order = request.website.sale_get_order(force_create=1)
 
         order_attendee_ids = set()
+        first_registration = False
         for info in [r for r in registration_data if r.get('event_ticket_id')]:
+            info['main_registration_id'] = first_registration
             ticket = request.env['event.event.ticket'].sudo().browse(info['event_ticket_id'])
             cart_values = order.with_context(event_ticket_id=ticket.id, fixed_price=True)._cart_update(product_id=ticket.product_id.id, add_qty=1, registration_data=[info])
             order_attendee_ids |= set(cart_values.get('attendee_ids', []))
+            if not first_registration:
+                first_registration = cart_values['attendee_ids'][0]
 
         attendees_sudo = super(WebsiteEventSaleController, self)._create_attendees_from_registration_post(event, [r for r in registration_data if not r['event_ticket_id']])
         if order_attendee_ids:
