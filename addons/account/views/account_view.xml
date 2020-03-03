@@ -22,7 +22,7 @@
                              <field name="name" placeholder="name"/>
                            </div>
                        </div>
-                       <group>
+                       <group name="info">
                            <group name="left_main_group">
                              <field name="company_id" options="{'no_create': True}" groups="base.group_multi_company"/>
                              <field name="user_type_id" widget="account_hierarchy_selection"/>
