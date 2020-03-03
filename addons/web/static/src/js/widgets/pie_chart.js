@@ -42,13 +42,16 @@ var PieChart = Widget.extend({
         this.subViewParams = {
             modelName: record.model,
             withControlPanel: false,
+            withSearchPanel: false,
             isEmbedded: true,
+            noButtons: true,
             mode: 'pie',
         };
         this.subViewParams.searchQuery = {
             context: pieChartContext,
             domain: domain,
             groupBy: [],
+            timeRanges: {},
         };
 
         this.viewInfo = {
