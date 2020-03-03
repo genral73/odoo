@@ -680,7 +680,6 @@
 
                 <script type="text/javascript" src="/web/static/tests/views/abstract_controller_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/views/abstract_view_tests.js"></script>
-                <script type="text/javascript" src="/web/static/tests/views/control_panel_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/views/form_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/views/graph_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/views/list_tests.js"></script>
@@ -722,6 +721,9 @@
                 <script type="text/javascript" src="/web/static/tests/chrome/systray_tests.js"></script>
 
                 <script type="text/javascript" src="/web/static/tests/components/custom_file_input_tests.js"></script>
+
+                <script type="text/javascript" src="/web/static/tests/components/control_panel_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/control_panel_model_tests.js"></script>
 
                 <script type="text/javascript" src="/web/static/tests/widgets/company_switcher_tests.js"/>
                 <script type="text/javascript" src="/web/static/tests/widgets/data_export_tests.js"/>
