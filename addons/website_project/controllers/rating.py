@@ -76,10 +76,8 @@ class RatingProject(http.Controller):
             'period_statistics': period_statistics,
         }
 
-    @http.route(['/project/rating/<int:project_id>', '/project/rating/<model("project.project"):project>'], type='http', auth="public", website=True)
-    def page(self, project_id=None, project=False, **kw):
-        if(project):
-            project_id = project.id
+    @http.route(['/project/rating/<int:project_id>'], type='http', auth="public", website=True)
+    def page(self, project_id=None, **kw):
         user = request.env.user
         project = request.env['project.project'].sudo().browse(project_id)
         # to avoid giving any access rights on projects to the public user, let's use sudo
