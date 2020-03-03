@@ -691,11 +691,7 @@
                 <script type="text/javascript" src="/web/static/tests/views/abstract_view_banner_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/views/kanban_model_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/views/view_dialogs_tests.js"></script>
-                <script type="text/javascript" src="/web/static/tests/views/search_filter_menu_tests.js"></script>
-                <script type="text/javascript" src="/web/static/tests/views/search_groupby_menu_tests.js"></script>
-                <script type="text/javascript" src="/web/static/tests/widgets/dropdown_menu_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/views/search_panel_tests.js"></script>
-                <script type="text/javascript" src="/web/static/tests/views/search_view_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/core/ajax_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/core/registry_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/core/py_utils_tests.js"></script>
@@ -714,16 +710,26 @@
                 <script type="text/javascript" src="/web/static/tests/core/dom_tests.js"></script>
 
                 <script type="text/javascript" src="/web/static/tests/chrome/action_manager_tests.js"></script>
-                <script type="text/javascript" src="/web/static/tests/chrome/pager_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/chrome/keyboard_navigation_mixin_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/chrome/menu_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/chrome/user_menu_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/chrome/systray_tests.js"></script>
 
                 <script type="text/javascript" src="/web/static/tests/components/custom_file_input_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/datepicker_tests.js"></script>
 
                 <script type="text/javascript" src="/web/static/tests/components/control_panel_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/components/control_panel_model_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/pager_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/sidebar_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/dropdown_menu_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/filter_menu_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/filter_generator_menu_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/groupby_menu_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/groupby_generator_menu_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/time_range_menu_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/favorite_menu_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/components/search_bar_tests.js"></script>
 
                 <script type="text/javascript" src="/web/static/tests/widgets/company_switcher_tests.js"/>
                 <script type="text/javascript" src="/web/static/tests/widgets/data_export_tests.js"/>
