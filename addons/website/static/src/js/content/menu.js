@@ -468,4 +468,57 @@ publicWidget.registry.FadeOutHeader = BaseDisappearingHeader.extend({
         this.$el.stop(false, true).fadeIn();
     },
 });
+
+publicWidget.registry.hoverableDropdown = animations.Animation.extend({
+    selector: 'header.o_hoverable_dropdown',
+    effects: [{
+        startEvents: 'resize',
+        update: '_dropdownHover',
+    }],
+
+    /**
+     * @override
+     */
+    start: function () {
+        this._dropdownHover();
+        return this._super.apply(this, arguments);
+    },
+
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * @private
+     */
+    _dropdownHover: function () {
+        const $dropdown = this.$el.find('.dropdown:not(.position-static)');
+        const $dropdownToggle = this.$el.find('.dropdown-toggle');
+        const $dropdownMenu = this.$el.find('.dropdown-menu');
+        const showClass = 'show';
+
+        if ($(window).width() > 768) {
+            $dropdownMenu.css('margin-top', '0');
+            $dropdownMenu.css('top', 'unset');
+            $dropdown.hover(
+                function () {
+                    const $this = $(this);
+                    $this.addClass(showClass);
+                    $this.find($dropdownToggle).attr('aria-expanded', 'true');
+                    $this.find($dropdownMenu).addClass(showClass);
+                },
+                function () {
+                    const $this = $(this);
+                    $this.removeClass(showClass);
+                    $this.find($dropdownToggle).attr('aria-expanded', 'false');
+                    $this.find($dropdownMenu).removeClass(showClass);
+                }
+            );
+        } else {
+            $dropdownMenu.css('margin-top', '');
+            $dropdownMenu.css('top', '');
+            $dropdown.off('mouseenter mouseleave');
+        }
+    },
+});
 });
