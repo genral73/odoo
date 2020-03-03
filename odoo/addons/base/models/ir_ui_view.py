@@ -37,7 +37,6 @@ from odoo.osv.expression import expression
 _logger = logging.getLogger(__name__)
 
 MOVABLE_BRANDING = ['data-oe-model', 'data-oe-id', 'data-oe-field', 'data-oe-xpath', 'data-oe-source-id']
-PUBLIC_ASSETS = []
 
 
 def transfer_field_to_modifiers(field, modifiers):
