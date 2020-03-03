@@ -39,6 +39,14 @@ class StockMove(models.Model):
             line = self.purchase_line_id
             order = line.order_id
             price_unit = line.price_unit
+
+            # Checks if an invoice for this order was already created, and if it is, takes the
+            # product from this invoice in case of the unit price was changed when billing.
+            posted_invoices = order.invoice_ids.filtered(lambda inv: inv.state == 'posted')
+            if posted_invoices:
+                lines = posted_invoices.line_ids.filtered(lambda l: l.product_id == self.product_id)
+                if lines:
+                    return lines.price_unit
             if line.taxes_id:
                 price_unit = line.taxes_id.with_context(round=False).compute_all(price_unit, currency=line.order_id.currency_id, quantity=1.0)['total_void']
             if line.product_uom.id != line.product_id.uom_id.id:

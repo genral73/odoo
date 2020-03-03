@@ -47,6 +47,9 @@ class AccountMove(models.Model):
 
         # Unlink the COGS lines generated during the 'post' method.
         self.mapped('line_ids').filtered(lambda line: line.is_anglo_saxon_line).unlink()
+
+        # Deletesstock valuation layers generated during the 'post' method.
+        self.stock_valuation_layer_ids.sudo().unlink()
         return res
 
     def button_cancel(self):
@@ -63,7 +66,7 @@ class AccountMove(models.Model):
     # COGS METHODS
     # -------------------------------------------------------------------------
 
-    def _stock_account_prepare_anglo_saxon_out_lines_vals(self):
+    def _stock_account_prepare_anglo_saxon_out_lines_vals(self, already_out=False):
         ''' Prepare values used to create the journal items (account.move.line) corresponding to the Cost of Good Sold
         lines (COGS) for customer invoices.
 
@@ -93,7 +96,7 @@ class AccountMove(models.Model):
         '''
         lines_vals_list = []
         for move in self:
-            if not move.is_sale_document(include_receipts=True) or not move.company_id.anglo_saxon_accounting:
+            if (not move.is_sale_document(include_receipts=True) or not move.company_id.anglo_saxon_accounting) and not already_out:
                 continue
 
             for line in move.invoice_line_ids:

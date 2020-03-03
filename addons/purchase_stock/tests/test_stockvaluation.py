@@ -1326,3 +1326,63 @@ class TestStockValuationWithCOA(AccountTestCommon):
         self.assertEqual(len(input_aml), 2, "Only two lines should have been generated in stock input account: one when receiving the product, one when making the invoice.")
         self.assertAlmostEqual(sum(input_aml.mapped('debit')), 90, "Total debit value on stock input account should be equal to the original PO price of the product.")
         self.assertAlmostEqual(sum(input_aml.mapped('credit')), 90, "Total credit value on stock input account should be equal to the original PO price of the product.")
+
+    def test_anglosaxon_valuation_price_unit_diff(self):
+        """ Increases the product price after receipt in the bill and checks valuation layers.
+        PO:  price unit:  10
+        Inv: price unit:  12
+        """
+        self.env.company.anglo_saxon_accounting = True
+        self.product1.categ_id.property_cost_method = 'fifo'
+        self.product1.categ_id.property_valuation = 'real_time'
+        self.product1.product_tmpl_id.invoice_policy = 'delivery'
+
+        # Creates a PO.
+        po_form = Form(self.env['purchase.order'])
+        po_form.partner_id = self.partner_id
+        with po_form.order_line.new() as po_line:
+            po_line.product_id = self.product1
+            po_line.product_qty = 1
+            po_line.price_unit = 10.0
+        order = po_form.save()
+        order.button_confirm()
+
+        # Receives the goods.
+        receipt = order.picking_ids[0]
+        receipt.move_lines.quantity_done = 1
+        receipt.button_validate()
+
+        # Creates an invoice and increases the price.
+        invoice_form = Form(self.env['account.move'].with_context(default_move_type='in_invoice'))
+        invoice_form.purchase_id = order
+        with invoice_form.invoice_line_ids.edit(0) as line_form:
+            line_form.price_unit = 12.0
+        invoice = invoice_form.save()
+        invoice.post()
+
+        # Checks a stock valuation layer for the price difference was created.
+        price_diff_svl = self.env['stock.valuation.layer'].search([('account_move_id', '=', invoice.id)])
+        self.assertEqual(
+            price_diff_svl.value, 2.0,
+            "The stock valuation layer must have a value of 2."
+        )
+        self.assertEqual(
+            price_diff_svl.stock_valuation_layer_id.value, 10.0,
+            "The stock valuation layer must be linked to the last stock valuation layer."
+        )
+
+        # Check if something was posted in the price difference account
+        price_diff_aml = self.env['account.move.line'].search([('account_id', '=', self.price_diff_account.id)])
+        self.assertEqual(len(price_diff_aml), 0, "No line should have been generated in the price difference account.")
+
+        # Check what was posted in stock input account
+        input_aml = self.env['account.move.line'].search([('account_id', '=', self.stock_input_account.id)])
+        self.assertEqual(
+            len(input_aml), 3,
+            "Three lines should have been generated in stock input account:"
+            "\n\t- one when receiving the product"
+            "\n\t- one when making the invoice"
+            "\n\t- one for the difference price"
+        )
+        self.assertAlmostEqual(sum(input_aml.mapped('debit')), 12, msg="Total debit value on stock input account should be equal to the original PO price of the product.")
+        self.assertAlmostEqual(sum(input_aml.mapped('credit')), 12, msg="Total credit value on stock input account should be equal to the original PO price of the product.")
