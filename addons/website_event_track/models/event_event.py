@@ -74,6 +74,7 @@ class Event(models.Model):
             elif not event.website_track:
                 event.website_track_proposal = False
 
+    # TODO: delete this method since the fields aren't showed on the form view anymore
     @api.onchange('website_track_proposal')
     def _onchange_website_track_proposal(self):
         """ Keep an explicit onchange for tick / untick of website_track_proposal.
@@ -137,3 +138,12 @@ class Event(models.Model):
         self.ensure_one()
         res = [(_('Talk Proposals'), '/event/%s/track_proposal' % slug(self), False, 'track_proposal')]
         return res
+
+    def toggle_website_menu(self, val):
+        self.website_menu = val
+
+    def toggle_website_track(self, val):
+        self.website_track = val
+
+    def toggle_website_track_proposal(self, val):
+        self.website_track_proposal = val
