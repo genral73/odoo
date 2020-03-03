@@ -15,6 +15,7 @@ odoo.define('web.test_utils', async function (require) {
     const relationalFields = require('web.relational_fields');
     const session = require('web.session');
     const testUtilsCreate = require('web.test_utils_create');
+    const testUtilsCreateControlPanel = require('web.test_utils_create_control_panel');
     const testUtilsDom = require('web.test_utils_dom');
     const testUtilsFields = require('web.test_utils_fields');
     const testUtilsFile = require('web.test_utils_file');
@@ -128,6 +129,9 @@ odoo.define('web.test_utils', async function (require) {
             fieldsViewGet: testUtilsMock.fieldsViewGet,
             patchSetTimeout: testUtilsMock.patchSetTimeout,
         },
+        controlPanel: {
+            getHelpers: testUtilsCreateControlPanel.getHelpers,
+        },
         dom: {
             triggerKeypressEvent: testUtilsDom.triggerKeypressEvent,
             triggerMouseEvent: testUtilsDom.triggerMouseEvent,
@@ -187,10 +191,11 @@ odoo.define('web.test_utils', async function (require) {
         },
 
         createActionManager: testUtilsCreate.createActionManager,
+        createComponent: testUtilsCreate.createComponent,
         createDebugManager: testUtilsCreate.createDebugManager,
         createAsyncView: testUtilsCreate.createView,
         createCalendarView: testUtilsCreate.createCalendarView,
-        createControlPanel: testUtilsCreate.createControlPanel,
+        createControlPanel: testUtilsCreateControlPanel.createControlPanel,
         createView: testUtilsCreate.createView,
         createModel: testUtilsCreate.createModel,
         createParent: testUtilsCreate.createParent,
