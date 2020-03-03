@@ -28,9 +28,12 @@ var ThemePreviewController = FormController.extend({
      * @override
      */
     renderButtons: function ($node) {
-        var $previewButton = $(qweb.render('website.ThemePreview.Buttons'));
-        $node.html($previewButton);
+        this.$buttons = $(qweb.render('website.ThemePreview.Buttons'));
+        if ($node) {
+            $node.html(this.$buttons);
+        }
     },
+    updateButtons: function () { },
     // -------------------------------------------------------------------------
     // Private
     // -------------------------------------------------------------------------
@@ -39,16 +42,11 @@ var ThemePreviewController = FormController.extend({
      *
      * @private
      */
-    _updatePager: function () {
-        this._super(...arguments);
-
-        const $buttonSwitch = $(qweb.render('website.ThemePreview.SwitchModeButton'));
-        if (!this.$switcherButton) {
-            $buttonSwitch.appendTo(this.pager.$el);
-        } else {
-            this.$switcherButton.replaceWith($buttonSwitch);
-        }
-        this.$switcherButton = $buttonSwitch;
+    _updateControlPanelProps: async function () {
+        const props = this._super(...arguments);
+        const $switchModeButton = $(qweb.render('website.ThemePreview.SwitchModeButton'));
+        this.controlPanelProps.cp_content.$pager = $switchModeButton;
+        return props;
     },
 
     // -------------------------------------------------------------------------

@@ -1,16 +1,22 @@
-odoo.define('mail.FilterMenu', function (require) {
-"use strict";
+odoo.define('mail.FilterGeneratorMenu', function (require) {
+    "use strict";
 
-var FilterMenu = require('web.FilterMenu');
+    const FilterGeneratorMenu = require('web.FilterGeneratorMenu');
+    const utils = require('web.utils');
 
-FilterMenu.include({
-    init: function () {
-        this._super.apply(this, arguments);
-        //remove messages from custom filters
-        this.fields = _.pick(this.fields, function (field, name) {
-            return field.relation !== 'mail.message' && name !== 'message_ids';
-        });
-    },
-});
+    utils.patch(FilterGeneratorMenu, 'mail.FilterGeneratorMenu', {
 
+        /**
+         * With the `mail` module installed, we want to filter out some of the
+         * available fields in 'Add custom filter' menu (@see FilterGeneratorMenu).
+         * @override
+         */
+        _validateField(field) {
+            return this._super(field) &&
+                field.relation !== 'mail.message' &&
+                field.name !== 'message_ids';
+        },
+    });
+
+    return FilterGeneratorMenu;
 });
