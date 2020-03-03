@@ -10,8 +10,15 @@
         @param {mail.NotificationAlert} widget
     -->
     <t t-name="mail.NotificationAlert">
-       <center t-if="widget.isNotificationBlocked" class="o_notification_alert alert alert-primary">
-           Odoo Push notifications have been blocked. Go to your browser settings to allow them.
-       </center>
+        <center class="o_notification_alert alert alert-primary" t-if="widget.isNotificationBlocked">
+            Odoo Push notifications have been blocked. Go to your browser settings.
+            <span t-if="widget.settingUrl" class="border border-primary mt-3 p-2 w-75 d-block font-italic text-left rounded position-relative">
+                <t t-esc="widget.settingUrl"/>
+                <button class="btn btn-sm btn-primary p-2 rounded-0 position-absolute o_clipboard_button" style="top:0;right:0;">
+                    <span class="fa fa-clipboard"></span><span> Copy Link</span>
+                </button>
+            </span>
+            <span t-if="widget.settingPath" class="d-block" t-esc="widget.settingPath"/>
+        </center>
     </t>
 </templates>
