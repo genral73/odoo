@@ -303,16 +303,13 @@
         <script type="text/javascript" src="/web/static/src/js/views/abstract_renderer.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/abstract_renderer_owl.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/abstract_model.js"></script>
+        <script type="text/javascript" src="/web/static/src/js/models/model.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/abstract_controller.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/renderer_wrapper.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/basic/basic_model.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/basic/basic_view.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/basic/basic_controller.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/basic/basic_renderer.js"></script>
-        <script type="text/javascript" src="/web/static/src/js/views/control_panel/control_panel_controller.js"></script>
-        <script type="text/javascript" src="/web/static/src/js/views/control_panel/control_panel_model.js"></script>
-        <script type="text/javascript" src="/web/static/src/js/views/control_panel/control_panel_renderer.js"></script>
-        <script type="text/javascript" src="/web/static/src/js/views/control_panel/control_panel_view.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/search/search_bar_autocomplete_sources.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/search/search_bar_autocomplete_sources_registry.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/search/search_facet.js"></script>
@@ -323,10 +320,13 @@
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/search/time_range_menu.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/search/favorite_menu.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/search/add_new_favorite_menu.js"></script>
-        <script type="text/javascript" src="/web/static/src/js/views/control_panel/search/control_panel_view_parameters.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/search/favorites_submenus_registry.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/search/search_filters.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/control_panel/search/search_filters_registry.js"></script>
+        <script type="text/javascript" src="/web/static/src/js/models/control_panel_model.js"></script>
+        <script type="text/javascript" src="/web/static/src/js/components/control_panel.js"></script>
+        <script type="text/javascript" src="/web/static/src/js/components/control_panel_x2many.js"></script>
+        <script type="text/javascript" src="/web/static/src/js/views/search_utils.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/search_panel.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/field_manager_mixin.js"></script>
         <script type="text/javascript" src="/web/static/src/js/views/file_upload_mixin.js"></script>
