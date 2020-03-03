@@ -35,6 +35,18 @@ def make_compute(text, deps):
     deps = [arg.strip() for arg in deps.split(",")] if deps else []
     return api.depends(*deps)(func)
 
+def mark_modified(records, fnames):
+    """ Mark the given fields as modified on records. """
+    # protect all modified fields, to avoid them being recomputed
+    fields = [records._fields[fname] for fname in fnames]
+    with records.env.protecting(fields, records):
+        records.modified(fnames)
+
+def upfront(*keys):
+    """ Wrapper function to use as key for sorting, moving `keys` upfront. """
+    index = dict(zip(keys, range(-len(keys), 0)))
+    return lambda key: index.get(key, 0)
+
 
 def model_xmlid(module, model_name):
     """ Return the XML id of the given model. """
@@ -56,6 +68,13 @@ def selection_xmlid(module, model_name, field_name, value):
 # generic INSERT and UPDATE queries
 INSERT_QUERY = "INSERT INTO {table} ({cols}) VALUES {rows} RETURNING id"
 UPDATE_QUERY = "UPDATE {table} SET {assignment} WHERE {condition} RETURNING id"
+UPSERT_QUERY = """
+    INSERT INTO {table} ({cols}) VALUES {rows}
+    ON CONFLICT ({conflict}) DO UPDATE SET ({cols}) = ({excluded})
+    RETURNING id
+"""
+
+quote = '"{}"'.format
 
 def query_insert(cr, table, rows):
     """ Insert rows in a table. ``rows`` is a list of dicts, all with the same
@@ -84,6 +103,17 @@ def query_update(cr, table, values, selectors):
         condition=" AND ".join('"{0}"=%({0})s'.format(s) for s in selectors),
     )
     cr.execute(query, values)
+    return [row[0] for row in cr.fetchall()]
+
+def upsert(cr, table, cols, rows, conflict):
+    query = UPSERT_QUERY.format(
+        table=quote(table),
+        cols=", ".join(quote(col) for col in cols),
+        rows=", ".join("%s" for row in rows),
+        conflict=", ".join(conflict),
+        excluded=", ".join("EXCLUDED." + quote(col) for col in cols),
+    )
+    cr.execute(query, rows)
     return [row[0] for row in cr.fetchall()]
 
 
@@ -320,29 +350,47 @@ class IrModel(models.Model):
 
     def _reflect_models(self, model_names):
         """ Reflect the given models. """
-        for model_name in model_names:
-            self._reflect_model(self.env[model_name])
+        # determine expected and existing rows
+        rows = [
+            self._reflect_model_params(self.env[model_name])
+            for model_name in model_names
+        ]
+        cols = sorted(rows[0], key=upfront('model'))
+        expected = [tuple(row[col] for col in cols) for row in rows]
 
-    def _reflect_model(self, model):
-        """ Reflect the given model and return the corresponding record. Also
-            create entries in 'ir.model.data'.
-        """
         cr = self.env.cr
+        query = "SELECT {}, id FROM ir_model WHERE model IN %s".format(
+            ", ".join(quote(col) for col in cols)
+        )
+        cr.execute(query, [tuple(model_names)])
+        model_ids = {}
+        existing = {}
+        for row in cr.fetchall():
+            model_ids[row[0]] = row[-1]
+            existing[row[0]] = row[:-1]
 
-        # create/update the entries in 'ir.model' and 'ir.model.data'
-        params = self._reflect_model_params(model)
-        ids = query_update(cr, self._table, params, ['model'])
-        if not ids:
-            ids = query_insert(cr, self._table, params)
+        # create or update rows
+        rows = [row for row in expected if existing.get(row[0]) != row]
+        if rows:
+            ids = upsert(self.env.cr, self._table, cols, rows, ['model'])
+            for row, id_ in zip(rows, ids):
+                model_ids[row[0]] = id_
+            self.pool.post_init(mark_modified, self.browse(ids), cols)
 
-        record = self.browse(ids)
-        self.pool.post_init(record.modified, set(params) - {'model', 'state'})
+        # update their XML id
+        module = self._context.get('module')
+        if not module:
+            return
 
-        if model._module == self._context.get('module'):
-            # self._module is the name of the module that last extended self
-            xmlid = '%s.model_%s' % (model._module, model._name.replace('.', '_'))
-            self.env['ir.model.data']._update_xmlids([{'xml_id': xmlid, 'record': record}])
-        return record
+        data_list = []
+        for model_name, model_id in model_ids.items():
+            model = self.env[model_name]
+            if model._module == module:
+                # model._module is the name of the module that last extended model
+                xml_id = model_xmlid(module, model_name)
+                record = self.browse(model_id)
+                data_list.append({'xml_id': xml_id, 'record': record})
+        self.env['ir.model.data']._update_xmlids(data_list)
 
     @api.model
     def _instanciate(self, model_data):
