@@ -8,6 +8,14 @@ var Widget = require('web.Widget');
 var FormView = require('web.FormView');
 
 var createView = testUtils.createView;
+const { getHelpers: getCPHelpers } = testUtils.controlPanel;
+
+async function createParent(params) {
+    var widget = new Widget();
+    params.server =  await testUtils.mock.addMockEnvironment(widget, params);
+    owl.Component.env = testUtils.mock.getMockedOwlEnv(params);
+    return widget;
+}
 
 QUnit.module('Views', {
     beforeEach: function () {
@@ -56,17 +64,10 @@ QUnit.module('Views', {
 
     QUnit.module('view_dialogs');
 
-    function createParent(params) {
-        var widget = new Widget();
-
-        testUtils.mock.addMockEnvironment(widget, params);
-        return widget;
-    }
-
     QUnit.test('formviewdialog buttons in footer are positioned properly', async function (assert) {
         assert.expect(2);
 
-        var parent = createParent({
+        var parent = await createParent({
             data: this.data,
             archs: {
                 'partner,false,form':
@@ -97,7 +98,7 @@ QUnit.module('Views', {
         this.data.partner.fields.poney_ids = {string: "Poneys", type: "one2many", relation: 'partner'};
         this.data.partner.records[0].poney_ids = [];
 
-        var parent = createParent({
+        var parent = await createParent({
             data: this.data,
             archs: {
                 'partner,false,form':
@@ -129,7 +130,7 @@ QUnit.module('Views', {
         assert.expect(3);
 
         var search = 0;
-        var parent = createParent({
+        var parent = await createParent({
             data: this.data,
             archs: {
                 'partner,false,list':
@@ -196,9 +197,9 @@ QUnit.module('Views', {
             dialog = result;
         });
         await testUtils.nextTick();
-
-        await testUtils.dom.click(dialog.$('.o_searchview_facet:contains(groupby_bar) .o_facet_remove'));
-        await testUtils.dom.click(dialog.$('.o_searchview_facet .o_facet_remove'));
+        const cpHelpers = getCPHelpers(dialog.el);
+        await cpHelpers.removeFacet("Bar");
+        await cpHelpers.removeFacet();
 
         parent.destroy();
     });
@@ -206,7 +207,7 @@ QUnit.module('Views', {
     QUnit.test('SelectCreateDialog correctly evaluates domains', async function (assert) {
         assert.expect(1);
 
-        var parent = createParent({
+        var parent = await createParent({
             data: this.data,
             archs: {
                 'partner,false,list':
@@ -245,7 +246,7 @@ QUnit.module('Views', {
     QUnit.test('SelectCreateDialog list view in readonly', async function (assert) {
         assert.expect(1);
 
-        var parent = createParent({
+        var parent = await createParent({
             data: this.data,
             archs: {
                 'partner,false,list':
@@ -437,7 +438,7 @@ QUnit.module('Views', {
             },
         });
 
-        var parent = createParent({
+        var parent = await createParent({
             data: this.data,
             archs: {
                 'partner,false,list':
@@ -450,14 +451,19 @@ QUnit.module('Views', {
                     '</search>',
 
             },
-            intercepts: {
-                create_filter: function (event) {
-                    var filter = event.data.filter;
-                    assert.deepEqual(filter.domain, `[("bar", "=", True)]`,
-                        "should save the correct domain");
-                    assert.deepEqual(filter.context, {shouldBeInFilterContext: true},
-                        "should save the correct context");
-                },
+            env: {
+                dataManager: {
+                    create_filter: function (filter) {
+                        assert.strictEqual(filter.domain, `[("bar", "=", True)]`,
+                            "should save the correct domain");
+                        const expectedContext = {
+                            group_by: [], // default groupby is an empty list
+                            shouldBeInFilterContext: true,
+                        };
+                        assert.deepEqual(filter.context, expectedContext,
+                            "should save the correct context");
+                    },
+                }
             },
         });
 
@@ -470,19 +476,21 @@ QUnit.module('Views', {
         });
         await testUtils.nextTick();
 
+        const cpHelpers = getCPHelpers(document.el);
+
         assert.containsN(dialog, '.o_data_row', 3, "should contain 3 records");
 
         // filter on bar
-        await testUtils.dom.click(dialog.$('.o_dropdown_toggler_btn:contains(Filters)'));
-        await testUtils.dom.click(dialog.$('.o_filters_menu a:contains(Bar)'));
+        await cpHelpers.toggleFilterMenu();
+        await cpHelpers.toggleMenuItem("Bar");
 
         assert.containsN(dialog, '.o_data_row', 2, "should contain 2 records");
 
         // save filter
-        await testUtils.dom.click(dialog.$('.o_dropdown_toggler_btn:contains(Favorites)'));
-        await testUtils.dom.click(dialog.$('.o_add_favorite'));
-        await testUtils.fields.editInput(dialog.$('.o_favorite_name input[type=text]'), 'some name'); // name the filter
-        await testUtils.dom.click(dialog.$('.o_save_favorite button'));
+        await cpHelpers.toggleFavoriteMenu();
+        await cpHelpers.toggleSaveFavorite();
+        await cpHelpers.editFavoriteName("some name");
+        await cpHelpers.saveFavorite();
 
         testUtils.mock.unpatch(ListController);
         parent.destroy();
@@ -555,7 +563,7 @@ QUnit.module('Views', {
         this.data.partner.records[0].poney_ids = [];
         var reject = true;
 
-        var parent = createParent({
+        var parent = await createParent({
             data: this.data,
             archs: {
                 'partner,false,form':

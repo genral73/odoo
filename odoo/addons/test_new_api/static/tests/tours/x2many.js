@@ -77,6 +77,7 @@ odoo.define('web.test.x2many', function (require) {
     }, { // add message a
         content: "Select First Tab",
         trigger: 'a[role=tab]:first',
+        extra_trigger: 'button.o_form_button_save',
     }, {
         content: "create new message a",
         trigger: '.o_form_sheet .tab-pane:eq(0) .o_field_x2many_list_row_add a'

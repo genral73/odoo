@@ -18,6 +18,7 @@ var Widget = require('web.Widget');
 var _t = core._t;
 var createView = testUtils.createView;
 var createActionManager = testUtils.createActionManager;
+const { getHelpers: getCPHelpers } = testUtils.controlPanel;
 
 QUnit.module('Views', {
     beforeEach: function () {
@@ -1814,11 +1815,15 @@ QUnit.module('Views', {
             res_id: 1,
         });
 
-        assert.isVisible(form.sidebar);
+        assert.containsOnce(form, '.o_cp_sidebar');
+
         await testUtils.form.clickEdit(form);
-        assert.isNotVisible(form.sidebar);
+
+        assert.containsNone(form, '.o_cp_sidebar');
+
         await testUtils.form.clickDiscard(form);
-        assert.isVisible(form.sidebar);
+
+        assert.containsOnce(form, '.o_cp_sidebar');
 
         form.destroy();
     });
@@ -1955,12 +1960,13 @@ QUnit.module('Views', {
             res_id: 1,
             viewOptions: {hasSidebar: true},
         });
+        const cpHelpers = getCPHelpers(form.el);
 
         assert.strictEqual(form.$('.o_control_panel .breadcrumb').text(), 'first record',
             "should have the display name of the record as  title");
 
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(form.sidebar.$('a:contains(Duplicate)'));
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem("Duplicate");
 
         assert.strictEqual(form.$('.o_control_panel .breadcrumb').text(), 'first record (copy)',
             "should have duplicated the record");
@@ -1991,9 +1997,10 @@ QUnit.module('Views', {
                 return this._super.apply(this, arguments);
             },
         });
+        const cpHelpers = getCPHelpers(form.el);
 
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(form.sidebar.$('a:contains(Duplicate)'));
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem("Duplicate");
 
         form.destroy();
     });
@@ -2014,7 +2021,7 @@ QUnit.module('Views', {
 
         assert.strictEqual(form.$('.o_control_panel .breadcrumb').text(), 'first record',
             "should have the display name of the record as  title");
-        assert.containsNone(form.sidebar, 'a:contains(Duplicate)',
+        assert.containsNone(form, '.o_cp_sidebar a:contains(Duplicate)',
             "should not contains a 'Duplicate' action");
         form.destroy();
     });
@@ -2549,8 +2556,9 @@ QUnit.module('Views', {
         await testUtils.fields.editInput(form.$('input[name=foo]'), 'tralala');
         await testUtils.form.clickSave(form);
 
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(form.sidebar.$('a:contains(Duplicate)'));
+        const cpHelpers = getCPHelpers(form.el);
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem("Duplicate");
 
         assert.strictEqual(form.$('input[name=foo]').val(), 'tralala', 'input should contain ABC');
 
@@ -2582,9 +2590,10 @@ QUnit.module('Views', {
                 return this._super.apply(this, arguments);
             },
         });
+        const cpHelpers = getCPHelpers(form.el);
 
-        assert.strictEqual(form.$('.o_pager_value').text(), '1', "pager value should be 1");
-        assert.strictEqual(form.$('.o_pager_limit').text(), '2', "pager limit should be 2");
+        assert.strictEqual(cpHelpers.getPagerValue(), '1', "pager value should be 1");
+        assert.strictEqual(cpHelpers.getPagerSize(), '2', "pager limit should be 2");
 
         // switch to edit mode
         await testUtils.form.clickEdit(form);
@@ -2595,19 +2604,19 @@ QUnit.module('Views', {
         assert.strictEqual(form.$('input').val(), 'new value', 'input should contain new value');
 
         // click on the pager to switch to the next record and cancel the confirm request
-        await testUtils.dom.click('.o_pager_next'); // click on next
+        await cpHelpers.pagerNext();
         assert.containsOnce(document.body, '.modal', "a confirm modal should be displayed");
         await testUtils.dom.click('.modal-footer .btn-secondary'); // click on cancel
         assert.strictEqual(form.$('input[name=foo]').val(), 'new value',
             "input should still contain new value");
-        assert.strictEqual(form.$('.o_pager_value').text(), '1', "pager value should still be 1");
+        assert.strictEqual(cpHelpers.getPagerValue(), '1', "pager value should still be 1");
 
         // click on the pager to switch to the next record and confirm
-        await testUtils.dom.click('.o_pager_next'); // click on next
+        await cpHelpers.pagerNext();
         assert.containsOnce(document.body, '.modal', "a confirm modal should be displayed");
         await testUtils.dom.click('.modal-footer .btn-primary'); // click on confirm
         assert.strictEqual(form.$('input[name=foo]').val(), 'blip', "input should contain blip");
-        assert.strictEqual(form.$('.o_pager_value').text(), '2', "pager value should be 2");
+        assert.strictEqual(cpHelpers.getPagerValue(), '2', "pager value should be 2");
 
         assert.strictEqual(nbWrite, 0, 'no write RPC should have been done');
         form.destroy();
@@ -2630,7 +2639,9 @@ QUnit.module('Views', {
             },
             res_id: 1,
         });
-        assert.strictEqual(form.$('.o_pager_value').text(), '1', "pager value should be 1");
+        const cpHelpers = getCPHelpers(form.el);
+
+        assert.strictEqual(cpHelpers.getPagerValue(), '1', "pager value should be 1");
 
         // switch to edit mode
         await testUtils.form.clickEdit(form);
@@ -2644,10 +2655,10 @@ QUnit.module('Views', {
         await testUtils.form.clickSave(form);
 
         // click on the pager to switch to the next record and cancel the confirm request
-        await testUtils.dom.click('.o_pager_next'); // click on next
+        await cpHelpers.pagerNext();
         assert.containsNone(document.body, '.modal:visible',
             "no confirm modal should be displayed");
-        assert.strictEqual(form.$('.o_pager_value').text(), '2', "pager value should be 2");
+        assert.strictEqual(cpHelpers.getPagerValue(), '2', "pager value should be 2");
 
         assert.containsN(form, '.o_priority .fa-star-o', 2,
             'priority widget should have been rendered with correct value');
@@ -2657,10 +2668,10 @@ QUnit.module('Views', {
         assert.containsOnce(form, '.o_priority .fa-star',
             'priority widget should have been updated');
 
-        await testUtils.dom.click('.o_pager_next'); // click on next
-        assert.containsNone(document.body, '.modal:visible',
+        await cpHelpers.pagerNext();
+            assert.containsNone(document.body, '.modal:visible',
             "no confirm modal should be displayed");
-        assert.strictEqual(form.$('.o_pager_value').text(), '1', "pager value should be 1");
+        assert.strictEqual(cpHelpers.getPagerValue(), '1', "pager value should be 1");
 
         // switch to edit mode
         await testUtils.form.clickEdit(form);
@@ -2673,8 +2684,8 @@ QUnit.module('Views', {
         await testUtils.form.clickDiscard(form);
         assert.containsOnce(document.body, '.modal', "a confirm modal should be displayed");
         await testUtils.dom.click('.modal-footer .btn-primary'); // click on confirm
-        await testUtils.dom.click('.o_pager_next'); // click on next
-        assert.strictEqual(form.$('.o_pager_value').text(), '2', "pager value should be 2");
+        await cpHelpers.pagerNext();
+        assert.strictEqual(cpHelpers.getPagerValue(), '2', "pager value should be 2");
         form.destroy();
     });
 
@@ -2701,6 +2712,7 @@ QUnit.module('Views', {
             },
             res_id: 1,
         });
+        const cpHelpers = getCPHelpers(form.el);
 
         // click on second page tab
         await testUtils.dom.click(form.$('.o_notebook .nav-link:eq(1)'));
@@ -2709,7 +2721,7 @@ QUnit.module('Views', {
         assert.hasClass(form.$('.o_notebook .nav-link:eq(1)'), 'active');
 
         // click on the pager to switch to the next record
-        await testUtils.dom.click('.o_pager_next');
+        await cpHelpers.pagerNext();
 
         assert.doesNotHaveClass(form.$('.o_notebook .nav-link:eq(0)'), 'active');
         assert.hasClass(form.$('.o_notebook .nav-link:eq(1)'), 'active');
@@ -2732,21 +2744,24 @@ QUnit.module('Views', {
                 index: 0,
             },
         });
+        const cpHelpers = getCPHelpers(form.el);
 
-        assert.isVisible(form.pager);
-        assert.strictEqual(form.pager.$('.o_pager_value').text(), "1",
+        assert.containsOnce(form, '.o_pager');
+        assert.strictEqual(cpHelpers.getPagerValue(), "1",
             "current pager value should be 1");
-        assert.strictEqual(form.pager.$('.o_pager_limit').text(), "2",
+        assert.strictEqual(cpHelpers.getPagerSize(), "2",
             "current pager limit should be 1");
 
         await testUtils.form.clickCreate(form);
-        assert.isNotVisible(form.pager);
+
+        assert.containsNone(form, '.o_pager');
 
         await testUtils.form.clickSave(form);
-        assert.isVisible(form.pager);
-        assert.strictEqual(form.pager.$('.o_pager_value').text(), "3",
+
+        assert.containsOnce(form, '.o_pager');
+        assert.strictEqual(cpHelpers.getPagerValue(), "3",
             "current pager value should be 3");
-        assert.strictEqual(form.pager.$('.o_pager_limit').text(), "3",
+        assert.strictEqual(cpHelpers.getPagerSize(), "3",
             "current pager limit should be 3");
 
         form.destroy();
@@ -2773,12 +2788,14 @@ QUnit.module('Views', {
                 }
             }
         });
+        const cpHelpers = getCPHelpers(form.el);
 
         assert.strictEqual(form.mode, 'readonly', 'form view should be in readonly mode');
-        assert.strictEqual(form.pager.$('.o_pager_value').text(), "1", 'pager value should be 1');
-        await testUtils.dom.click(form.pager.$('.o_pager_next'));
+        assert.strictEqual(cpHelpers.getPagerValue(), "1", 'pager value should be 1');
 
-        assert.strictEqual(form.pager.$('.o_pager_value').text(), "2", 'pager value should be 2');
+        await cpHelpers.pagerNext();
+
+        assert.strictEqual(cpHelpers.getPagerValue(), "2", 'pager value should be 2');
         assert.strictEqual(form.mode, 'readonly', 'form view should be in readonly mode');
 
         assert.strictEqual(pushStateCount, 2, "should have triggered 2 push_state");
@@ -2879,24 +2896,25 @@ QUnit.module('Views', {
             },
             res_id: 1,
         });
+        const cpHelpers = getCPHelpers(form.el);
 
-        assert.strictEqual(form.pager.$('.o_pager_value').text(), "1", 'pager value should be 1');
-        assert.strictEqual(form.pager.$('.o_pager_limit').text(), "3", 'pager limit should be 3');
+        assert.strictEqual(cpHelpers.getPagerValue(), "1", 'pager value should be 1');
+        assert.strictEqual(cpHelpers.getPagerSize(), "3", 'pager limit should be 3');
         assert.strictEqual(form.$('span:contains(yop)').length, 1,
             'should have a field with foo value for record 1');
         assert.ok(!$('.modal:visible').length, 'no confirm modal should be displayed');
 
         // open sidebar and delete
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(form.sidebar.$('a:contains(Delete)'));
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem("Delete");
 
         assert.ok($('.modal').length, 'a confirm modal should be displayed');
 
         // confirm the delete
         await testUtils.dom.click($('.modal-footer button.btn-primary'));
 
-        assert.strictEqual(form.pager.$('.o_pager_value').text(), "1", 'pager value should be 1');
-        assert.strictEqual(form.pager.$('.o_pager_limit').text(), "2", 'pager limit should be 2');
+        assert.strictEqual(cpHelpers.getPagerValue(), "1", 'pager value should be 1');
+        assert.strictEqual(cpHelpers.getPagerSize(), "2", 'pager limit should be 2');
         assert.strictEqual(form.$('span:contains(blip)').length, 1,
             'should have a field with foo value for record 2');
         form.destroy();
@@ -2921,10 +2939,10 @@ QUnit.module('Views', {
                 return this._super.apply(this, arguments);
             }
         });
+        const cpHelpers = getCPHelpers(form.el);
 
-        // open sidebar, click on delete and confirm
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(form.sidebar.$('a:contains(Delete)'));
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem("Delete");
 
         await testUtils.mock.intercept(form, 'history_back', function () {
             assert.step('history_back');
@@ -5440,18 +5458,17 @@ QUnit.module('Views', {
                 return this._super.apply(this, arguments);
             },
         });
+        const cpHelpers = getCPHelpers(form.el);
 
-        var $printMenu = form.$('.o_cp_sidebar .o_dropdown:contains(Print)');
-        assert.isNotVisible($printMenu);
-        var $actionMenu = form.$('.o_cp_sidebar .o_dropdown:contains(Action)');
-        assert.isVisible($actionMenu);
+        assert.containsNone(form, '.o_cp_sidebar .o_dropdown:contains(Print)');
+        assert.containsOnce(form, '.o_cp_sidebar .o_dropdown:contains(Action)');
 
-        testUtils.dom.click($actionMenu.find('button')); // open Action menu
-        assert.strictEqual($actionMenu.find('.dropdown-item').length, 3,
-            'there should be 3 actions');
-        var $customAction = $actionMenu.find('.dropdown-item:last');
-        assert.strictEqual($customAction.text().trim(), 'Action partner',
+        await cpHelpers.toggleSideBar();
+
+        assert.containsN(form, '.o_cp_sidebar .dropdown-item', 3, "there should be 3 actions");
+        assert.strictEqual(form.$('.o_cp_sidebar .dropdown-item:last').text().trim(), 'Action partner',
             "the custom action should have 'Action partner' as name");
+
         await testUtils.mock.intercept(form, 'do_action', function (event) {
             var context = event.data.action.context.__contexts[1];
             assert.strictEqual(context.active_id, 1,
@@ -5459,7 +5476,7 @@ QUnit.module('Views', {
             assert.deepEqual(context.active_ids, [1],
                 "the active_ids should be an array with 1 inside.");
         });
-        await testUtils.dom.click($customAction);
+        await cpHelpers.toggleMenuItem("Action partner");
 
         form.destroy();
     });
@@ -5597,6 +5614,7 @@ QUnit.module('Views', {
             },
             res_id: 1,
         });
+        const cpHelpers = getCPHelpers(form.el);
 
         assert.strictEqual(form.$('.o_notebook .nav-item:not(.o_invisible_modifier)').length, 2,
             "both tabs should be visible");
@@ -5604,14 +5622,16 @@ QUnit.module('Views', {
             "first tab should be active");
 
         // click on the pager to switch to the next record
-        await testUtils.dom.click(form.pager.$('.o_pager_next'));
+        await cpHelpers.pagerNext();
+
         assert.strictEqual(form.$('.o_notebook .nav-item:not(.o_invisible_modifier)').length, 1,
             "only the second tab should be visible");
         assert.hasClass(form.$('.o_notebook .nav-item:not(.o_invisible_modifier) .nav-link'),'active',
             "the visible tab should be active");
 
         // click on the pager to switch back to the previous record
-        await testUtils.dom.click(form.pager.$('.o_pager_previous'));
+        await cpHelpers.pagerPrevious();
+
         assert.strictEqual(form.$('.o_notebook .nav-item:not(.o_invisible_modifier)').length, 2,
             "both tabs should be visible again");
         assert.hasClass(form.$('.o_notebook .nav-link:nth(1)'),'active',
@@ -6117,29 +6137,28 @@ QUnit.module('Views', {
             },
             res_id: 1,
         });
+        const cpHelpers = getCPHelpers(form.el);
 
         await testUtils.form.clickEdit(form);
         await testUtils.fields.editInput(form.$('input[name="foo"]'), "test");
         await testUtils.form.clickSave(form);
 
-        assert.containsOnce(form, '.o_form_view .alert > div',"should have a translation alert");
+        assert.containsOnce(form, '.o_form_view .alert > div', "should have a translation alert");
 
         // click on the pager to switch to the next record
-        await testUtils.dom.click(form.pager.$('.o_pager_next'));
-        assert.strictEqual(form.$('.o_form_view .alert > div').length, 0,
-            "should not have a translation alert");
+        await cpHelpers.pagerNext();
+        assert.containsNone(form, '.o_form_view .alert > div', "should not have a translation alert");
 
         // click on the pager to switch back to the previous record
-        await testUtils.dom.click(form.pager.$('.o_pager_previous'));
-        assert.containsOnce(form, '.o_form_view .alert > div',"should have a translation alert");
+        await cpHelpers.pagerPrevious();
+        assert.containsOnce(form, '.o_form_view .alert > div', "should have a translation alert");
 
         // remove translation alert by click X and check alert even after form reload
         await testUtils.dom.click(form.$('.o_form_view .alert > .close'));
-        assert.strictEqual(form.$('.o_form_view > .alert > div').length, 0,
-            "should not have a translation alert");
+        assert.containsNone(form, '.o_form_view .alert > div', "should not have a translation alert");
+
         await form.reload();
-        assert.strictEqual(form.$('.o_form_view .alert > div').length, 0,
-            "should not have a translation alert after reload");
+        assert.containsNone(form, '.o_form_view .alert > div', "should not have a translation alert after reload");
 
         form.destroy();
         _t.database.multi_lang = multi_lang;
@@ -6952,8 +6971,10 @@ QUnit.module('Views', {
         });
 
         // duplicate record 1
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(form.sidebar.$('a:contains(Duplicate)'));
+        const cpHelpers = getCPHelpers(form.el);
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem("Duplicate");
+
         assert.containsOnce(form, '.o_form_editable',
             "form should be in edit mode");
         assert.strictEqual(form.$('.o_field_widget').val(), 'first record (copy)',
@@ -6961,8 +6982,8 @@ QUnit.module('Views', {
         await testUtils.form.clickSave(form); // save duplicated record
 
         // delete duplicated record
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(form.sidebar.$('a:contains(Delete)'));
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem("Delete");
 
         assert.strictEqual($('.modal').length, 1, "should have opened a confirm dialog");
         await testUtils.dom.click($('.modal-footer .btn-primary'));
@@ -7546,7 +7567,7 @@ QUnit.module('Views', {
     });
 
     QUnit.test('do not change pager when discarding current record', async function (assert) {
-        assert.expect(2);
+        assert.expect(4);
 
         var form = await createView({
             View: FormView,
@@ -7561,15 +7582,20 @@ QUnit.module('Views', {
             },
             res_id: 2,
         });
+        const cpHelpers = getCPHelpers(form.el);
 
-        assert.strictEqual(form.pager.$('.o_pager_counter').text().trim(), '2 / 2',
+        assert.strictEqual(cpHelpers.getPagerValue(), "2",
+            'pager should indicate that we are on second record');
+        assert.strictEqual(cpHelpers.getPagerSize(), "2",
             'pager should indicate that we are on second record');
 
         await testUtils.form.clickEdit(form);
         await testUtils.form.clickDiscard(form);
 
-        assert.strictEqual(form.pager.$('.o_pager_counter').text().trim(), '2 / 2',
-            'pager should not have changed');
+        assert.strictEqual(cpHelpers.getPagerValue(), "2",
+            'pager value should not have changed');
+        assert.strictEqual(cpHelpers.getPagerSize(), "2",
+            'pager limit should not have changed');
 
         form.destroy();
     });
@@ -7723,8 +7749,9 @@ QUnit.module('Views', {
         });
         core.bus.on('clear_cache', form, assert.step.bind(assert, 'clear_cache'));
 
-        await testUtils.dom.click(form.sidebar.$('.o_dropdown_toggler_btn:contains(Action)'));
-        await testUtils.dom.click(form.sidebar.$('a:contains(Delete)'));
+        const cpHelpers = getCPHelpers(form.el);
+        await cpHelpers.toggleSideBar();
+        await cpHelpers.toggleMenuItem("Delete");
         await testUtils.dom.click($('.modal-footer .btn-primary'));
 
         assert.verifySteps(['unlink', 'clear_cache']);
@@ -8073,6 +8100,7 @@ QUnit.module('Views', {
                 mode: 'edit',
             },
         });
+        const cpHelpers = getCPHelpers(form.el);
 
         assert.strictEqual(form.$('input[name=foo]').val(), 'yop', "should be on record 1");
 
@@ -8083,7 +8111,7 @@ QUnit.module('Views', {
         await testUtils.fields.many2one.clickOpenDropdown('trululu');
 
         // switch to another record (should ask to discard changes, and reset the domain)
-        await testUtils.dom.click(form.pager.$('.o_pager_next'));
+        await cpHelpers.pagerNext();
 
         // discard changes by clicking on confirm in the dialog
         await testUtils.dom.click($('.modal .modal-footer .btn-primary:first'));

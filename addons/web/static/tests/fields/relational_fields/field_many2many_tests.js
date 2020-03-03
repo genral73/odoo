@@ -3,6 +3,7 @@ odoo.define('web.field_many_to_many_tests', function (require) {
 
 var FormView = require('web.FormView');
 var testUtils = require('web.test_utils');
+
 var createView = testUtils.createView;
 
 QUnit.module('fields', {}, function () {
@@ -1003,8 +1004,9 @@ QUnit.module('fields', {}, function () {
             assert.strictEqual($('.modal .o_data_row').length, 1,
                 "should contain only one row (gold)");
 
-            await testUtils.fields.triggerKey('press', $('.modal .o_searchview_input'), 's');
-            await testUtils.fields.triggerKeydown($('.modal .o_searchview_input'), 'enter');
+            const cpHelpers = testUtils.controlPanel.getHelpers(document.querySelector('.modal'));
+            await cpHelpers.editSearch('s');
+            await cpHelpers.validateSearch();
 
             assert.strictEqual($('.modal .o_data_row').length, 0, "should contain no row");
 
