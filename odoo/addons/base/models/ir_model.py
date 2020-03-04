@@ -36,6 +36,23 @@ def make_compute(text, deps):
     return api.depends(*deps)(func)
 
 
+def model_xmlid(module, model_name):
+    """ Return the XML id of the given model. """
+    return '%s.model_%s' % (module, model_name.replace('.', '_'))
+
+
+def field_xmlid(module, model_name, field_name):
+    """ Return the XML id of the given field. """
+    return '%s.field_%s__%s' % (module, model_name.replace('.', '_'), field_name)
+
+
+def selection_xmlid(module, model_name, field_name, value):
+    """ Return the XML id of the given selection. """
+    xmodel = model_name.replace('.', '_')
+    xvalue = value.replace('.', '_').replace(' ', '_').lower()
+    return '%s.selection__%s__%s__%s' % (module, xmodel, field_name, xvalue)
+
+
 # generic INSERT and UPDATE queries
 INSERT_QUERY = "INSERT INTO {table} ({cols}) VALUES {rows} RETURNING id"
 UPDATE_QUERY = "UPDATE {table} SET {assignment} WHERE {condition} RETURNING id"
