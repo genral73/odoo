@@ -54,7 +54,6 @@ class AccountChartTemplate(models.Model):
                     ' configured as %s type' % (coa_responsibility.name, company_responsibility.name)))
             company.write({
                 'l10n_ar_afip_responsibility_type_id': coa_responsibility.id,
-                'country_id': self.env.ref('base.ar').id,
                 'tax_calculation_rounding_method': 'round_globally',
             })
         res = super()._load(sale_tax_rate, purchase_tax_rate, company)
