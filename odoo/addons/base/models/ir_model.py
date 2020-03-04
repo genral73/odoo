@@ -318,6 +318,11 @@ class IrModel(models.Model):
             'transient': model._transient,
         }
 
+    def _reflect_models(self, model_names):
+        """ Reflect the given models. """
+        for model_name in model_names:
+            self._reflect_model(self.env[model_name])
+
     def _reflect_model(self, model):
         """ Reflect the given model and return the corresponding record. Also
             create entries in 'ir.model.data'.
@@ -920,6 +925,11 @@ class IrModelFields(models.Model):
             'column2': field.column2 if field.type == 'many2many' else None,
         }
 
+    def _reflect_fields(self, model_names):
+        """ Reflect the fields of the given models. """
+        for model_name in model_names:
+            self._reflect_model(self.env[model_name])
+
     def _reflect_model(self, model):
         """ Reflect the given model's fields. """
         self.clear_caches()
@@ -1107,6 +1117,11 @@ class IrModelSelection(models.Model):
             ORDER BY sequence, id
         """, (field_id,))
         return self._cr.fetchall()
+
+    def _reflect_selections(self, model_names):
+        """ Reflect the selection of the fields of the given models. """
+        for model_name in model_names:
+            self._reflect_model(self.env[model_name])
 
     def _reflect_model(self, model):
         """ Reflect the given model's fields' selections. """
@@ -1390,6 +1405,11 @@ class IrModelConstraint(models.Model):
                         WHERE id=%s"""
             cr.execute(query, (self.env.uid, type, definition, message, cons_id))
         return self.browse(cons_id)
+
+    def _reflect_constraints(self, model_names):
+        """ Reflect the SQL constraints of the given models. """
+        for model_name in model_names:
+            self._reflect_model(self.env[model_name])
 
     def _reflect_model(self, model):
         """ Reflect the _sql_constraints of the given model. """
