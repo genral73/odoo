@@ -1144,46 +1144,64 @@ class IrModelSelection(models.Model):
         return self._cr.fetchall()
 
     def _reflect_selections(self, model_names):
-        """ Reflect the selection of the fields of the given models. """
-        for model_name in model_names:
-            self._reflect_model(self.env[model_name])
-
-    def _reflect_model(self, model):
-        """ Reflect the given model's fields' selections. """
-        module = self._context.get('module')
-        model_name = model._name.replace('.', '_')
-        xml_id_pattern = '%s.selection__%s__%s__%s'
-        to_xmlids = []
-
-        def make_xml_id(field_name, value):
-            # the field value may contains exotic chars like spaces
-            sanitized_value = value.replace('.', '_').replace(' ', '_').lower()
-            return xml_id_pattern % (module, model_name, field_name, sanitized_value)
-
-        # determine fields to reflect
-        fields_to_reflect = [
+        """ Reflect the selections of the fields of the given models. """
+        fields = [
             field
-            for field in model._fields.values()
+            for model_name in model_names
+            for field_name, field in self.env[model_name]._fields.items()
             if field.type in ('selection', 'reference')
+            if isinstance(field.selection, list)
         ]
+        if not fields:
+            return
 
-        for field in fields_to_reflect:
-            # if selection is callable, make sure the reflection is empty
-            selection = field.selection if isinstance(field.selection, list) else []
-            rows = self._update_selection(model._name, field.name, selection)
+        # determine expected and existing rows
+        IMF = self.env['ir.model.fields']
+        expected = {
+            (field_id, value): (label, index)
+            for field in fields
+            for field_id in [IMF._get_ids(field.model_name)[field.name]]
+            for index, (value, label) in enumerate(field.selection)
+        }
 
-            # prepare update of XML ids below
-            if module:
-                for value, modules in field._selection_modules(model).items():
-                    if module in modules:
-                        to_xmlids.append(dict(
-                            xml_id=make_xml_id(field.name, value),
-                            record=self.browse(rows[value]['id']),
-                        ))
+        cr = self.env.cr
+        query = """
+            SELECT s.field_id, s.value, s.name, s.sequence
+            FROM ir_model_fields_selection s, ir_model_fields f
+            WHERE s.field_id = f.id AND f.model IN %s
+        """
+        cr.execute(query, [tuple(model_names)])
+        existing = {row[:2]: row[2:] for row in cr.fetchall()}
 
-        # create/update XML ids
-        if to_xmlids:
-            self.env['ir.model.data']._update_xmlids(to_xmlids)
+        # create or update rows
+        cols = ['field_id', 'value', 'name', 'sequence']
+        rows = [key + val for key, val in expected.items() if existing.get(key) != val]
+        if rows:
+            ids = upsert(cr, self._table, cols, rows, ['field_id', 'value'])
+            self.pool.post_init(mark_modified, self.browse(ids), cols)
+
+        # update their XML ids
+        module = self._context.get('module')
+        if not module:
+            return
+
+        query = """
+            SELECT f.model, f.name, s.value, s.id
+            FROM ir_model_fields_selection s, ir_model_fields f
+            WHERE s.field_id = f.id AND f.model IN %s
+        """
+        cr.execute(query, [tuple(model_names)])
+        selection_ids = {row[:3]: row[3] for row in cr.fetchall()}
+
+        data_list = []
+        for field in fields:
+            model = self.env[field.model_name]
+            for value, modules in field._selection_modules(model).items():
+                if module in modules:
+                    xml_id = selection_xmlid(module, field.model_name, field.name, value)
+                    record = self.browse(selection_ids[field.model_name, field.name, value])
+                    data_list.append({'xml_id': xml_id, 'record': record})
+        self.env['ir.model.data']._update_xmlids(data_list)
 
     def _update_selection(self, model_name, field_name, selection):
         """ Set the selection of a field to the given list, and return the row
