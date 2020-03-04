@@ -1248,12 +1248,16 @@ options.registry.parallax = options.Class.extend({
     /**
      * @override
      */
+    start: function () {
+        this.isParallax = this.$target.hasClass('parallax');
+        return this._super(...arguments);
+    },
+    /**
+     * @override
+     */
     onFocus: function () {
-        this.trigger_up('option_update', {
-            optionNames: ['background', 'BackgroundPosition'],
-            name: 'target',
-            data: this.$target.find('> .s_parallax_bg'),
-        });
+        this._updateBackgroundOptions();
+
         // Refresh the parallax animation on focus; at least useful because
         // there may have been changes in the page that influenced the parallax
         // rendering (new snippets, ...).
@@ -1265,6 +1269,86 @@ options.registry.parallax = options.Class.extend({
      */
     onMove: function () {
         this._refreshPublicWidgets();
+    },
+
+    //--------------------------------------------------------------------------
+    // Options
+    //--------------------------------------------------------------------------
+
+    /**
+     * Build/remove parallax.
+     *
+     * @see this.selectClass for parameters
+     */
+    parallax: function (previewMode, widgetValue, params) {
+        const isParallax = widgetValue === 'true';
+        this.$target.toggleClass('parallax', isParallax);
+        if (isParallax) {
+            this._initParallax();
+        } else {
+            this._removeParallax();
+        }
+        this.isParallax = isParallax;
+    },
+
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * @override
+     */
+    _computeVisibility: function () {
+        let $el = this.$target.find('> .s_parallax_bg');
+        $el = $el[0] ? $el : this.$target;
+        const hasBackgroundImage = $el.css('background-image') !== 'none';
+        if (!hasBackgroundImage) {
+            this._removeParallax();
+            this.$target.removeClass('oe_img_bg');
+        }
+        const showParallaxOptions = hasBackgroundImage && !this.$target.hasClass('o_background_video');
+        return this._super(...arguments) && showParallaxOptions;
+    },
+    /**
+     * @private
+     */
+    _initParallax: function () {
+        this._updateBackgroundOptions();
+        // FIXME big hack, this should be improved
+        if (!this.isParallax) {
+            const colorPicker = this._requestUserValueWidgets('bg_color_opt')[0];
+            colorPicker._previewColor = 'black-50';
+            colorPicker._value = 'black-50';
+            colorPicker.notifyValueChange(false);
+        }
+    },
+    /**
+     * @private
+     */
+    _removeParallax: function () {
+        const $bg = this.$target.find('> .s_parallax_bg');
+        if ($bg.length) {
+            const urlImage = $bg.css('background-image');
+            if (urlImage.length) {
+                this.$target.css('background-image', urlImage);
+                this.$target.addClass('oe_img_bg');
+            }
+            $bg.remove();
+            this.$target.removeClass('parallax s_parallax_is_fixed s_parallax_no_overflow_hidden');
+            this.$target.removeAttr("data-scroll-background-ratio");
+            this._updateBackgroundOptions();
+        }
+    },
+    /**
+     * @private
+     */
+    _updateBackgroundOptions: function () {
+        let $el = this.$target.find('> .s_parallax_bg');
+        this.trigger_up('option_update', {
+            optionNames: ['background', 'BackgroundPosition'],
+            name: 'target',
+            data: $el[0] ? $el : this.$target,
+        });
     },
 });
 
@@ -1788,7 +1872,7 @@ options.registry.CoverProperties = options.Class.extend({
         this.$target[0].dataset.filterValue = this.$filterValueOpts.filter('.active').data('filterValue') || 0.0;
         let colorPickerWidget = null;
         this.trigger_up('user_value_widget_request', {
-            name: 'bg_color_opt',
+            name: 'bg_record_cover_color_opt',
             onSuccess: _widget => colorPickerWidget = _widget,
         });
         const color = colorPickerWidget._value;

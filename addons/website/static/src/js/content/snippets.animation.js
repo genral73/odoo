@@ -533,14 +533,19 @@ registry.parallax = Animation.extend({
             if (!this.$bg.length) {
                 this.$bg = $('<span/>', {
                     class: 's_parallax_bg',
+                    style: 'background-position: 50% 0;',
                 }).prependTo(this.$target);
             }
         }
-        var urlTarget = this.$target.css('background-image');
+
+        // Following code must remain here (not move in the options.js)
+        // so that the snippet remains compatible with the old versions.
+        const urlTarget = this.$target.css('background-image');
         if (urlTarget !== 'none') {
             this.$bg.css('background-image', urlTarget);
         }
         this.$target.css('background-image', 'none');
+        this.$target.removeClass('oe_img_bg');
 
         // Get parallax speed
         this.speed = parseFloat(this.$target.attr('data-scroll-background-ratio') || 0);

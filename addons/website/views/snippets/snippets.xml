@@ -300,38 +300,50 @@
     </div>
 
     <!-- Parallax -->
-    <div data-js="parallax" data-selector=".parallax">
-        <we-select string="Scroll Speed" data-attribute-name="scrollBackgroundRatio" data-attribute-default-value="0">
-            <we-button data-select-data-attribute="0">No-scroll</we-button>
+    <div data-js="parallax" data-selector="section">
+        <we-select string="Parallax" data-attribute-name="scrollBackgroundRatio" data-attribute-default-value="0" data-no-preview="true">
+            <we-button data-name="parallax_none_opt" data-parallax="false" data-select-data-attribute="0">None</we-button>
             <we-divider/>
-            <we-button data-select-data-attribute="1">Fixed</we-button>
+            <we-button data-parallax="true" data-select-data-attribute="1">Fixed</we-button>
             <we-divider/>
-            <we-button data-select-data-attribute="0.6">Very Slow</we-button>
-            <we-button data-select-data-attribute="1.2">Slow</we-button>
-            <we-button data-select-data-attribute="1.6">Fast</we-button>
-            <we-button data-select-data-attribute="2">Very Fast</we-button>
+            <we-button data-parallax="true" data-select-data-attribute="0.6">Very Slow</we-button>
+            <we-button data-parallax="true" data-select-data-attribute="1.2">Slow</we-button>
+            <we-button data-parallax="true" data-select-data-attribute="1.6">Fast</we-button>
+            <we-button data-parallax="true" data-select-data-attribute="2">Very Fast</we-button>
         </we-select>
     </div>
 
     <!-- Background Color -->
     <div id="so_main_colorpicker"
-         data-selector="section, .carousel-item, section .row > div, .o_record_cover_container"
-         data-exclude=".parallax, .o_gallery .carousel-item, .s_col_no_bgcolor, .s_col_no_bgcolor.row > div, .o_gallery .row > div">
+         data-selector="section, .carousel-item, section .row > div"
+         data-exclude=".o_gallery .carousel-item, .s_col_no_bgcolor, .s_col_no_bgcolor.row > div, .o_gallery .row > div">
         <we-colorpicker string="Background Color"
             data-name="bg_color_opt"
+            data-select-style="true"
+            data-css-property="background-color"
+            data-color-prefix="bg-"
+            data-dependencies="parallax_none_opt"/>
+    </div>
+
+    <!-- .o_record_cover_container -->
+    <div data-selector=".o_record_cover_container">
+        <we-colorpicker string="Background Color"
+            data-name="bg_record_cover_color_opt"
             data-select-style="true"
             data-css-property="background-color"
             data-color-prefix="bg-"
             data-dependencies="!cover_background_opt"/>
     </div>
 
-    <!-- FILTER | .s_parallax -->
-    <div data-selector=".parallax">
+    <!-- FILTER | parallax -->
+    <div data-selector="section">
         <we-colorpicker string="Filter"
+            data-name="bg_filter_opt"
             data-select-style="true"
             data-css-property="background-color"
             data-color-prefix="bg-"
-            data-excluded="common, theme, custom"/>
+            data-excluded="common, theme, custom"
+            data-dependencies="!parallax_none_opt"/>
     </div>
 
     <!-- Border | Columns -->

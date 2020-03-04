@@ -1148,8 +1148,6 @@ const ImagepickerUserValueWidget = UserValueWidget.extend({
      */
     start: async function () {
         await this._super(...arguments);
-        const allowedSelector = this.el.dataset.allowVideos;
-        this.allowVideos = allowedSelector ? this.$target.is(allowedSelector) : false;
 
         this.editImageButton = document.createElement('we-button');
         this.editImageButton.classList.add('o_we_edit_image', 'fa', 'fa-fw', 'fa-edit');
@@ -1190,6 +1188,8 @@ const ImagepickerUserValueWidget = UserValueWidget.extend({
      * @private
      */
     _onEditImage: function (ev) {
+        const allowedSelector = this.el.dataset.allowVideos;
+        const allowVideos = allowedSelector ? this.$target.is(allowedSelector) : false;
         // Need a dummy element for the media dialog to modify.
         const dummyEl = document.createElement(this.isVideo ? 'iframe' : 'img');
         dummyEl.src = this._value;
@@ -1201,7 +1201,7 @@ const ImagepickerUserValueWidget = UserValueWidget.extend({
         const mediaDialog = new weWidgets.MediaDialog(this, {
             noIcons: true,
             noDocuments: true,
-            noVideos: !this.allowVideos,
+            noVideos: !allowVideos,
             isForBgVideo: true,
             res_model: $editable.data('oe-model'),
             res_id: $editable.data('oe-id'),
@@ -2611,6 +2611,9 @@ registry.background = SnippetOptionWidget.extend({
     _onBackgroundColorUpdate: async function (ev, previewMode) {
         ev.stopPropagation();
         if (ev.currentTarget !== ev.target) {
+            return false;
+        }
+        if (this.$target.is('.parallax, .s_parallax_bg')) {
             return false;
         }
         if (previewMode === false) {
