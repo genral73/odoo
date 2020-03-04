@@ -873,6 +873,15 @@ class test_o2m(ImporterCase):
             values(b.value.sorted(), 'str'),
             'this is the rhythm'.split())
 
+    def test_subfields_fail_with_multi_rows(self):
+        result = self.import_(['value/parent_id'], [['noxidforthat'], ['noxidforthat1'], ['noxidforthat2']])
+        self.assertEqual(result['messages'], [message(
+            u"No matching record found for name 'noxidforthat' in field 'Value'", from_=0, to_=2, index=0,
+            moreinfo=moreaction(res_model='export.one2many',),
+            )])
+        self.assertIs(result['ids'], False)
+        self.assertEqual(result['messages'][0]['index'], 0)
+
     def test_link_inline(self):
         """ m2m-style specification for o2ms
         """
