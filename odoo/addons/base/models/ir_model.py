@@ -975,82 +975,59 @@ class IrModelFields(models.Model):
 
     def _reflect_fields(self, model_names):
         """ Reflect the fields of the given models. """
+        cr = self.env.cr
+
         for model_name in model_names:
-            self._reflect_model(self.env[model_name])
-
-    def _reflect_model(self, model):
-        """ Reflect the given model's fields. """
-        self.clear_caches()
-        by_label = {}
-        for field in model._fields.values():
-            if field.string in by_label:
-                _logger.warning('Two fields (%s, %s) of %s have the same label: %s.',
-                                field.name, by_label[field.string], model, field.string)
-            else:
-                by_label[field.string] = field.name
-
-        cr = self._cr
-        module = self._context.get('module')
-        model_id = self.env['ir.model']._get_id(model._name)
-        fields_data = self._existing_field_data(model._name)
-        to_insert = []
-        to_xmlids = []
-        modified_ids = []
-        modified_fnames = []
-        for name, field in model._fields.items():
-            old_vals = fields_data.get(name)
-            new_vals = self._reflect_field_params(field, model_id)
-            modified_fnames = new_vals.keys()
-            if old_vals is None:
-                to_insert.append(new_vals)
-            elif any(old_vals[key] != new_vals[key] for key in new_vals):
-                ids = query_update(cr, self._table, new_vals, ['model', 'name'])
-                modified_ids.extend(ids)
-                old_vals.update(new_vals)
-            if module and (module == model._original_module or module in field._modules):
-                # remove this and only keep the else clause if version >= saas-12.4
-                if field.manual:
-                    self.pool.loaded_xmlids.add(
-                        '%s.field_%s__%s' % (module, model._name.replace('.', '_'), name))
+            model = self.env[model_name]
+            by_label = {}
+            for field in model._fields.values():
+                if field.string in by_label:
+                    _logger.warning('Two fields (%s, %s) of %s have the same label: %s.',
+                                    field.name, by_label[field.string], model, field.string)
                 else:
-                    to_xmlids.append(name)
+                    by_label[field.string] = field.name
 
-        if to_insert:
-            # insert missing fields
-            ids = query_insert(cr, self._table, to_insert)
-            modified_ids.extend(ids)
-            # update fields_data instead of invalidating it
-            for id_, data in zip(ids, to_insert):
-                data['id'] = id_
-                fields_data[data['name']] = data
+        # determine expected and existing rows
+        rows = []
+        for model_name in model_names:
+            model_id = self.env['ir.model']._get_id(model_name)
+            for field in self.env[model_name]._fields.values():
+                rows.append(self._reflect_field_params(field, model_id))
+        cols = sorted(rows[0], key=upfront('model', 'name'))
+        expected = [tuple(row[col] for col in cols) for row in rows]
 
-        if modified_ids:
-            def mark_modified(records, fnames):
-                # protect all modified fields, to avoid them being recomputed
-                fields = [records._fields[fname] for fname in fnames]
-                with records.env.protecting(fields, records):
-                    records.modified(fnames)
+        query = "SELECT {}, id FROM ir_model_fields WHERE model IN %s".format(
+            ", ".join(quote(col) for col in cols),
+        )
+        cr.execute(query, [tuple(model_names)])
+        field_ids = {}
+        existing = {}
+        for row in cr.fetchall():
+            field_ids[row[:2]] = row[-1]
+            existing[row[:2]] = row[:-1]
 
-            self.pool.post_init(mark_modified, self.browse(modified_ids), modified_fnames)
+        # create or update rows
+        rows = [row for row in expected if existing.get(row[:2]) != row]
+        if rows:
+            ids = upsert(cr, self._table, cols, rows, ['model', 'name'])
+            for row, id_ in zip(rows, ids):
+                field_ids[row[:2]] = id_
+            self.pool.post_init(mark_modified, self.browse(ids), cols)
 
-        if to_xmlids:
-            # create or update their corresponding xml ids
-            fields_data = self._existing_field_data(model._name)
-            prefix = '%s.field_%s__' % (module, model._name.replace('.', '_'))
-            self.env['ir.model.data']._update_xmlids([
-                dict(xml_id=prefix + name, record=self.browse(fields_data[name]['id']))
-                for name in to_xmlids
-            ])
+        # update their XML id
+        module = self._context.get('module')
+        if not module:
+            return
 
-        if not self.pool._init:
-            # remove ir.model.fields that are not in self._fields
-            fields_data = self._existing_field_data(model._name)
-            extra_names = set(fields_data) - set(model._fields)
-            if extra_names:
-                # add key MODULE_UNINSTALL_FLAG in context to (1) force the
-                # removal of the fields and (2) not reload the registry
-                records = self.browse([fields_data.pop(name)['id'] for name in extra_names])
-                records.with_context(**{MODULE_UNINSTALL_FLAG: True}).unlink()
+        data_list = []
+        for (field_model, field_name), field_id in field_ids.items():
+            model = self.env[field_model]
+            field = model._fields[field_name]
+            if module == model._original_module or module in field._modules:
+                xml_id = field_xmlid(module, field_model, field_name)
+                record = self.browse(field_id)
+                data_list.append({'xml_id': xml_id, 'record': record})
+        self.env['ir.model.data']._update_xmlids(data_list)
 
     @tools.ormcache()
     def _all_manual_field_data(self):
