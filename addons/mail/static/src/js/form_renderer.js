@@ -177,6 +177,9 @@ FormRenderer.include({
         if (this._hasChatter()) {
             Chatter.env = this.env;
             const context = this.record ? this.record.getContext() : {};
+            const followerIds = this.state.data.message_follower_ids
+                ? this.state.data.message_follower_ids.res_ids
+                : [];
             const activityIds = this.state.data.activity_ids
                 ? this.state.data.activity_ids.res_ids
                 : [];
@@ -187,6 +190,7 @@ FormRenderer.include({
                 this._chatterLocalId = this.env.store.dispatch('createChatter', {
                     activityIds,
                     context,
+                    followerIds,
                     hasActivities,
                     hasFollowers,
                     hasThread,
@@ -197,6 +201,7 @@ FormRenderer.include({
                 this.env.store.dispatch('updateChatter', this._chatterLocalId, {
                     activityIds,
                     context,
+                    followerIds,
                     hasActivities,
                     hasFollowers,
                     hasThread,

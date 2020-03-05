@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="mail.component.Follower" owl="1">
+        <div class="o_Follower">
+            <a class="o_Follower_details" href="#" t-att-class="{ 'o-inactive': !storeProps.follower.isActive }" t-on-click="_onClickDetails">
+                <img class="o_Follower_avatar" t-att-src="avatarUrl"/>
+                <span class="o_Follower_name" t-esc="storeProps.follower.name"/>
+            </a>
+            <t t-if="storeProps.follower.isEditable">
+                <button class="btn btn-icon o_Follower_button o_Follower_editButton" title="Edit subscription" aria-label="Edit subscription" t-on-click="_onClickEdit">
+                    <i class="fa fa-pencil"/>
+                </button>
+                <button class="btn btn-icon o_Follower_button o_Follower_removeButton" title="Remove this follower" aria-label="Remove this follower" t-on-click="_onClickRemove">
+                    <i class="fa fa-remove"/>
+                </button>
+            </t>
+
+            <!--<div>-->
+                <!--<a class="o_mail_redirect text-truncate"-->
+                    <!--href="#"-->
+                    <!--t-att-title="record.title"-->
+                    <!--t-att-data-oe-model="record.partner_id ? 'res.partner' : 'mail.channel'"-->
+                    <!--t-att-data-oe-id="record.partner_id ? record.partner_id : record.channel_id">-->
+                    <!--<img t-att-src="record.avatar_url" alt="Avatar" class="o_image_64_cover"/>-->
+                    <!--<t t-esc="record.name"/>-->
+                <!--</a>-->
+                <!--<button t-if="record.is_editable"-->
+                    <!--t-att-data-follower-id="record.id"-->
+                    <!--t-att-data-oe-id="record.partner_id ? record.partner_id : record.channel_id"-->
+                    <!--t-att-data-oe-model="record.partner_id ? 'res.partner' : 'mail.channel'"/>-->
+                <!--<button t-if="widget.isEditable"-->
+                    <!--class="btn btn-icon fa fa-remove o_remove_follower"-->
+
+                    <!--role="img"-->
+                    <!--title="Remove this follower"/>-->
+            <!--</div>-->
+
+
+        </div>
+    </t>
+
+</templates>

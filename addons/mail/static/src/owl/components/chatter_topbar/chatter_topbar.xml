@@ -40,17 +40,15 @@
                     </t>
                 </button>
             </div>
-            <t t-if="storeProps.chatter.hasFollowers">
-                <div class="o_ChatterTopbar_rightSection">
-                    <button class="btn btn-link o_ChatterTopbar_buttonFollow" type="button" t-att-disabled="storeProps.chatter.isDisabled" t-on-click="_onClickFollow">
-                        Follow
-                    </button>
-                    <button class="btn btn-link o_ChatterTopbar_buttonFollowers" type="button" t-att-disabled="storeProps.chatter.isDisabled" t-on-click="_onClickFollowers">
-                        <i class="fa fa-user"/>
-                        <span class="o_ChatterTopbar_buttonCount o_ChatterTopbar_buttonFollowersCount pl-1" t-esc="storeProps.followersAmount"/>
-                    </button>
-                </div>
-            </t>
+            <div class="o_ChatterTopbar_rightSection">
+                <t t-if="storeProps.chatter.hasFollowers and storeProps.chatter.threadLocalId">
+                    <FollowersMenu
+                        isDisabled="storeProps.chatter.isDisabled"
+                        threadLocalId="storeProps.chatter.threadLocalId"
+                        class="o_ChatterTopbar_followersMenu"
+                    />
+                </t>
+            </div>
         </div>
     </t>
 

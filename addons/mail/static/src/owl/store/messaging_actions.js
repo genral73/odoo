@@ -261,6 +261,7 @@ const actions = {
      * @param {Object} param1
      * @param {Array} param1.activityIds
      * @param {Array} param1.context
+     * @param {Array} param1.followerIds
      * @param {boolean} [param1.hasActivities=true]
      * @param {boolean} [param1.hasFollowers=true]
      * @param {boolean} [param1.hasThread=true]
@@ -273,6 +274,7 @@ const actions = {
         {
             activityIds,
             context,
+            followerIds,
             hasActivities=true,
             hasFollowers=true,
             hasThread=true,
@@ -284,6 +286,7 @@ const actions = {
         const chatter = {
             activityIds,
             context,
+            followerIds,
             hasActivities,
             hasFollowers,
             hasThread,
@@ -752,7 +755,7 @@ const actions = {
     },
     /**
      * @param {Object} param0
-     * @param {function} param0.dispatch
+     * @param {function} param0.dispatch
      * @param {Object} param0.env
      * @param {Object} param0.state
      * @param {string} activityLocalId
@@ -1606,6 +1609,7 @@ const actions = {
      * @param {Object} param2
      * @param {Array} param2.activityIds
      * @param {Object} param2.context
+     * @param {Array} param2.followerIds
      * @param {boolean} [param2.hasActivities=true]
      * @param {boolean} [param2.hasFollowers=true]
      * @param {boolean} [param2.hasThread=true]
@@ -1618,6 +1622,7 @@ const actions = {
         {
             activityIds,
             context,
+            followerIds,
             hasActivities=true,
             hasFollowers=true,
             hasThread=true,
@@ -1632,6 +1637,7 @@ const actions = {
         Object.assign(chatter, {
             activityIds,
             context,
+            followerIds,
             hasActivities,
             hasFollowers,
             hasThread,
@@ -1768,7 +1774,8 @@ const actions = {
         if (chatter.threadId === undefined) {
             threadLocalId = dispatch('_createTemporaryThread', chatter.threadModel);
         } else {
-            const thread = getters.thread({
+            // Thread and messages
+            let thread = getters.thread({
                 _model: chatter.threadModel,
                 id: chatter.threadId,
             });
@@ -1777,11 +1784,24 @@ const actions = {
                     _model: chatter.threadModel,
                     id: chatter.threadId,
                 });
+                thread = state.threads[threadLocalId];
             } else {
                 threadLocalId = thread.localId;
                 await dispatch('_loadNewMessagesOnThread', threadLocalId);
             }
+            // Attachments
             await dispatch('_fetchThreadAttachments', threadLocalId);
+            // Followers
+            if (chatter.followerIds) {
+                if (chatter.followerIds.length > 0) {
+                    thread.followerLocalIds = await dispatch('_fetchFollowers',
+                        chatter.followerIds,
+                        chatter.localId
+                    );
+                }
+                delete chatter.followerIds;
+            }
+            // Activities
             if (chatter.activityIds) {
                 if (chatter.activityIds.length > 0) {
                     chatter.activityLocalIds = await dispatch('_fetchActivities',
@@ -1998,7 +2018,40 @@ const actions = {
         }
         return composerLocalId;
     },
-
+    /**
+     * @private
+     * @param {Object} param0
+     * @param {function} param0.dispatch
+     * @param {Object} param0.state
+     * @param {Object} followerData
+     * @param {String} chatterLocalId
+     * @return {string} follower local id
+     */
+    _createFollower({ dispatch, state }, followerData, chatterLocalId) {
+        const followerLocalId = _.uniqueId('mail.follower_');
+        console.log(followerData);
+        const {
+            channel_id: channelId,
+            email,
+            id,
+            is_active: isActive,
+            is_editable: isEditable,
+            name,
+            partner_id: partnerId,
+        } = followerData;
+        const follower = {
+            channelId,
+            email,
+            id,
+            isActive,
+            isEditable,
+            localId: followerLocalId,
+            name,
+            partnerId,
+        };
+        state.followers[followerLocalId] = follower;
+        return followerLocalId;
+    },
     /**
      * @private
      * @param {Object} param0
@@ -2397,6 +2450,7 @@ const actions = {
             counter,
             create_uid,
             custom_channel_name,
+            followerLocalIds: [],
             group_based_subscription,
             id,
             isPinned,
@@ -2577,6 +2631,30 @@ const actions = {
             activityLocalIds.push(activityLocalId);
         }
         return activityLocalIds;
+    },
+    /**
+     * @private
+     * @param {Object} param0
+     * @param {function} param0.dispatch
+     * @param {Object} param0.env
+     * @param {Array} followerIds
+     * @param {String} chatterLocalId
+     * @returns {Promise<Array>}
+     */
+    async _fetchFollowers({ dispatch, env }, followerIds, chatterLocalId) {
+        const { followers }= await env.rpc({
+            route: '/mail/read_followers',
+            params: {
+                follower_ids: followerIds,
+                context: {} // empty context to be overridden in session.js with 'allowed_company_ids'
+            }
+        }); // TODO subtypes
+        const followerLocalIds = [];
+        for (const follower of followers) {
+            const followerLocalId = dispatch('_insertFollower', follower, chatterLocalId);
+            followerLocalIds.push(followerLocalId);
+        }
+        return followerLocalIds;
     },
     /**
      * @private
@@ -3640,6 +3718,27 @@ const actions = {
         return attachmentLocalId;
     },
     /**
+     * Update existing follower or create a new follower
+     *
+     * @private
+     * @param {Object} param0
+     * @param {function} param0.dispatch
+     * @param {Object} param0.getters
+     * @param {Object} followerData
+     * @param {integer} followerData.id
+     * @param {string} chatterLocalId
+     * @return {string} the existing or created follower local id
+     */
+    _insertFollower({ dispatch, getters }, followerData, chatterLocalId) {
+        const existingFollower = getters.follower(followerData.id);
+        if (existingFollower) {
+            dispatch('_updateFollower', existingFollower.localId, followerData);
+            return existingFollower.localId;
+        } else {
+            return dispatch('_createFollower', followerData, chatterLocalId);
+        }
+    },
+    /**
      * Update existing mail template or create a new mail template
      *
      * @private
@@ -4605,6 +4704,33 @@ const actions = {
      */
     _updateChatWindowManager({ state }, changes) {
         Object.assign(state.chatWindowManager, changes);
+    },
+    /**
+     * @private
+     * @param {Object} param0
+     * @param {Object} param0.state
+     * @param {string} followerLocalId
+     * @param {Object} followerData
+     */
+    _updateFollower({ state }, followerLocalId, followerData) {
+        console.log(followerLocalId, followerData);
+        const {
+            channel_id: channelId,
+            email,
+            is_active: isActive,
+            is_editable: isEditable,
+            name,
+            partner_id: partnerId,
+        } = followerData;
+        const follower = state.followers[followerLocalId];
+        Object.assign(follower, {
+            channelId,
+            email,
+            isActive,
+            isEditable,
+            name,
+            partnerId
+        });
     },
         /**
      * @private

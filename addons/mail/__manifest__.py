@@ -87,6 +87,8 @@
         'static/src/owl/components/editable_text/editable_text.xml',
         'static/src/owl/components/emojis_popover/emojis_popover.xml',
         'static/src/owl/components/file_uploader/file_uploader.xml',
+        'static/src/owl/components/follower/follower.xml',
+        'static/src/owl/components/followers_menu/followers_menu.xml',
         'static/src/owl/components/mail_template/mail_template.xml',
         'static/src/owl/components/message/message.xml',
         'static/src/owl/components/message_author_prefix/message_author_prefix.xml',

@@ -1,6 +1,7 @@
 odoo.define('mail.component.ChatterTopbar', function (require) {
 'use strict';
 
+const FollowersMenu = require('mail.component.FollowersMenu');
 const useStore = require('mail.hooks.useStore');
 
 const { Component } = owl;
@@ -25,8 +26,6 @@ class ChatterTopbar extends Component {
                     ? thread.attachmentLocalIds.length
                     : 0,
                 chatter,
-                // TODO SEB this is currently always 0 (yes I know - XDU)
-                followersAmount: 0,
             };
         });
     }
@@ -45,22 +44,6 @@ class ChatterTopbar extends Component {
         } else {
             this.storeDispatch('showChatterAttachmentBox', this.props.chatterLocalId);
         }
-    }
-
-    /**
-     * @private
-     * @param {MouseEvent} ev
-     */
-    _onClickFollow(ev) {
-        // TODO
-    }
-
-    /**
-     * @private
-     * @param {MouseEvent} ev
-     */
-    _onClickFollowers(ev) {
-        // TODO
     }
 
     /**
@@ -114,11 +97,13 @@ class ChatterTopbar extends Component {
     }
 }
 
-ChatterTopbar.props = {
-    chatterLocalId: String,
-};
-
-ChatterTopbar.template = 'mail.component.ChatterTopbar';
+Object.assign(ChatterTopbar, {
+    components: { FollowersMenu },
+    props: {
+        chatterLocalId: String,
+    },
+    template: 'mail.component.ChatterTopbar',
+});
 
 return ChatterTopbar;
 

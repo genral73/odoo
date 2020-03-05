@@ -154,6 +154,7 @@ function initState() {
              */
             threadInitialScrollTops: {},
         },
+        followers: {},
         /**
          * State slice related to global window object dynamic properties.
          *

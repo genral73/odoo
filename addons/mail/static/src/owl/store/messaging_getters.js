@@ -189,6 +189,15 @@ const getters = {
         );
     },
     /**
+     * @param {Object} param0
+     * @param {Object} param0.state
+     * @param {integer} id
+     * @return {Object|undefined}
+     */
+    follower({ state }, id) {
+        return Object.values(state.followers).find(follower => follower.id === id);
+    },
+    /**
      * Returns whether the given message has any batch action available, for
      * which a checkbox has to be displayed.
      * Currently this is only the case for moderation.
