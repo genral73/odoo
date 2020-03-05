@@ -5,13 +5,14 @@ var core = require('web.core');
 var Dialog = require('web.Dialog');
 var publicRootData = require('web.public.root');
 require("web.zoomodoo");
+const KeyboardNavigationMixin = require('web.KeyboardNavigationMixin');
 
 var _t = core._t;
 
 var websiteRootRegistry = publicRootData.publicRootRegistry;
 
-var WebsiteRoot = publicRootData.PublicRoot.extend({
-    events: _.extend({}, publicRootData.PublicRoot.prototype.events || {}, {
+var WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMixin, {
+    events: _.extend({}, KeyboardNavigationMixin.events, publicRootData.PublicRoot.prototype.events || {}, {
         'click .js_change_lang': '_onLangChangeClick',
         'click .js_publish_management .js_publish_btn': '_onPublishBtnClick',
         'click .js_multi_website_switch': '_onWebsiteSwitch',
@@ -22,6 +23,14 @@ var WebsiteRoot = publicRootData.PublicRoot.extend({
         seo_object_request: '_onSeoObjectRequest',
     }),
 
+    /**
+     * @override
+     */
+    init() {
+        this.isFullscreen = false;
+        KeyboardNavigationMixin.init.call(this);
+        return this._super(...arguments);
+    },
     /**
      * @override
      */
@@ -81,6 +90,31 @@ var WebsiteRoot = publicRootData.PublicRoot.extend({
             });
         }
         return registry;
+    },
+    /**
+     * Toggles the fullscreen mode.
+     *
+     * @private
+     * @param {Boolean} state toggle fullscreen on/off (true/false)
+     */
+    async _toggleFullscreen(state) {
+        this.isFullscreen = state;
+        document.body.classList.toggle('o_fullscreen', this.isFullscreen);
+        document.body.style.overflowX = 'hidden';
+        let resizing = true;
+        const resizeFunction = () => {
+            if (resizing) {
+                window.dispatchEvent(new Event('resize'));
+                window.requestAnimationFrame(resizeFunction);
+            }
+        };
+        window.requestAnimationFrame(resizeFunction);
+        document.body.addEventListener('transitionend', async ev => {
+            if (ev.target === document.body && ev.propertyName === 'padding-left') {
+                resizing = false;
+                document.body.style.overflowX = '';
+            }
+        });
     },
 
     //--------------------------------------------------------------------------
@@ -206,6 +240,15 @@ var WebsiteRoot = publicRootData.PublicRoot.extend({
      */
     _onModalShown: function (ev) {
         $(ev.target).addClass('modal_shown');
+    },
+    /**
+     * @override
+     */
+    _onKeyDown(ev) {
+        if (ev.keyCode !== $.ui.keyCode.ESCAPE || ev.target.matches('.modal, .o_new_content_menu a')) {
+            return KeyboardNavigationMixin._onKeyDown.apply(this, arguments);
+        }
+        this._toggleFullscreen(!this.isFullscreen);
     },
 });
 
