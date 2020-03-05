@@ -38,7 +38,7 @@ class Chatter extends Component {
         this._threadRef = useRef('thread');
     }
 
-    mounted() {
+    mounted() {
         if (this.props.formRendererBus && this.storeProps.thread) {
             this._notifyRendered();
         }
@@ -57,7 +57,7 @@ class Chatter extends Component {
     /**
      * @private
      */
-    _notifyRendered() {
+    _notifyRendered() {
         this.props.formRendererBus.trigger('o-chatter-rendered', {
             attachments: this.storeProps.attachments,
             threadLocalId: this.storeProps.thread.localId,
