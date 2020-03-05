@@ -19,12 +19,11 @@ class ActivityBox extends Component {
         this.storeGetters = useGetters();
         this.storeProps = useStore((state, props) => {
             const chatter = state.chatters[props.chatterLocalId];
-            const activities = state.activities;
             let futureActivitiesCount = 0;
             let overdueActivitiesCount = 0;
             let todayActivitiesCount = 0;
             for (let activityLocalId of chatter.activityLocalIds) {
-                let activity = activities[activityLocalId];
+                let activity = state.activities[activityLocalId];
                 if (activity.activityState === 'planned') {
                     futureActivitiesCount++;
                 } else if (activity.activityState === 'today') {
