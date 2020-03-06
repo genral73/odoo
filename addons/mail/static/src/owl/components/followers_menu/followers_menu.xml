@@ -15,10 +15,10 @@
                 <t t-if="state.dropdownIsShown">
                     <div class="o_FollowersMenu_dropdown dropdown-menu dropdown-menu-right" role="menu">
                         <!-- ACTIONS -->
-                        <a href="#" role="menuitem" class="dropdown-item o_FollowersMenu_addFollowersButton">
+                        <a href="#" role="menuitem" class="dropdown-item o_FollowersMenu_addFollowersButton" t-on-click="_onClickAddFollowers">
                             Add Followers
                         </a>
-                        <a href="#" role="menuitem" class="dropdown-item o_FollowersMenu_addChannelsButton">
+                        <a href="#" role="menuitem" class="dropdown-item o_FollowersMenu_addChannelsButton" t-on-click="_onClickAddChannels">
                             Add Channels
                         </a>
                         <!-- FOLLOWERS LIST -->

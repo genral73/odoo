@@ -6,8 +6,7 @@
     display:flex;
     flex-flow: row;
     justify-content: space-between;
-    padding-right: map-get($spacers, 0);
-    padding-left: map-get($spacers, 2);
+    padding: map-get($spacers, 0) map-get($spacers, 0) map-get($spacers, 0) map-get($spacers, 2);
 }
 
 .o_Follower_avatar {

@@ -4,7 +4,7 @@
     <t t-name="mail.component.Follower" owl="1">
         <div class="o_Follower">
             <a class="o_Follower_details" href="#" t-att-class="{ 'o-inactive': !storeProps.follower.isActive }" t-on-click="_onClickDetails">
-                <img class="o_Follower_avatar" t-att-src="avatarUrl"/>
+                <img class="o_Follower_avatar" t-attf-src="web/image/{{resModel}}/{{resId}}/image_128"/>
                 <span class="o_Follower_name" t-esc="storeProps.follower.name"/>
             </a>
             <t t-if="storeProps.follower.isEditable">

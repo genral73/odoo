@@ -5,7 +5,7 @@ const Follower = require('mail.component.Follower');
 const useStore = require('mail.hooks.useStore');
 
 const { Component } = owl;
-const { useRef, useState } = owl.hooks;
+const { useDispatch, useRef, useState } = owl.hooks;
 
 class FollowersMenu extends Component {
     /**
@@ -17,9 +17,9 @@ class FollowersMenu extends Component {
         this.state = useState({
             dropdownIsShown: false,
         });
+        this.storeDispatch = useDispatch();
         this.storeProps = useStore((state, props) => {
             const thread = state.threads[props.threadLocalId];
-            // const followers = thread.followerLocalIds.map(localId => state.followers[localId]);
             return {
                 followersAmount: thread && thread.followerLocalIds
                     ? thread.followerLocalIds.length
@@ -48,6 +48,24 @@ class FollowersMenu extends Component {
     //--------------------------------------------------------------------------
     // Handlers
     //--------------------------------------------------------------------------
+
+    /**
+     * @private
+     * @param {MouseEvent} ev
+     */
+    async _onClickAddChannels(ev) {
+        ev.preventDefault();
+        await this.storeDispatch('addChannelFollowersToThread', this.props.threadLocalId);
+    }
+
+    /**
+     * @private
+     * @param {MouseEvent} ev
+     */
+    async _onClickAddFollowers(ev) {
+        ev.preventDefault();
+        await this.storeDispatch('addPartnerFollowersToThread', this.props.threadLocalId);
+    }
 
     /**
      * Close the dropdown when clicking outside of it.

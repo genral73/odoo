@@ -26,10 +26,6 @@ class Follower extends Component {
     // Getters
     //--------------------------------------------------------------------------
 
-    get avatarUrl() {
-        return `/web/image/${this.resModel}/${this.resId}/image_128`;
-    }
-
     get resId() {
         return this.storeProps.follower.partnerId
             ? this.storeProps.follower.partnerId
@@ -62,7 +58,7 @@ class Follower extends Component {
      * @param {MouseEvent} ev
      */
     _onClickEdit(ev) {
-
+        // TODO
     }
 
     /**
@@ -70,7 +66,7 @@ class Follower extends Component {
      * @param {MouseEvent} ev
      */
     _onClickRemove(ev) {
-
+        this.storeDispatch('removeFollowerFromThread', this.storeProps.follower.threadLocalId, this.props.followerLocalId);
     }
 }
 
