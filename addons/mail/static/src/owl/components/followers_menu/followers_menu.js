@@ -15,7 +15,7 @@ class FollowersMenu extends Component {
     constructor(...args) {
         super(...args);
         this.state = useState({
-            dropdownIsShown: false,
+            hasDropdown: false,
         });
         this.storeDispatch = useDispatch();
         this.storeProps = useStore((state, props) => {
@@ -75,7 +75,7 @@ class FollowersMenu extends Component {
     _onClickCaptureGlobal(ev) {
         // since dropdown is conditionally shown based on state, dropdownRef can be null
         if (this._dropdownRef.el && !this._dropdownRef.el.contains(ev.target)) {
-            this.state.dropdownIsShown = false;
+            this.state.hasDropdown = false;
         }
     }
 
@@ -84,6 +84,7 @@ class FollowersMenu extends Component {
      * @param {MouseEvent} ev
      */
     _onClickFollow(ev) {
+        // TODO
     }
 
     /**
@@ -91,7 +92,7 @@ class FollowersMenu extends Component {
      * @param {MouseEvent} ev
      */
     _onClickFollowers(ev) {
-        this.state.dropdownIsShown = !this.state.dropdownIsShown;
+        this.state.hasDropdown = !this.state.hasDropdown;
     }
 }
 
