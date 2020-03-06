@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mail.component.FollowerSubtypesEditDialog" owl="1">
+        <div><!-- TODO FIXME necessary div for useRef, can be removed at next owl update, see https://github.com/odoo/owl/issues/638 -->
+        <t t-set="title">Edit Subscription</t>
+        <Dialog contentClass="'o_FollowerSubtypesEditDialog'" title="title" size="'medium'" t-ref="dialog">
+            <p>BLAH</p>
+            <p>Do you confirm the action?</p>
+            <t t-set="buttons">
+                <button class="o-apply btn btn-primary" t-on-click="_onClickApply">Apply</button>
+                <button class="o-cancel btn btn-secondary" t-on-click="_onClickCancel">Cancel</button>
+            </t>
+        </Dialog>
+        </div>
+    </t>
+</templates>

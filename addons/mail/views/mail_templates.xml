@@ -131,6 +131,7 @@
                 <script type="text/javascript" src="/mail/static/src/owl/components/file_uploader/file_uploader.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/follower/follower.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/followers_menu/followers_menu.js"></script>
+                <script type="text/javascript" src="/mail/static/src/owl/components/follower_subtypes_edit_dialog/follower_subtypes_edit_dialog.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/mail_template/mail_template.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/message/message.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/message_author_prefix/message_author_prefix.js"></script>

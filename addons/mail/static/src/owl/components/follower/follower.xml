@@ -16,6 +16,9 @@
                 </button>
             </t>
 
+            <t t-if="state.hasSubtypesEditDialog">
+                <FollowerSubtypesEditDialog followerLocalId="props.followerLocalId" t-on-dialog-closed="_onDialogClosedFollowerSubtypesEdit"/>
+            </t>
             <!--<div>-->
                 <!--<a class="o_mail_redirect text-truncate"-->
                     <!--href="#"-->
