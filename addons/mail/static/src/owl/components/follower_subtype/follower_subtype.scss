@@ -2,6 +2,10 @@
 // Layout
 // ------------------------------------------------------------------
 
+.o_FollowerSubtype_checkbox {
+    margin-inline-end: map-get($spacers, 2);
+}
+
 .o_FollowerSubtype_label {
     display: flex;
     flex: 1;
@@ -9,10 +13,6 @@
     align-items: center;
     margin-bottom: map-get($spacers, 0);
     padding: map-get($spacers, 2);
-}
-
-.o_FollowerSubtype_checkbox {
-    margin-inline-end: map-get($spacers, 2);
 }
 
 // ------------------------------------------------------------------

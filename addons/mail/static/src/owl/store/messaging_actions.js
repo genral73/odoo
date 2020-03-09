@@ -440,6 +440,31 @@ const actions = {
         });
     },
     /**
+     * Add current user to provided thread's followers.
+     *
+     * @param {Object} param0
+     * @param {function} param0.dispatch
+     * @param {Object} param0.env
+     * @param {Object} param0.state
+     * @param {string} threadLocalId
+     */
+    async followThread({ dispatch, env, state }, threadLocalId) {
+        const thread = state.threads[threadLocalId];
+        if (!thread) {
+            return;
+        }
+        await env.rpc({
+            model: thread._model,
+            method: 'message_subscribe',
+            args: [[thread.id]],
+            kwargs: {
+                partner_ids: [env.session.partner_id],
+                context: {},
+            }
+        });
+        dispatch('_refreshThreadFollowers', threadLocalId);
+    },
+    /**
      * @param {Object} param0
      * @param {function} param0.dispatch
      * @param {Object} param0.state
@@ -1616,6 +1641,26 @@ const actions = {
         });
     },
     /**
+     * Remove current user from provided thread's followers.
+     *
+     * @param {Object} param0
+     * @param {function} param0.dispatch
+     * @param {Object} param0.env
+     * @param {Object} param0.state
+     * @param {string} threadLocalId
+     */
+    async unfollowThread({ dispatch, env, state }, threadLocalId) {
+        const thread = state.threads[threadLocalId];
+        if (!thread) {
+            return;
+        }
+        const partnerId = env.session.partner_id;
+        const followerLocalId = Object.values(thread.followerLocalIds).find(
+            localId => state.followers[localId].partnerId === partnerId);
+        const follower = state.followers[followerLocalId];
+        await dispatch('removeFollowerFromThread', threadLocalId, follower.localId);
+    },
+    /**
      * Unlink the provided attachment.
      *
      * @param {Object} param0
@@ -1788,11 +1833,12 @@ const actions = {
     },
     /**
      * @param {Object} param0
+     * @param {function} param0.dispatch
      * @param {Object} param0.env
      * @param {Object} param0.state
      * @param {string} followerLocalId
      */
-    async updateFollowerSubtypes({ env, state }, followerLocalId) {
+    async updateFollowerSubtypes({ dispatch, env, state }, followerLocalId) {
         const follower = state.followers[followerLocalId];
         if (!follower) {
             return;
@@ -1804,7 +1850,7 @@ const actions = {
         const checkedSubtypes = Object.values(follower.subtypes).filter(
             subtype => subtype.isFollowed);
         if (checkedSubtypes.length === 0) {
-            //TODO unsubscribe follower totally
+            await dispatch('removeFollowerFromThread', thread.localId, followerLocalId);
         } else {
             const kwargs = {
                 subtype_ids: checkedSubtypes.map(subtype => subtype.id)

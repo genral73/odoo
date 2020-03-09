@@ -20,10 +20,14 @@ class FollowersMenu extends Component {
         this.storeDispatch = useDispatch();
         this.storeProps = useStore((state, props) => {
             const thread = state.threads[props.threadLocalId];
+            const followerLocalIds = thread ? thread.followerLocalIds : [];
+            const followers = followerLocalIds.map(
+                followerLocalId => state.followers[followerLocalId]);
+            const isFollowing = !!followers.find(
+                follower => follower.partnerId === this.env.session.partner_id);
             return {
-                followersAmount: thread && thread.followerLocalIds
-                    ? thread.followerLocalIds.length
-                    : 0,
+                followersAmount: followerLocalIds.length,
+                isFollowing,
                 thread,
             };
         });
@@ -94,7 +98,7 @@ class FollowersMenu extends Component {
      * @param {MouseEvent} ev
      */
     _onClickFollow(ev) {
-        // TODO
+        this.storeDispatch('followThread', this.props.threadLocalId);
     }
 
     /**
@@ -111,6 +115,14 @@ class FollowersMenu extends Component {
      */
     _onClickFollower(ev) {
         this._hide();
+    }
+
+        /**
+     * @private
+     * @param {MouseEvent} ev
+     */
+    _onClickUnfollow(ev) {
+        this.storeDispatch('unfollowThread', this.props.threadLocalId);
     }
 }
 

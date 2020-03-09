@@ -2,9 +2,25 @@
 // Layout
 // ------------------------------------------------------------------
 
+.o_ButtonUnfollow_following {
+    display: inline-block;
+}
+.o_ButtonUnfollow_unfollow {
+    display: none;
+}
+
 .o_FollowersMenu {
     margin-right: map_get($spacers, 3);
     position: relative;
+}
+
+.o_FollowersMenu_buttonUnfollow:hover {
+    .o_ButtonUnfollow_following {
+        display: none;
+    }
+    .o_ButtonUnfollow_unfollow {
+        display: inline-block;
+    }
 }
 
 .o_FollowersMenu_dropdown {
@@ -23,8 +39,18 @@
 // Style
 // ------------------------------------------------------------------
 
+.o_ButtonUnfollow_followingIcon {
+    color: $green;
+}
 
+.o_ButtonUnfollow_unfollowIcon {
+    color: $orange;
+}
 
-// ------------------------------------------------------------------
-// Animation
-// ------------------------------------------------------------------
+.o_FollowersMenu_buttonFollow {
+    color: gray('600');
+}
+
+.o_FollowersMenu_buttonUnfollow {
+    color: gray('600');
+}
