@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mail.component.FollowerSubtype" owl="1">
+        <div class="o_FollowerSubtype">
+            <label class="o_FollowerSubtype_label">
+                <input type="checkbox" class="o_FollowerSubtype_checkbox" t-att-checked="storeProps.subtype.isFollowed ? 'checked': ''" t-on-change="_onChangeCheckbox" t-ref="checkbox"/>
+                <t t-esc="storeProps.subtype.name"/>
+            </label>
+        </div>
+    </t>
+</templates>

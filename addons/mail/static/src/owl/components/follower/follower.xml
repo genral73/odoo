@@ -15,31 +15,6 @@
                     <i class="fa fa-remove"/>
                 </button>
             </t>
-
-            <t t-if="state.hasSubtypesEditDialog">
-                <FollowerSubtypesEditDialog followerLocalId="props.followerLocalId" t-on-dialog-closed="_onDialogClosedFollowerSubtypesEdit"/>
-            </t>
-            <!--<div>-->
-                <!--<a class="o_mail_redirect text-truncate"-->
-                    <!--href="#"-->
-                    <!--t-att-title="record.title"-->
-                    <!--t-att-data-oe-model="record.partner_id ? 'res.partner' : 'mail.channel'"-->
-                    <!--t-att-data-oe-id="record.partner_id ? record.partner_id : record.channel_id">-->
-                    <!--<img t-att-src="record.avatar_url" alt="Avatar" class="o_image_64_cover"/>-->
-                    <!--<t t-esc="record.name"/>-->
-                <!--</a>-->
-                <!--<button t-if="record.is_editable"-->
-                    <!--t-att-data-follower-id="record.id"-->
-                    <!--t-att-data-oe-id="record.partner_id ? record.partner_id : record.channel_id"-->
-                    <!--t-att-data-oe-model="record.partner_id ? 'res.partner' : 'mail.channel'"/>-->
-                <!--<button t-if="widget.isEditable"-->
-                    <!--class="btn btn-icon fa fa-remove o_remove_follower"-->
-
-                    <!--role="img"-->
-                    <!--title="Remove this follower"/>-->
-            <!--</div>-->
-
-
         </div>
     </t>
 

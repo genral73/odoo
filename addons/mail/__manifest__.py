@@ -89,6 +89,7 @@
         'static/src/owl/components/file_uploader/file_uploader.xml',
         'static/src/owl/components/follower/follower.xml',
         'static/src/owl/components/followers_menu/followers_menu.xml',
+        'static/src/owl/components/follower_subtype/follower_subtype.xml',
         'static/src/owl/components/follower_subtypes_edit_dialog/follower_subtypes_edit_dialog.xml',
         'static/src/owl/components/mail_template/mail_template.xml',
         'static/src/owl/components/message/message.xml',

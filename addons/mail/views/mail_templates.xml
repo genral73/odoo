@@ -131,6 +131,7 @@
                 <script type="text/javascript" src="/mail/static/src/owl/components/file_uploader/file_uploader.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/follower/follower.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/followers_menu/followers_menu.js"></script>
+                <script type="text/javascript" src="/mail/static/src/owl/components/follower_subtype/follower_subtype.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/follower_subtypes_edit_dialog/follower_subtypes_edit_dialog.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/mail_template/mail_template.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/message/message.js"></script>
@@ -190,6 +191,7 @@
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/owl/components/file_uploader/file_uploader.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/owl/components/follower/follower.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/owl/components/followers_menu/followers_menu.scss"/>
+                <link rel="stylesheet" type="text/scss" href="/mail/static/src/owl/components/follower_subtype/follower_subtype.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/owl/components/mail_template/mail_template.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/owl/components/message/message.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/owl/components/message_author_prefix/message_author_prefix.scss"/>

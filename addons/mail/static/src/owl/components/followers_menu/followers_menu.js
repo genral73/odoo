@@ -46,6 +46,14 @@ class FollowersMenu extends Component {
     }
 
     //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    _hide() {
+        this.state.hasDropdown = false;
+    }
+
+    //--------------------------------------------------------------------------
     // Handlers
     //--------------------------------------------------------------------------
 
@@ -55,6 +63,7 @@ class FollowersMenu extends Component {
      */
     async _onClickAddChannels(ev) {
         ev.preventDefault();
+        this._hide();
         await this.storeDispatch('addChannelFollowersToThread', this.props.threadLocalId);
     }
 
@@ -64,6 +73,7 @@ class FollowersMenu extends Component {
      */
     async _onClickAddFollowers(ev) {
         ev.preventDefault();
+        this._hide();
         await this.storeDispatch('addPartnerFollowersToThread', this.props.threadLocalId);
     }
 
@@ -75,7 +85,7 @@ class FollowersMenu extends Component {
     _onClickCaptureGlobal(ev) {
         // since dropdown is conditionally shown based on state, dropdownRef can be null
         if (this._dropdownRef.el && !this._dropdownRef.el.contains(ev.target)) {
-            this.state.hasDropdown = false;
+            this._hide();
         }
     }
 
@@ -91,13 +101,21 @@ class FollowersMenu extends Component {
      * @private
      * @param {MouseEvent} ev
      */
-    _onClickFollowers(ev) {
+    _onClickFollowersButton(ev) {
         this.state.hasDropdown = !this.state.hasDropdown;
+    }
+
+    /**
+     * @private
+     * @param {MouseEvent} ev
+     */
+    _onClickFollower(ev) {
+        this._hide();
     }
 }
 
 Object.assign(FollowersMenu, {
-    components: { Follower },
+    components: { Follower },
     default_props: {
         isDisabled: false,
     },

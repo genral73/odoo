@@ -7,7 +7,7 @@
                 Follow
             </button>
             <div class="o_FollowersMenu_followers" t-ref="dropdown">
-                <button class="btn btn-link o_FollowersMenu_buttonFollowers" type="button" t-att-disabled="props.isDisabled" t-on-click="_onClickFollowers">
+                <button class="btn btn-link o_FollowersMenu_buttonFollowers" type="button" t-att-disabled="props.isDisabled" t-on-click="_onClickFollowersButton">
                     <i class="fa fa-user"/>
                     <span class="o_FollowersMenu_buttonFollowersCount pl-1" t-esc="storeProps.followersAmount"/>
                 </button>
@@ -28,6 +28,7 @@
                                 <Follower
                                     class="o_FollowerMenu_follower dropdown-item"
                                     followerLocalId="followerLocalId"
+                                    t-on-click="_onClickFollower"
                                 />
                             </t>
                         </t>

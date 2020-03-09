@@ -1433,6 +1433,25 @@ const actions = {
         }
     },
     /**
+     * @param {Object} param0
+     * @param {Object} param0.state
+     * @param {string} followerLocalId
+     * @param {string} subtypeId
+     * @param {Object} param3
+     * @param {boolean} param3.checkValue
+     */
+    setFollowerSubtypeCheck({ state }, followerLocalId, subtypeId, { checkValue }) {
+        const follower = state.followers[followerLocalId];
+        if (!follower) {
+            return;
+        }
+        const subtype = follower.subtypes[subtypeId];
+        if (!subtype) {
+            return;
+        }
+        subtype.isFollowed = checkValue;
+    },
+    /**
      * Shift provided chat window to the left on screen.
      *
      * @param {Object} param0
@@ -1517,6 +1536,25 @@ const actions = {
             isComposerLog: false,
             isComposerVisible: true,
         });
+    },
+    /**
+     * @param {Object} param0
+     * @param {function} param0.dispatch
+     * @param {Object} param0.env
+     * @param {Object} param0.state
+     * @param {string} followerLocalId
+     */
+    async showFollowerSubtypes({ dispatch, env, state }, followerLocalId) {
+        const follower = state.followers[followerLocalId];
+        if (!follower) {
+            return;
+        }
+        const subtypesData = await env.rpc({
+            route: '/mail/read_subscription_data',
+            params: { follower_id: follower.id },
+        });
+        dispatch('_setFollowerSubtypes', followerLocalId, subtypesData);
+        dispatch('_openDialog', 'FollowerSubtypesEditDialog', { followerLocalId });
     },
     /**
      * Toggle the fold state of the given thread.
@@ -1746,6 +1784,42 @@ const actions = {
         Object.assign(state.discuss, toApplyChanges);
         if (wasDiscussOpen !== state.discuss.isOpen) {
             dispatch('_computeChatWindows');
+        }
+    },
+    /**
+     * @param {Object} param0
+     * @param {Object} param0.env
+     * @param {Object} param0.state
+     * @param {string} followerLocalId
+     */
+    async updateFollowerSubtypes({ env, state }, followerLocalId) {
+        const follower = state.followers[followerLocalId];
+        if (!follower) {
+            return;
+        }
+        const thread = state.threads[follower.threadLocalId];
+        if (!thread) {
+            return;
+        }
+        const checkedSubtypes = Object.values(follower.subtypes).filter(
+            subtype => subtype.isFollowed);
+        if (checkedSubtypes.length === 0) {
+            //TODO unsubscribe follower totally
+        } else {
+            const kwargs = {
+                subtype_ids: checkedSubtypes.map(subtype => subtype.id)
+            };
+            if (follower.partnerId) {
+                kwargs.partner_ids = [follower.partnerId];
+            } else {
+                kwargs.channel_ids = [follower.channelId];
+            }
+            await env.rpc({
+                model: thread._model,
+                method: 'message_subscribe',
+                args: [[thread.id]],
+                kwargs,
+            });
         }
     },
     /**
@@ -2129,6 +2203,7 @@ const actions = {
             localId: followerLocalId,
             name,
             partnerId,
+            subtypes: [],
             threadLocalId,
         };
         state.followers[followerLocalId] = follower;
@@ -2730,7 +2805,7 @@ const actions = {
                 follower_ids: followerIds,
                 context: {} // empty context to be overridden in session.js with 'allowed_company_ids'
             }
-        }); // TODO subtypes
+        });
         const followerLocalIds = [];
         for (const follower of followers) {
             const followerLocalId = dispatch('_insertFollower', follower, threadLocalId);
@@ -4532,6 +4607,40 @@ const actions = {
             textInputCursorEnd: 0,
         });
         dispatch('_unlinkAttachmentsFromComposer', composerLocalId);
+    },
+    /**
+     * @private
+     * @param {Object} param0
+     * @param {Object} param0.state
+     * @param {string} followerLocalId
+     * @param {Array} subtypesData
+     */
+    _setFollowerSubtypes({ state }, followerLocalId, subtypesData) {
+        const follower = state.followers[followerLocalId];
+        const subtypes = {};
+        for (const subtypeData of subtypesData) {
+            let {
+                'default': isDefault,
+                followed: isFollowed,
+                id,
+                internal: isInternal,
+                name,
+                parent_model: parentModel,
+                res_model: resModel,
+                sequence,
+            } = subtypeData;
+            subtypes[id] = {
+                id,
+                isDefault,
+                isFollowed,
+                isInternal,
+                name,
+                parentModel,
+                resModel,
+                sequence,
+            };
+        }
+        follower.subtypes = subtypes;
     },
     /**
      * @private

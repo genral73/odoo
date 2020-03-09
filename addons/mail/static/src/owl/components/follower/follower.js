@@ -5,7 +5,7 @@ const FollowerSubtypesEditDialog = require('mail.component.FollowerSubtypesEditD
 const useStore = require('mail.hooks.useStore');
 
 const { Component } = owl;
-const { useDispatch, useState } = owl.hooks;
+const { useDispatch } = owl.hooks;
 
 class Follower extends Component {
     /**
@@ -14,9 +14,6 @@ class Follower extends Component {
      */
     constructor(...args) {
         super(...args);
-        this.state = useState({
-            hasSubtypesEditDialog: false,
-        });
         this.storeDispatch = useDispatch();
         this.storeProps = useStore((state, props) => {
             const follower = state.followers[props.followerLocalId];
@@ -63,7 +60,7 @@ class Follower extends Component {
      */
     _onClickEdit(ev) {
         ev.preventDefault();
-        this.state.hasSubtypesEditDialog = true;
+        this.storeDispatch('showFollowerSubtypes', this.props.followerLocalId);
     }
 
     /**
@@ -72,14 +69,6 @@ class Follower extends Component {
      */
     _onClickRemove(ev) {
         this.storeDispatch('removeFollowerFromThread', this.storeProps.follower.threadLocalId, this.props.followerLocalId);
-    }
-
-    /**
-     * @private
-     */
-    _onDialogClosedFollowerSubtypesEdit() {
-        debugger;
-        this.state.hasSubtypesEditDialog = false;
     }
 }
 
