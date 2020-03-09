@@ -195,6 +195,10 @@ class Field(MetaField('DummyField', (object,), {})):
 
     .. rubric:: Computed Fields
 
+    :param bool groupby: whether the field can be grouped by or ordered by
+        (default: ``True``, ``False`` for ``One2many``, ``Many2many``,
+        ``Binary`` and ``Secret``)
+
     :param str compute: name of a method that computes the field
 
         .. seealso:: :ref:`Advanced Fields/Compute fields <reference/fields/compute>`
@@ -263,6 +267,7 @@ class Field(MetaField('DummyField', (object,), {})):
         'related_field': None,          # corresponding related field
         'group_operator': None,         # operator for aggregating values
         'group_expand': None,           # name of method to expand groups in read_group()
+        'groupby': True,                # whether the field can be groupby
         'prefetch': True,               # whether the field is prefetched
     }
 
@@ -1893,6 +1898,7 @@ class Binary(Field):
         'prefetch': False,                  # not prefetched by default
         'depends_context': ('bin_size',),   # depends on context (content or size)
         'attachment': True,                 # whether value is stored in attachment
+        'groupby': False,                   # not groupby by default
     }
 
     @property
@@ -2910,6 +2916,7 @@ class One2many(_RelationalMulti):
         'auto_join': False,             # whether joins are generated upon search
         'limit': None,                  # optional limit to use upon read
         'copy': False,                  # o2m are not copied by default
+        'groupby': False,               # o2m are not groupby by default
     }
 
     def __init__(self, comodel_name=Default, inverse_name=Default, string=Default, **kwargs):
@@ -3193,6 +3200,7 @@ class Many2many(_RelationalMulti):
         'auto_join': False,             # whether joins are generated upon search
         'limit': None,                  # optional limit to use upon read
         'ondelete': None,               # optional ondelete for the column2 fkey
+        'groupby': False,               # m2m are not groupby by default
     }
 
     def __init__(self, comodel_name=Default, relation=Default, column1=Default,
