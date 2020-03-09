@@ -10,9 +10,20 @@ weSnippetEditor.Class.include({
     events: _.extend({}, weSnippetEditor.Class.prototype.events, {
         'click .o_we_customize_theme_btn': '_onThemeTabClick',
     }),
+    custom_events: _.extend({}, weSnippetEditor.Class.prototype.custom_events, {
+        'get_custom_colors': '_onGetCustomColors',
+    }),
     tabs: _.extend({}, weSnippetEditor.Class.prototype.tabs, {
         THEME: 'theme',
     }),
+
+    /**
+     * @override
+     */
+    init: function () {
+        this._super(...arguments);
+        this.style = window.getComputedStyle(document.documentElement);
+    },
 
     //--------------------------------------------------------------------------
     // Private
@@ -65,6 +76,15 @@ weSnippetEditor.Class.include({
             content: this.themeCustomizationMenuEl,
             tab: this.tabs.THEME,
         });
+    },
+    /**
+     * @private
+     * @param {OdooEvent} ev
+     */
+    _onGetCustomColors: function (ev) {
+        const variables = ['menu', 'footer', 'body', 'text'];
+        const colors = variables.map(v => this.style.getPropertyValue(`--${v}`).trim());
+        ev.data.onSuccess(colors);
     },
 });
 });

@@ -45,7 +45,8 @@ const ColorPaletteWidget = Widget.extend({
         }, options || {});
 
         if (this.options.selectedColor) {
-            this.selectedColor = ColorpickerDialog.normalizeCSSColor(this.options.selectedColor);
+            const selectedColor = ColorpickerDialog.normalizeCSSColor(this.options.selectedColor);
+            this.selectedColor = selectedColor !== 'rgba(0, 0, 0, 0)' && selectedColor;
         }
 
         this.trigger_up('request_editable', {callback: val => this.options.$editable = val});
@@ -108,11 +109,6 @@ const ColorPaletteWidget = Widget.extend({
             });
         }
 
-        // Render custom colors
-        this._buildCustomColors();
-
-        this._addCompatibilityColors(['primary', 'secondary', 'success', 'info', 'warning', 'danger']);
-
         // Compute class colors
         this.colorNames = [];
         this.colorToColorNames = {};
@@ -129,6 +125,11 @@ const ColorPaletteWidget = Widget.extend({
                 this.colorToColorNames[color] = colorName;
             }
         });
+
+        // Render custom colors
+        this._buildCustomColors();
+
+        this._addCompatibilityColors(['primary', 'secondary', 'success', 'info', 'warning', 'danger']);
 
         return res;
     },
@@ -169,9 +170,7 @@ const ColorPaletteWidget = Widget.extend({
             return;
         }
         const existingColors = new Set(this.summernoteCustomColorsArray.concat(
-            [...this.el.querySelectorAll('.o_custom_color')].map(el => {
-                return ColorpickerDialog.normalizeCSSColor(el.style.backgroundColor);
-            })
+            Object.keys(this.colorToColorNames)
         ));
         this.trigger_up('get_custom_colors', {
             onSuccess: (colors) => {
@@ -185,6 +184,7 @@ const ColorPaletteWidget = Widget.extend({
                 this._addCustomColor(existingColors, el.style[colorProp]);
             }
         });
+        this._addCustomColor(existingColors, this.selectedColor);
     },
     /**
      * Add the color to the custom color section if it is not in the existingColors.
@@ -193,8 +193,14 @@ const ColorPaletteWidget = Widget.extend({
      * @param {string} color Color to add to the cuustom colors
      */
     _addCustomColor: function (existingColors, color) {
-        const normColor = ColorpickerDialog.normalizeCSSColor(color);
-        if (color && !existingColors.has(normColor)) {
+        if (!color) {
+            return;
+        }
+        let normColor = ColorpickerDialog.normalizeCSSColor(color);
+        if (!ColorpickerDialog.isCSSColor(normColor)) {
+            normColor = ColorpickerDialog.normalizeCSSColor(this.style.getPropertyValue('--' + normColor).trim());
+        }
+        if (!existingColors.has(normColor)) {
             this._addCustomColorButton(normColor);
             existingColors.add(normColor);
         }
