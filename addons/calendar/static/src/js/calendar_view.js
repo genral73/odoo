@@ -6,6 +6,8 @@ var CalendarRenderer = require('web.CalendarRenderer');
 var CalendarView = require('web.CalendarView');
 const session = require('web.session');
 var viewRegistry = require('web.view_registry');
+var core = require('web.core');
+var qweb = core.qweb;
 
 var AttendeeCalendarPopover = CalendarPopover.extend({
     template: 'Calendar.attendee.status.popover',
@@ -93,6 +95,8 @@ var AttendeeCalendarPopover = CalendarPopover.extend({
             self.event.record.attendee_status = selectedStatus;  // FIXEME: Maybe we have to reload view
             self.$('.o-calendar-attendee-status-text').text(self.statusInfo[selectedStatus].text);
             self.$('.o-calendar-attendee-status-icon').removeClass(_.values(self.statusColors).join(' ')).addClass(self.statusInfo[selectedStatus].color);
+            self.$el.parent().hide()
+            self.trigger_up('render_event');
         });
     },
 });
@@ -100,6 +104,7 @@ var AttendeeCalendarPopover = CalendarPopover.extend({
 var AttendeeCalendarRenderer = CalendarRenderer.extend({
     config: _.extend({}, CalendarRenderer.prototype.config, {
         CalendarPopover: AttendeeCalendarPopover,
+        eventTemplate: 'Calendar.attendee.calendar-box',
     }),
 });
 
