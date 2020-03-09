@@ -1680,6 +1680,23 @@ class Html(_String):
         return value
 
 
+class Secret(Char):
+    type = 'secret'
+    _slots = {
+        'depends_context': ('uid',),    # whether the user is the superuser
+        'groupby': False,               # secret cannot be groupby
+    }
+
+    def convert_to_cache(self, value, record, validate=True):
+        if not record.env.is_superuser():
+            return ''
+
+        return super().convert_to_cache(value, record, validate)
+
+    @property
+    def _description_sortable(self):
+        return False
+
 class Date(Field):
     """ This field type encapsulates a python date object.
     :type date:

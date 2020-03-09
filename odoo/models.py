@@ -3069,6 +3069,10 @@ Fields:
                     for index in range(len(ids)):
                         values[index] = translate(ids[index], values[index])
 
+                # forget secret field values
+                if field.type == 'secret' and not self.env.is_superuser():
+                    values = ('',) * len(values)
+
                 # store values in cache
                 self.env.cache.update(fetched, field, values)
 
