@@ -1950,7 +1950,7 @@ const actions = {
             // Followers
             if (chatter.followerIds) {
                 if (chatter.followerIds.length > 0) {
-                    thread.followerLocalIds = await dispatch('_fetchFollowers',
+                    thread.followerLocalIds = await dispatch('_fetchThreadFollowers',
                         chatter.followerIds,
                         threadLocalId
                     );
@@ -2798,7 +2798,7 @@ const actions = {
      * @param {String} threadLocalId
      * @returns {Promise<Array>}
      */
-    async _fetchFollowers({ dispatch, env }, followerIds, threadLocalId) {
+    async _fetchThreadFollowers({ dispatch, env }, followerIds, threadLocalId) {
         const { followers } = await env.rpc({
             route: '/mail/read_followers',
             params: {
@@ -4514,7 +4514,7 @@ const actions = {
             method: 'read',
             args: [thread.id, ['message_follower_ids']]
         });
-        thread.followerLocalIds = await dispatch('_fetchFollowers', followerIds, threadLocalId);
+        thread.followerLocalIds = await dispatch('_fetchThreadFollowers', followerIds, threadLocalId);
     },
     /**
      * @private
