@@ -469,8 +469,8 @@
                                     <td t-attf-class="text-right {{ 'd-none d-sm-table-cell' if report_type == 'html' else '' }}">
                                         <div class="oe_order_line_price_unit" t-field="line.price_unit"/>
                                     </td>
-                                    <td t-if="display_discount" t-attf-class="text-right {{ 'd-none d-sm-table-cell' if report_type == 'html' else '' }}">
-                                        <strong t-if="line.discount &gt; 0" class="text-info">
+                                    <td t-if="display_discount and line.discount &gt; 0" t-attf-class="text-right {{ 'd-none d-sm-table-cell' if report_type == 'html' else '' }}">
+                                        <strong class="text-info">
                                             <span class="oe_order_line_discount" t-field
                                                 ="line.discount"/>%
                                         </strong>

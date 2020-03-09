@@ -78,6 +78,7 @@ publicWidget.registry.SaleUpdateLineButton = publicWidget.Widget.extend({
      * @param {Object} data: contains order and line updated values
      */
     _updateOrderValues: function (data) {
+        this.elems = this._getUpdatableElements();
         if (!data) {
             window.location.reload();
         }
@@ -105,8 +106,22 @@ publicWidget.registry.SaleUpdateLineButton = publicWidget.Widget.extend({
         if (this.elems.$linePriceUnit !== undefined) {
             this.elems.$linePriceUnit.text(linePriceUnit);
         }
-        if (this.elems.$lineDiscount !== undefined) {
-            this.elems.$lineDiscount.text(lineDiscount);
+        if (this.elems.$lineDiscount.length == 1) {
+            if (parseInt(lineDiscount) > 0.0) {
+                this.elems.$lineDiscount.text(lineDiscount);
+            }
+            else {
+                this.elems.$lineDiscount.parent().parent().remove();
+                this.$el.parents('table').children().find('th:contains("Disc.%")').remove();
+            }
+        }
+        if (this.elems.$lineDiscount.length == 0 && parseInt(lineDiscount) > 0.0) {
+            const th = $('<th>').insertAfter(this.$el.parents('table').children().find('th:contains("Unit Price")'));
+            th.text('Disc.%').attr('class', 'text-right');
+            const discount = '<td><strong class="text-info"><span class="oe_order_line_discount">';
+            this.elems.$lineDiscount = $(discount).insertAfter(this.elems.$linePriceUnit.parent()).children().children();
+            this.elems.$lineDiscount.parent().parent().attr('class', 'text-right');
+            this.elems.$lineDiscount.text(lineDiscount + '%');
         }
 
         if (orderAmountUntaxed !== undefined) {
