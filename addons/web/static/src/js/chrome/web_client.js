@@ -275,8 +275,7 @@ class WebClient extends Component {
                 if (!('title' in state)) {
                     state.title = mainComponent.title;
                 }
-                // keep cids in hash
-                //this._determineCompanyIds(state);
+                state.cids = this.env.session.getCompanies();
                 const scrollPosition = this.renderingInfo.main.controller.scrollPosition;
                 if (scrollPosition) {
                     this._scrollTo(scrollPosition);

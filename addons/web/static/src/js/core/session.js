@@ -353,6 +353,10 @@ var Session = core.Class.extend(mixins.EventDispatcherMixin, {
         });
     },
 
+    getCompanies: function () {
+        return utils.get_cookie('cids');
+    },
+
     setCompanies: function (main_company_id, company_ids) {
         var hash = $.bbq.getState()
         hash.cids = company_ids.sort(function(a, b) {

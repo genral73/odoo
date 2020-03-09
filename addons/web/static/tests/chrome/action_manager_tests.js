@@ -889,9 +889,9 @@ QUnit.module('ActionManager', {
         assert.expect(3);
 
         var stateDescriptions = [
-            {action: 4, model: "partner", title: "Partners Action 4", view_type: "kanban"},
-            {action: 8, model: "pony", title: "Favorite Ponies", view_type: "list"},
-            {action: 8, id: 4, model: "pony", title: "Twilight Sparkle", view_type: "form"},
+            {action: 4, model: "partner", title: "Partners Action 4", view_type: "kanban", cids: '1'},
+            {action: 8, model: "pony", title: "Favorite Ponies", view_type: "list", cids: '1'},
+            {action: 8, id: 4, model: "pony", title: "Twilight Sparkle", view_type: "form", cids: '1'},
         ];
 
         const webClient = await createWebClient({
@@ -1133,20 +1133,59 @@ QUnit.module('ActionManager', {
             '/web/action/load',
             'load_views',
             '/web/dataset/search_read',
-            '#model=partner&view_type=kanban&action=1',
+            '#model=partner&view_type=kanban&action=1&cids=1',
         ]);
         await testUtils.dom.click(webClient.el.querySelector('.o_kanban_record a'));
         assert.verifySteps([
             '/web/action/load',
             'load_views',
             '/web/dataset/search_read',
-            '#model=partner&view_type=kanban&action=1&active_id=1',
+            '#model=partner&view_type=kanban&action=1&active_id=1&cids=1',
         ]);
         await testUtils.dom.click(webClient.el.querySelector('.breadcrumb-item'));
         assert.verifySteps([
             '/web/dataset/search_read',
-            '#model=partner&view_type=kanban&action=1',
+            '#model=partner&view_type=kanban&action=1&cids=1',
         ]);
+        webClient.destroy();
+    });
+
+    QUnit.test('keep cids in url hash', async function (assert) {
+        assert.expect(3);
+
+        Object.assign(this.archs, {
+            // kanban views
+            'partner,1,kanban': '<kanban><templates><t t-name="kanban-box">' +
+                    '<div class="oe_kanban_global_click"><a name="1" type="action"></a><field name="foo"/></div>' +
+                '</t></templates></kanban>',
+        });
+
+        let _hash = '#action=1';
+        const webClient = await createWebClient({
+            data: this.data,
+            actions: this.actions,
+            archs: this.archs,
+            menus: this.menus,
+            webClient: {
+                _getWindowHash() {
+                    return _hash;
+                },
+                _setWindowHash(newHash) {
+                    _hash = newHash;
+                    assert.ok(this._getUrlState().cids === 1);
+                },
+            },
+            session: {
+                user_companies: {
+                    current_company: [1, "Company 1"],
+                    allowed_companies: [[1, "Company 1"]],
+                },
+            },
+        });
+
+        await testUtils.dom.click(webClient.el.querySelector('.o_kanban_record a'));
+        await testUtils.dom.click(webClient.el.querySelector('.breadcrumb-item'));
+
         webClient.destroy();
     });
 
@@ -1543,7 +1582,7 @@ QUnit.module('ActionManager', {
                     );
                 },
                 _getWindowHash() {
-                    return '#action=9';
+                    return '#action=9&cids=1';
                 }
             },
         });
@@ -2414,7 +2453,7 @@ QUnit.module('ActionManager', {
         await doAction('HelloWorldTest');
 
         assert.verifySteps([
-            "hash: #foo=baz&action=HelloWorldTest",
+            "hash: #foo=baz&action=HelloWorldTest&cids=1",
             "title: a title",
         ]);
         webClient.destroy();

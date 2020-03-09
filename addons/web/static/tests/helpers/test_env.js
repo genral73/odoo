@@ -37,6 +37,9 @@ odoo.define('web.test_env', async function (require) {
                 },
             }, env.services),
             session: Object.assign({
+                getCompanies() {
+                    return '1';
+                },
                 rpc(route, params, options) {
                     if (providedRPC) {
                         return providedRPC(route, params, options);
