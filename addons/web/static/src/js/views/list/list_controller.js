@@ -8,6 +8,7 @@ odoo.define('web.ListController', function (require) {
  */
 
 var core = require('web.core');
+var config = require('web.config');
 var BasicController = require('web.BasicController');
 var DataExport = require('web.DataExport');
 var Dialog = require('web.Dialog');
@@ -142,6 +143,9 @@ var ListController = BasicController.extend({
             });
             this.$buttons.on('mousedown', '.o_list_button_discard', this._onDiscardMousedown.bind(this));
             this.$buttons.on('click', '.o_list_button_discard', this._onDiscard.bind(this));
+            if (config.device.isMobile) {
+                this.$buttons.find('.o_list_export_xlsx').hide();
+            }
             this.$buttons.appendTo($node);
         }
     },
@@ -522,6 +526,9 @@ var ListController = BasicController.extend({
         if (this.$buttons) {
             this.$buttons.toggleClass('o-editing', mode === 'edit');
             const state = this.model.get(this.handle, {raw: true});
+            if (config.device.isMobile) {
+                return;
+            }
             if (state.count) {
                 this.$('.o_list_export_xlsx').show();
             } else {
