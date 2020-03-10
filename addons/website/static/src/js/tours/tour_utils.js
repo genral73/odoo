@@ -45,6 +45,7 @@ function clickOnText(snippet, element, position = "bottom") {
         content: _t("<b>Click on a text</b> to start editing it. <i>It's that easy to edit your content!</i>"),
         position: position,
         run: "text",
+        consumeAction: "input",
     };
 }
 

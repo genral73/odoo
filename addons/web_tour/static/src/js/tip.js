@@ -43,20 +43,28 @@ var Tip = Widget.extend({
             top: "50%",
             left: "50%",
         };
+        this.viewPortState = null;
+        this._onAncestorScroll = _.throttle(() => {
+            this._updatePosition();
+        }, 50);
     },
     /**
      * @param {jQuery} $anchor the node on which the tip should be placed
      */
     attach_to: function ($anchor) {
-        this.$anchor = $anchor;
-        this.$ideal_location = this._get_ideal_location();
+        this._setupAnchor($anchor);
 
-        var position = this.$ideal_location.css("position");
-        if (position === "static" || position === "relative") {
-            this.$ideal_location.addClass("o_tooltip_parent");
-        }
+        this.originalMessage = this.info.content;
+        this.$scrolableElement = this.$ideal_location.is('html,body') ? $(window) : this.$ideal_location;
 
-        return this.appendTo(this.$ideal_location);
+        this.initialPosition = this.info.position;
+
+        this.$scrolableElement.on('scroll', () => {
+            this._onAncestorScroll();
+        });
+        return this.appendTo(this.$ideal_location).then(() => {
+            this._updatePosition();
+        });
     },
     start: function() {
         this.$tooltip_overlay = this.$(".o_tooltip_overlay");
@@ -102,6 +110,10 @@ var Tip = Widget.extend({
         clearTimeout(this.timerIn);
         clearTimeout(this.timerOut);
 
+        if (this.$scrolableElement) {
+            this.$scrolableElement.off('scroll');
+        }
+
         // Do not remove the parent class if it contains other tooltips
         if (this.$ideal_location.children(".o_tooltip").not(this.$el[0]).length === 0) {
             this.$ideal_location.removeClass("o_tooltip_parent");
@@ -110,19 +122,86 @@ var Tip = Widget.extend({
         return this._super.apply(this, arguments);
     },
     update: function ($anchor) {
-        if (!$anchor.is(this.$anchor)) {
-            this._unbind_anchor_events();
-            this.$anchor = $anchor;
-            this.$ideal_location = this._get_ideal_location();
-            if (this.$el.parent()[0] !== document.body) {
-                this.$el.appendTo(this.$ideal_location);
-            }
-            this._bind_anchor_events();
-        }
+        this._unbind_anchor_events();
+        this._setupAnchor($anchor);
+        this._updatePosition();
         this._reposition();
+        this._bind_anchor_events();
     },
-    _get_ideal_location: function () {
-        var $location = this.$anchor;
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    _setupAnchor: function ($anchor) {
+        this.$anchor = $anchor;
+        this.$actualAnchor = this.$anchor;
+        this.$ideal_location = this._get_ideal_location();
+        this.$furtherIdealLocation = this._get_ideal_location(this.$ideal_location);
+    },
+    /**
+     * This function figure out which direction the tip should take
+     * and if he's at the bottom or the top of the targeted element
+     * or if it's an indicator to scroll.
+     */
+    _updatePosition: function () {
+        this.moveTip = false;
+        let halfHeight = 0;
+        if (this.initialPosition === 'right' || this.initialPosition === 'left') {
+            halfHeight = this.$anchor.innerHeight() / 2;
+        }
+        let position = this.info.position;
+        /* Check if the viewport state change to know if we need to move the anchor of the tip.
+        * up : the target element is above the current viewport
+        * down : the target element is below the current viewport
+        * in : the target element is in the current viewport
+        */
+        let viewPortState = "in";
+        const paddingTop = parseInt(this.$ideal_location.css('padding-top'));
+        if (this.$anchor.offset().top + this.$anchor.innerHeight() - paddingTop - halfHeight < window.pageYOffset) {
+            viewPortState = 'up';
+            position = "bottom";
+        } else if (this.$anchor.offset().top + halfHeight > window.pageYOffset + window.innerHeight) {
+            viewPortState = 'down';
+            position = "top";
+        }
+        if (this.viewPortState !== viewPortState) { // If the state change, allow to move the tip at the right place
+            this.viewPortState = viewPortState;
+            this.moveTip = true;
+        }
+
+        // Adjust the placement of the tip regarding its anchor depending
+        // if we came from the bottom or the top.
+        if (this.$anchor.offset().top < window.pageYOffset + paddingTop + this.$el.innerHeight()) {
+            position = halfHeight && viewPortState === "in" ? this.initialPosition : "bottom";
+        } else if (this.$anchor.offset().top > window.pageYOffset + window.innerHeight - (this.$anchor.innerHeight() + this.$el.innerHeight())) {
+            position = halfHeight && viewPortState === "in" ? this.initialPosition : "top";
+        }
+        this.moveTip = this.info.position !== position || this.moveTip;
+
+        // If the direction or the anchor change : The tip position is updated.
+        if (this.moveTip) {
+            this.info.position = position;
+            let $location;
+            if (this.viewPortState === 'in') {
+                this.info.content = this.originalMessage;
+                this.$actualAnchor = this.$anchor;
+                $location = this.$ideal_location;
+                this.$furtherIdealLocation.removeClass("o_tooltip_parent");
+            } else {
+                this.info.content = 'Scroll to reach the next step';
+                this.$actualAnchor = this.$ideal_location;
+                $location = this.$furtherIdealLocation;
+                this.$ideal_location.removeClass("o_tooltip_parent");
+            }
+            const cssPosition = $location.css("position");
+            if (cssPosition === "static" || cssPosition === "relative") {
+                $location.addClass("o_tooltip_parent");
+            }
+            this.appendTo($location);
+        }
+    },
+    _get_ideal_location: function ($anchor = this.$anchor) {
+        var $location = $anchor;
         if ($location.is("html,body")) {
             return $(document.body);
         }
@@ -146,7 +225,7 @@ var Tip = Widget.extend({
         return $location;
     },
     _reposition: function () {
-        if (this.tip_opened) return;
+        if (this.tip_opened && !this.moveTip) return;
         if (!this.$el) return;
         this.$el.removeClass("o_animated");
 
@@ -156,41 +235,72 @@ var Tip = Widget.extend({
         if (rtlMap[appendAt] && _t.database.parameters.direction === 'rtl') {
             appendAt = rtlMap[appendAt];
         }
-        this.$el.position({
-            my: this._get_spaced_inverted_position(appendAt),
-            at: appendAt,
-            of: this.$anchor,
-            collision: "none",
-        });
+
+        // Get the correct tip's position depending of the tip's state
+        let $parent = this.$ideal_location;
+        if ($parent.is('html,body') && this.viewPortState !== "in") {
+            this.$el.css({position: 'fixed'});
+        }
+        const paddingTop = parseInt($parent.css('padding-top'));
+        const paddingLeft = parseInt($parent.css('padding-left'));
+        const paddingRight = parseInt($parent.css('padding-right'));
+
+        const center = (paddingLeft + paddingRight) + ((($parent[0].clientWidth - (paddingLeft + paddingRight)) / 2) - this.$el[0].offsetWidth / 2);
+        const topPosition = $parent[0].offsetTop;
+        let top;
+        if (this.viewPortState === 'up') {
+            top = topPosition + this.$el.innerHeight() + paddingTop;
+            this.$el.css({top: top, left: center});
+        } else if (this.viewPortState === 'down') {
+            top = topPosition + $parent.innerHeight() - this.$el.innerHeight() * 2;
+            this.$el.css({top: top, left: center});
+        } else {
+            this.$el.position({
+                my: this._get_spaced_inverted_position(appendAt),
+                at: appendAt,
+                of: this.$anchor,
+                collision: "none",
+            });
+        }
 
         // Reverse overlay if direction is right to left
         var positionRight = _t.database.parameters.direction === 'rtl' ? "right" : "left";
         var positionLeft = _t.database.parameters.direction === 'rtl' ? "left" : "right";
-        var offset = this.$el.offset();
+
+        // get the offset position of this.$el
+        // Couldn't use offset() or position() because their values are not the desired ones in all cases
+        const offset = {top: this.$el[0].offsetTop, left: this.$el[0].offsetLeft};
         this.$tooltip_overlay.css({
             top: -Math.min((this.info.position === "bottom" ? this.info.space : this.info.overlay.y), offset.top),
             right: -Math.min((this.info.position === positionRight ? this.info.space : this.info.overlay.x), this.$window.width() - (offset.left + this.init_width + this.double_border_width)),
             bottom: -Math.min((this.info.position === "top" ? this.info.space : this.info.overlay.y), this.$window.height() - (offset.top + this.init_height + this.double_border_width)),
             left: -Math.min((this.info.position === positionLeft ? this.info.space : this.info.overlay.x), offset.left),
         });
-
-        this.position = this.$el.position();
+        this.position = offset;
 
         this.$el.addClass("o_animated");
     },
     _bind_anchor_events: function () {
-        this.consume_event = Tip.getConsumeEventType(this.$anchor);
+        this.consume_event = this.info.consumeAction ? this.info.consumeAction : Tip.getConsumeEventType(this.$anchor);
         this.$consumeEventAnchor = this.$anchor;
         // jQuery-ui draggable triggers 'drag' events on the .ui-draggable element,
         // but the tip is attached to the .ui-draggable-handle element which may
         // be one of its children (or the element itself)
         if (this.consume_event === "drag") {
             this.$consumeEventAnchor = this.$anchor.closest('.ui-draggable');
+        } else if (this.consume_event === "input") {
+            this.initialContent = this.$anchor.text().trim();
+            this.$consumeEventAnchor = this.$anchor.closest("[contenteditable='true']")
         } else if (this.consume_event.includes('apply.daterangepicker')) {
-            this.$consumeEventAnchor = this.$anchor.parent().children('.o_field_date_range');
+            this.$consumeEventAnchor = this.$actuaanchorlAnchor.parent().children('.o_field_date_range');
         }
         this.$consumeEventAnchor.on(this.consume_event + ".anchor", (function (e) {
-            if (e.type !== "mousedown" || e.which === 1) { // only left click
+            if (e.type === "input") {
+                if (this.initialContent !== this.$anchor.text().trim()) {
+                    this.trigger("tip_consumed");
+                    this._unbind_anchor_events();
+                }
+            } else if (e.type !== "mousedown" || e.which === 1) { // only left click
                 this.trigger("tip_consumed");
                 this._unbind_anchor_events();
             }
@@ -232,36 +342,39 @@ var Tip = Widget.extend({
 
         var offset = this.$el.offset();
 
-        if (this.$el.parent()[0] !== document.body) {
-            this.$el.detach();
-            this.$el.css(offset);
-            this.$el.appendTo(document.body);
-        }
+        if (offset.top || offset.left) { // Resolve cases when the info box is triggered before the tip is fully attached
+                                         // Like when the user hover the anchor element (an event trigger this methode)
+            if (this.$el.parent()[0] !== document.body) {
+                this.$el.detach();
+                this.$el.css(offset);
+                this.$el.appendTo(document.body);
+            }
 
-        var mbLeft = 0;
-        var mbTop = 0;
-        var overflow = false;
-        var posVertical = (this.info.position === "top" || this.info.position === "bottom");
-        if (posVertical) {
-            overflow = (offset.left + this.content_width + this.double_border_width + this.info.overlay.x > this.$window.width());
-        } else {
-            overflow = (offset.top + this.content_height + this.double_border_width + this.info.overlay.y > this.$window.height());
-        }
-        if (posVertical && overflow || this.info.position === "left" || (_t.database.parameters.direction === 'rtl' && this.info.position == "right")) {
-            mbLeft -= (this.content_width - this.init_width);
-        }
-        if (!posVertical && overflow || this.info.position === "top") {
-            mbTop -= (this.content_height - this.init_height);
-        }
+            var mbLeft = 0;
+            var mbTop = 0;
+            var overflow = false;
+            var posVertical = (this.info.position === "top" || this.info.position === "bottom");
+            if (posVertical) {
+                overflow = (offset.left + this.content_width + this.double_border_width + this.info.overlay.x > this.$window.width());
+            } else {
+                overflow = (offset.top + this.content_height + this.double_border_width + this.info.overlay.y > this.$window.height());
+            }
+            if (posVertical && overflow || this.info.position === "left" || (_t.database.parameters.direction === 'rtl' && this.info.position == "right")) {
+                mbLeft -= (this.content_width - this.init_width);
+            }
+            if (!posVertical && overflow || this.info.position === "top") {
+                mbTop -= (this.content_height - this.init_height);
+            }
 
-        this.$el.toggleClass("inverse", overflow);
-        this.$el.removeClass("o_animated").addClass("active");
-        this.$el.css({
-            width: this.content_width,
-            height: this.content_height,
-            "margin-left": mbLeft,
-            "margin-top": mbTop,
-        });
+            this.$el.toggleClass("inverse", overflow);
+            this.$el.removeClass("o_animated").addClass("active");
+            this.$el.css({
+                width: this.content_width,
+                height: this.content_height,
+                "margin-left": mbLeft,
+                "margin-top": mbTop,
+            });
+        }
     },
     _to_bubble_mode: function (force) {
         if (this.timerIn !== undefined) {
