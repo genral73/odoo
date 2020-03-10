@@ -123,7 +123,6 @@ DebugManager.include({
         ]);
         this.canSeeRecordRules = canSeeRecordRules;
         this.canSeeModelAccess = canSeeModelAccess;
-        return this._super(...arguments);
     },
     async start() {
         await this._super(...arguments);
