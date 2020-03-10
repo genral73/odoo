@@ -3660,7 +3660,9 @@ Record ids: %(records)s
             if not vals.get('write_uid'):
                 columns.append(('write_uid', '%s', self._uid))
             if not vals.get('write_date'):
-                columns.append(('write_date', '%s', AsIs("(now() at time zone 'UTC')")))
+                #columns.append(('write_date', '%s', AsIs("(now() at time zone 'UTC')")))
+                columns.append(('write_date', '%s',AsIs("('{}')".format(datetime.datetime.utcnow()))))
+
 
         # update columns
         if columns:
@@ -3842,9 +3844,12 @@ Record ids: %(records)s
         columns0 = [('id', "nextval(%s)", self._sequence)]
         if self._log_access:
             columns0.append(('create_uid', "%s", self._uid))
-            columns0.append(('create_date', "%s", AsIs("(now() at time zone 'UTC')")))
+            # ARJ HERE we modify the createdate to use a python field that can be influenced by faketime :-)
+            # columns0.append(('create_date', "%s", AsIs("(now() at time zone 'UTC')")))
+            columns0.append(('create_date', "%s", AsIs("('{}')".format(datetime.datetime.utcnow()))))
             columns0.append(('write_uid', "%s", self._uid))
-            columns0.append(('write_date', "%s", AsIs("(now() at time zone 'UTC')")))
+            # columns0.append(('write_date', "%s", AsIs("(now() at time zone 'UTC')")))
+            columns0.append(('write_date', "%s", AsIs("('{}')".format(datetime.datetime.utcnow()))))
 
         for data in data_list:
             # determine column values
