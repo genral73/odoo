@@ -8,7 +8,7 @@ from operator import itemgetter
 from odoo import fields, http, _
 from odoo.http import request
 from odoo.tools import date_utils, groupby as groupbyelem
-from odoo.osv.expression import AND
+from odoo.osv.expression import AND, OR
 
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
 
@@ -34,11 +34,18 @@ class TimesheetCustomerPortal(CustomerPortal):
 
         searchbar_inputs = {
             'all': {'input': 'all', 'label': _('Search in All')},
+            'project': {'input': 'project', 'label': _('Search in Project')},
+            'name': {'input': 'name', 'label': _('Search in Name')},
+            'employee': {'input': 'employee', 'label': _('Search in Employee')},
+            'task': {'input': 'task', 'label': _('Search in Task')},
         }
 
         searchbar_groupby = {
             'none': {'input': 'none', 'label': _('None')},
             'project': {'input': 'project', 'label': _('Project')},
+            'task': {'input': 'task', 'label': _('Task')},
+            'date': {'input': 'date', 'label': _('Date')},
+            'employee': {'input': 'employee', 'label': _('Employee')},
         }
 
         today = fields.Date.today()
@@ -68,7 +75,16 @@ class TimesheetCustomerPortal(CustomerPortal):
         domain = AND([domain, searchbar_filters[filterby]['domain']])
 
         if search and search_in:
-            domain = AND([domain, [('name', 'ilike', search)]])
+            search_domain = []
+            if search_in in ('project', 'all'):
+                search_domain = OR([search_domain, [('project_id', 'ilike', search)]])
+            if search_in in ('name', 'all'):
+                search_domain = OR([search_domain, [('name', 'ilike', search)]])
+            if search_in in ('employee', 'all'):
+                search_domain = OR([search_domain, [('employee_id', 'ilike', search)]])
+            if search_in in ('task', 'all'):
+                search_domain = OR([search_domain, [('task_id', 'ilike', search)]])
+            domain += search_domain
 
         timesheet_count = Timesheet_sudo.search_count(domain)
         # pager
@@ -82,11 +98,38 @@ class TimesheetCustomerPortal(CustomerPortal):
 
         if groupby == 'project':
             order = "project_id, %s" % order
+        elif groupby == 'task':
+            order = "task_id, %s" % order
+        elif groupby == 'date':
+            order = "date, %s" % order
+        elif groupby == 'employee':
+            order = "employee_id, %s" % order
         timesheets = Timesheet_sudo.search(domain, order=order, limit=self._items_per_page, offset=pager['offset'])
         if groupby == 'project':
-            grouped_timesheets = [Timesheet_sudo.concat(*g) for k, g in groupbyelem(timesheets, itemgetter('project_id'))]
+            grouped_timesheets = [(
+                Timesheet_sudo.concat(*g),
+                sum(Timesheet_sudo.search(AND([domain, [('project_id', '=', k.id)]])).mapped('unit_amount')))
+                for k, g in groupbyelem(timesheets, itemgetter('project_id'))]
+        elif groupby == 'task':
+            grouped_timesheets = [(
+                Timesheet_sudo.concat(*g),
+                sum(Timesheet_sudo.search(AND([domain, [('task_id', '=', k.id)]])).mapped('unit_amount')))
+                for k, g in groupbyelem(timesheets, itemgetter('task_id'))]
+        elif groupby == 'date':
+            grouped_timesheets = [(
+                Timesheet_sudo.concat(*g),
+                sum(Timesheet_sudo.search(AND([domain, [('date', '=', k)]])).mapped('unit_amount')))
+                for k, g in groupbyelem(timesheets, itemgetter('date'))]
+        elif groupby == 'employee':
+            grouped_timesheets = [(
+                Timesheet_sudo.concat(*g),
+                sum(Timesheet_sudo.search(AND([domain, [('employee_id', '=', k.id)]])).mapped('unit_amount')))
+                for k, g in groupbyelem(timesheets, itemgetter('employee_id'))]
         else:
-            grouped_timesheets = [timesheets]
+            grouped_timesheets = [(
+                timesheets,
+                sum(Timesheet_sudo.search(domain).mapped('unit_amount'))
+            )]
 
         values.update({
             'timesheets': timesheets,
