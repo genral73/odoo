@@ -22,6 +22,16 @@ QUnit.module('Mail DebugManager', {
                 records: [],
                 check_access_rights: () => true,
             },
+            'ir.rule': {
+                fields: {},
+                records: [],
+                check_access_rights: () => true,
+            },
+            'ir.model.access': {
+                fields: {},
+                records: [],
+                check_access_rights: () => true,
+            },
         };
 
         this.actions = [{
