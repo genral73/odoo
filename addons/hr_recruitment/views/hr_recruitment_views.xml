@@ -70,6 +70,7 @@
           <form string="Jobs - Recruitment Form">
             <header>
                 <button string="Create Employee" name="create_employee_from_applicant" type="object"
+                        groups="hr_recruitment.group_hr_recruitment_manager"
                         class="oe_highlight" attrs="{'invisible': ['|',('emp_id', '!=', False),('active', '=', False)]}" confirm="Are you sure?"/>
                 <button string="Refuse" name="toggle_active" type="object" attrs="{'invisible': [('active', '=', False)]}"/>
                 <button string="Restore" name="toggle_active" type="object" attrs="{'invisible': [('active', '=', True)]}"/>
