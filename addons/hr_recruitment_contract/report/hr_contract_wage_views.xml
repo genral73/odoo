@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<odoo>
+    <record model="ir.ui.view" id="crm_case_tree_view_job">
+        <field name="name">Contracts</field>
+        <field name="model">hr.contract.wage</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="department_id"/>
+                <field name="job_id"/>
+                <field name="resource_calendar_id"/>
+                <field name="employee_experience"/>
+                <field name="wage" widget="monetary"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="state" optional="hidden"/>
+                <field name="company_id" optional="hidden"/>
+            </tree>
+        </field>
+    </record>
+</odoo>
