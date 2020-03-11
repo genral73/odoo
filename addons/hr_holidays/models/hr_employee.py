@@ -145,10 +145,23 @@ class HrEmployeeBase(models.AbstractModel):
         return [('id', 'in', holidays.mapped('employee_id').ids)]
 
     @api.model
+    def _check_still_leave_manager(self, user_ids):
+        if user_ids:
+            count = self.env['hr.employee'].read_group([('leave_manager_id', 'in', user_ids)], ['leave_manager_id'], ['leave_manager_id'])
+            responsibles_to_remove = set(user_ids) - {x['leave_manager_id'][0] for x in count}
+            approver_group = self.env.ref('hr_holidays.group_hr_holidays_responsible')
+            approver_group.sudo().write({'users': [(3, manager_id) for manager_id in responsibles_to_remove]})
+
+    @api.model
     def create(self, values):
         if 'parent_id' in values:
             manager = self.env['hr.employee'].browse(values['parent_id']).user_id
             values['leave_manager_id'] = values.get('leave_manager_id', manager.id)
+        if 'leave_manager_id' in values:
+            manager_id = self.env['res.users'].browse(values['leave_manager_id'])
+            approver_group = self.env.ref('hr_holidays.group_hr_holidays_responsible')
+            if manager_id:
+                approver_group.sudo().write({'users': [(4, manager_id.id)]})
         return super(HrEmployeeBase, self).create(values)
 
     def write(self, values):
@@ -158,7 +171,17 @@ class HrEmployeeBase(models.AbstractModel):
                 to_change = self.filtered(lambda e: e.leave_manager_id == e.parent_id.user_id or not e.leave_manager_id)
                 to_change.write({'leave_manager_id': values.get('leave_manager_id', manager.id)})
 
+        managers_check = []
+        if 'leave_manager_id' in values:
+            managers_check = set(self.leave_manager_id.ids) - set([values['leave_manager_id']])
+            manager_id = self.env['res.users'].browse(values['leave_manager_id'])
+            approver_group = self.env.ref('hr_holidays.group_hr_holidays_responsible')
+            approver_group.write({'users': [(4, manager_id.id)]})
+
         res = super(HrEmployeeBase, self).write(values)
+        # remove users from the Responsible group if they are no longer leave managers
+        self._check_still_leave_manager(list(managers_check))
+
         if 'parent_id' in values or 'department_id' in values:
             today_date = fields.Datetime.now()
             hr_vals = {}

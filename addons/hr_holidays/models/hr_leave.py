@@ -124,9 +124,17 @@ class HolidaysRequest(models.Model):
         domain=[('valid', '=', True)])
     validation_type = fields.Selection('Validation Type', related='holiday_status_id.validation_type', readonly=False)
     # HR data
+
+    def _employee_id_domain(self):
+        if self.user_has_groups('hr_holidays.group_hr_holidays_user') or self.user_has_groups('hr_holidays.group_hr_holidays_manager'):
+            return []
+        if self.user_has_groups('hr_holidays.group_hr_holidays_responsible'):
+            return [('leave_manager_id', '=', self.env.user.id)]
+        return [('user_id', '=', self.env.user.id)]
+
     employee_id = fields.Many2one(
         'hr.employee', string='Employee', index=True, readonly=True, ondelete="restrict",
-        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=_default_employee, tracking=True)
+        states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=_default_employee, tracking=True, domain=_employee_id_domain)
     department_id = fields.Many2one(
         'hr.department', string='Department', readonly=True,
         states={'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
