@@ -781,7 +781,7 @@ class HolidaysRequest(models.Model):
         holidays._create_resource_leave()
         for holiday in holidays.filtered(lambda l: l.holiday_status_id.create_calendar_meeting):
             meeting_values = holiday._prepare_holidays_meeting_values()
-            meeting = self.env['calendar.event'].with_context(no_mail_to_attendees=True).create(meeting_values)
+            meeting = self.env['calendar.event'].with_context(no_mail_to_attendees=True, active_model=self._name).create(meeting_values)
             holiday.write({'meeting_id': meeting.id})
 
     def _prepare_holidays_meeting_values(self):
