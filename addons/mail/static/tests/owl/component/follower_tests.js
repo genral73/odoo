@@ -319,7 +319,7 @@ QUnit.test('click on remove follower', async function (assert) {
     component.destroy();
 });
 
-QUnit.only('click on edit follower', async function (assert) {
+QUnit.test('click on edit follower', async function (assert) {
     assert.expect(6);
 
     await this.start({
