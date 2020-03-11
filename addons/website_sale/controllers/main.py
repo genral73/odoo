@@ -71,7 +71,7 @@ class TableCompute(object):
                     self.table[(pos // ppr) + y2][(pos % ppr) + x2] = False
             self.table[pos // ppr][pos % ppr] = {
                 'product': p, 'x': x, 'y': y,
-                'class': " ".join(x.html_class for x in p.website_style_ids if x.html_class)
+                'ribbon': p.website_ribbon_id,
             }
             if index <= ppg:
                 maxy = max(maxy, y + (pos // ppr))
@@ -1054,27 +1054,10 @@ class WebsiteSale(http.Controller):
         })
         return "%s?enable_editor=1" % product.product_tmpl_id.website_url
 
-    @http.route(['/shop/change_styles'], type='json', auth='user')
-    def change_styles(self, id, style_id):
-        product = request.env['product.template'].browse(id)
-
-        remove = []
-        active = False
-        style_id = int(style_id)
-        for style in product.website_style_ids:
-            if style.id == style_id:
-                remove.append(style.id)
-                active = True
-                break
-
-        style = request.env['product.style'].browse(style_id)
-
-        if remove:
-            product.write({'website_style_ids': [(3, rid) for rid in remove]})
-        if not active:
-            product.write({'website_style_ids': [(4, style.id)]})
-
-        return not active
+    @http.route(['/shop/set_ribbon'], type='json', auth='user')
+    def set_ribbon(self, product_tmpl_id, ribbon_id):
+        product = request.env['product.template'].browse(product_tmpl_id)
+        return product.write({'website_ribbon_id': ribbon_id})
 
     @http.route(['/shop/change_sequence'], type='json', auth='user')
     def change_sequence(self, id, sequence):

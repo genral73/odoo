@@ -18,9 +18,21 @@
             <field name="state">open</field>
         </record>
 
-        <record id="website_sale.image_promo" model="product.style">
-            <field name="name">Sale Ribbon</field>
-            <field name="html_class">oe_ribbon_promo</field>
+        <record id="website_sale.sale_ribbon" model="product.ribbon">
+            <field name="name">Sale</field>
+            <field name="color">#ff730e</field>
+            <field name="text_color">white</field>
+        </record>
+
+        <record id="website_sale.sold_out_ribbon" model="product.ribbon">
+            <field name="name">Sold out</field>
+            <field name="color">#c82333</field>
+            <field name="text_color">white</field>
+        </record>
+
+        <record id="website_sale.new_ribbon" model="product.ribbon">
+            <field name="name">New!</field>
+            <field name="html_class">bg-primary</field>
         </record>
 
         <record id="sales_team.salesteam_website_sales" model="crm.team">

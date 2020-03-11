@@ -132,9 +132,6 @@
             itemscope="itemscope" itemtype="http://schema.org/Product">
             <div class="card-body p-1 oe_product_image">
                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
-                <div class="ribbon-wrapper">
-                    <a href="#" role="button" class="ribbon btn btn-danger">Sale</a>
-                </div>
                 <a t-att-href="product_href" class="d-block h-100" itemprop="url">
                     <span t-field="product.image_1920"
                         t-options="{'widget': 'image', 'preview_image': 'image_1024' if product_image_big else 'image_256'}"
@@ -156,6 +153,10 @@
                 </div>
                 <div class="o_wsale_product_btn"/>
             </div>
+            <t t-set="color" t-value="td_product['ribbon']['color'] or ''"/>
+            <t t-set="text_color" t-value="td_product['ribbon']['text_color']"/>
+            <t t-set="bg_class" t-value="td_product['ribbon']['html_class']"/>
+            <span t-attf-class="o_ribbon #{bg_class}" t-attf-style="#{text_color and ('color: %s; ' % text_color)}#{not bg_class and 'background-color:' + color}" t-esc="td_product['ribbon']['name'] or ''"/>
         </form>
     </template>
 
@@ -234,7 +235,8 @@
                                                     <t t-set="product" t-value="td_product['product']" />
                                                     <td t-att-colspan="td_product['x'] != 1 and td_product['x']"
                                                         t-att-rowspan="td_product['y'] != 1 and td_product['y']"
-                                                        t-attf-class="oe_product #{td_product['class']}">
+                                                        class="oe_product"
+                                                        t-att-data-ribbon-id="td_product['ribbon'].id">
                                                         <div t-attf-class="o_wsale_product_grid_wrapper o_wsale_product_grid_wrapper_#{td_product['x']}_#{td_product['y']}">
                                                             <t t-call="website_sale.products_item">
                                                                 <t t-set="product_image_big" t-value="td_product['x'] + td_product['y'] &gt; 2"/>
@@ -275,7 +277,7 @@
     <!-- (Option) Products: Enable image full for all products : Images Full -->
     <template id="products_images_full" name="Images Full" inherit_id="website_sale.products" active="False" customize_show="True">
         <xpath expr="//t[@t-foreach='tr_product']//td" position="attributes">
-            <attribute name="t-attf-class" add="oe_image_full" separator=" "/>
+            <attribute name="class" add="oe_image_full" separator=" "/>
         </xpath>
     </template>
 

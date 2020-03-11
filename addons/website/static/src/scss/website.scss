@@ -831,3 +831,21 @@ table.table_desc tr td {
         background-color: rgba(theme-color('primary'), 0.8);
     }
 }
+
+.o_ribbon {
+    font-size: 1rem;
+    font-weight: bold;
+    white-space: nowrap;
+    text-align: center;
+    margin: 0;
+    padding: 0.5em 100px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    // 0.708 is 1 - cos(45deg)
+    // Transforms are applied right-to-left
+    // Cannot use matrix because of the use of % values.
+    transform: translateX(calc(0.708 * (100% - 200px) - 100%)) rotate(-45deg) translateX(100px);
+    transform-origin: top right;
+    pointer-events: none;
+}

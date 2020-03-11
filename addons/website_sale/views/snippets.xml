@@ -62,9 +62,21 @@
                 </table>
             </div>
 
-            <div name="style" data-no-preview="true">
-                <!-- Placeholder to be filled in JS -->
-            </div>
+            <we-row data-name="ribbon_options">
+                <we-select string="Ribbon" data-no-preview="true" class="o_wsale_ribbon_select">
+                    <we-button data-set-ribbon="" data-name="no_ribbon_opt">None</we-button>
+                    <!-- Ribbons are filled in JS -->
+                </we-select>
+                <we-button data-edit-ribbon="" class="fa fa-edit" data-no-preview="true" data-dependencies="!no_ribbon_opt"/>
+                <we-button data-create-ribbon="" class="fa fa-plus text-success" data-no-preview="true"/>
+            </we-row>
+            <we-row class="d-none" data-name="ribbon_customize_opt">
+                <we-input string="Ribbon" data-set-ribbon-name="" data-no-preview="true"/>
+                <we-colorpicker data-set-ribbon-color="" data-css-property="color" data-no-preview="true"/>
+                <we-colorpicker data-set-ribbon-color="" data-css-property="background-color" data-color-prefix="bg-" data-no-preview="true"/>
+                <we-button class="fa fa-save" data-save-ribbon="" title="save" data-no-preview="true"/>
+                <we-button class="fa fa-trash" data-delete-ribbon="" title="Delete/Discard" data-no-preview="true"/>
+            </we-row>
 
             <div name="reordering" data-no-preview="true">
                 <we-button data-change-sequence="top">Push to top</we-button>
