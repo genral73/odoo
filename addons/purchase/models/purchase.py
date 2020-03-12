@@ -97,7 +97,7 @@ class PurchaseOrder(models.Model):
     ], string='Billing Status', compute='_get_invoiced', store=True, readonly=True, copy=False, default='no')
 
     # There is no inverse function on purpose since the date may be different on each line
-    date_planned = fields.Datetime(string='Receipt Date', index=True)
+    date_planned = fields.Datetime(string='Receipt Date', index=True, help='This is the Receipt Date promised by the supplier. If set, the receipt will be scheduled at this date.')
 
     amount_untaxed = fields.Monetary(string='Untaxed Amount', store=True, readonly=True, compute='_amount_all', tracking=True)
     amount_tax = fields.Monetary(string='Taxes', store=True, readonly=True, compute='_amount_all')
