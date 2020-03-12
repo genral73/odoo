@@ -254,6 +254,7 @@
                 <script type="text/javascript" src="/mail/static/tests/owl/component/file_uploader_tests.js"></script>
                 <script type="text/javascript" src="/mail/static/tests/owl/component/follower_subtype_tests.js"></script>
                 <script type="text/javascript" src="/mail/static/tests/owl/component/follower_tests.js"></script>
+                <script type="text/javascript" src="/mail/static/tests/owl/component/followers_menu_tests.js"></script>
                 <script type="text/javascript" src="/mail/static/tests/owl/component/message_tests.js"></script>
                 <script type="text/javascript" src="/mail/static/tests/owl/component/messaging_menu_tests.js"></script>
                 <script type="text/javascript" src="/mail/static/tests/owl/component/partner_im_status_icon_tests.js"></script>
