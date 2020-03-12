@@ -6,11 +6,12 @@ var config = require('web.config');
 var core = require('web.core');
 var dom = require('web.dom');
 var viewUtils = require('web.viewUtils');
+const { WidgetAdapterMixin } = require('web.OwlCompatibility');
 
 var _t = core._t;
 var qweb = core.qweb;
 
-var FormRenderer = BasicRenderer.extend({
+var FormRenderer = BasicRenderer.extend(WidgetAdapterMixin, {
     className: "o_form_view",
     events: _.extend({}, BasicRenderer.prototype.events, {
         'click .o_notification_box .oe_field_translate': '_onTranslate',
@@ -44,11 +45,21 @@ var FormRenderer = BasicRenderer.extend({
         }
         return this._super.apply(this, arguments);
     },
+
+    /**
+     * @override
+     */
+    destroy: function() {
+        WidgetAdapterMixin.destroy();
+        this._super.apply(this, arguments);
+    },
+
     /**
      * Called each time the form view is attached into the DOM
      */
     on_attach_callback: function () {
         this._isInDom = true;
+        WidgetAdapterMixin.on_attach_callback();
         this._super.apply(this, arguments);
     },
     /**
@@ -56,6 +67,7 @@ var FormRenderer = BasicRenderer.extend({
      */
     on_detach_callback: function () {
         this._isInDom = false;
+        WidgetAdapterMixin.on_detach_callback();
         this._super.apply(this, arguments);
     },
 
