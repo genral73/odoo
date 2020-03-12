@@ -113,7 +113,7 @@
                 </div>
             </div>
         </div>
-        <div class="oe_structure" id="oe_structure_website_forum_header_1"/>
+        <div class="oe_structure oe_structure_none" id="oe_structure_website_forum_header_1" data-editor-message=""/>
     </t>
     <t t-else="" t-call="website_forum.layout">
         <t t-set="head">
@@ -431,7 +431,7 @@
                     <div class="alert alert-info">No forum is available yet.</div>
                 </t>
             </div>
-            <div class="oe_structure oe_empty" id="oe_structure_forum_all_bottom"/>
+            <div class="oe_structure oe_empty oe_structure_none" id="oe_structure_forum_all_bottom" data-editor-message=""/>
         </div>
     </t>
 </template>
