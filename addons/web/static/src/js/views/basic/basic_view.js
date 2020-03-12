@@ -334,6 +334,10 @@ var BasicView = AbstractView.extend({
             attrs.fieldDependencies = attrs.Widget.prototype.fieldDependencies;
         }
 
+        if (attrs.Widget.prototype.limit) {
+            attrs.limit = attrs.Widget.prototype.limit;
+        }
+
         return attrs;
     },
     /**
