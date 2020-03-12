@@ -248,10 +248,10 @@ class MassMailing(models.Model):
         self.ensure_one()
         default = dict(default or {},
                        name=_('%s (copy)') % self.name,
-                       contact_list_ids=self.contact_list_ids.ids)
+                       contact_list_ids=self.contact_list_ids.ids,
+                       mailing_domain=self.mailing_domain)
         res = super(MassMailing, self).copy(default=default)
-        # Re-evaluating the domain
-        res._onchange_model_and_list()
+
         return res
 
     def _group_expand_states(self, states, domain, order):
