@@ -63,7 +63,7 @@ QUnit.test('simplest layout of a followed subtype', async function (assert) {
         default: true,
         followed: true,
         internal: false,
-        id:1,
+        id: 1,
         name: "Dummy test",
         res_model: 'res.partner'
     }]);
@@ -111,7 +111,7 @@ QUnit.test('simplest layout of a not followed subtype', async function (assert) 
         default: true,
         followed: false,
         internal: false,
-        id:1,
+        id: 1,
         name: "Dummy test",
         res_model: 'res.partner'
     }]);
@@ -159,7 +159,7 @@ QUnit.test('toggle follower subtype checkbox', async function (assert) {
         default: true,
         followed: false,
         internal: false,
-        id:1,
+        id: 1,
         name: "Dummy test",
         res_model: 'res.partner'
     }]);

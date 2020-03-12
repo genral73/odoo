@@ -333,7 +333,7 @@ QUnit.test('click on edit follower', async function (assert) {
                     default: true,
                     followed: true,
                     internal: false,
-                    id:1,
+                    id: 1,
                     name: "Dummy test",
                     res_model: 'res.partner'
                 }];

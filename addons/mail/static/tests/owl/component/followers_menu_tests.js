@@ -291,13 +291,13 @@ QUnit.test('add followers', async function (assert) {
         async mockRPC(route, args) {
             if (route.includes('web/image/')) {
                 return;
-            } else if(route.includes('res.partner/read')) {
+            } else if (route.includes('res.partner/read')) {
                 assert.step('rpc:read_follower_ids');
                 return [{
                     id: 100,
                     message_follower_ids: followerIds,
                 }];
-            } else if(route.includes('mail/read_followers')) {
+            } else if (route.includes('mail/read_followers')) {
                 assert.step('rpc:read_followers_details');
                 return {
                     followers: [{
@@ -373,13 +373,13 @@ QUnit.test('add channels', async function (assert) {
         async mockRPC(route, args) {
             if (route.includes('web/image/')) {
                 return;
-            } else if(route.includes('res.partner/read')) {
+            } else if (route.includes('res.partner/read')) {
                 assert.step('rpc:read_follower_ids');
                 return [{
                     id: 100,
                     message_follower_ids: followerIds,
                 }];
-            } else if(route.includes('mail/read_followers')) {
+            } else if (route.includes('mail/read_followers')) {
                 assert.step('rpc:read_followers_details');
                 return {
                     followers: [{
@@ -455,11 +455,11 @@ QUnit.test('follow', async function (assert) {
                 return [{
                     id: 100,
                     message_follower_ids: [1],
-                }]
+                }];
             } else if (route.includes('message_subscribe')) {
                 assert.step('rpc:message_subscribe');
                 return;
-            } else if(route.includes('mail/read_followers')) {
+            } else if (route.includes('mail/read_followers')) {
                 assert.step('rpc:read_followers_details');
                 return {
                     followers: [{
