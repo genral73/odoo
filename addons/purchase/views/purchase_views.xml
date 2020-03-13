@@ -567,9 +567,9 @@
             <field name="context">{}</field>
             <field name="help" type="html">
               <p class="o_view_nocontent_smiling_face">
-                Create a quotation
+                Create a purchase order
               </p><p>
-                It will be converted into a purchase order.
+                Once you ordered your products to your supplier, confirm your request for quotation and it will turn into a purchase order.
               </p>
             </field>
         </record>
