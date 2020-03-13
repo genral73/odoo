@@ -239,10 +239,12 @@
 
     <div data-js="CarouselItem"
          data-selector=".s_carousel .carousel-item, .s_quotes_carousel .carousel-item">
-        <we-button data-slide="left" data-no-preview="true" class="fa fa-fw fa-angle-left"/>
-        <we-button data-slide="right" data-no-preview="true" class="fa fa-fw fa-angle-right"/>
-        <we-button data-add-slide="true" data-no-preview="true" class="fa fa-fw fa-plus"/>
-        <we-button data-remove-slide="true" data-no-preview="true" class="fa fa-fw fa-minus"/>
+        <we-row>
+            <we-button data-slide="left" data-no-preview="true" class="fa fa-fw fa-angle-left"/>
+            <we-button data-slide="right" data-no-preview="true" class="fa fa-fw fa-angle-right"/>
+            <we-button data-add-slide="true" data-no-preview="true" class="fa fa-fw fa-plus"/>
+            <we-button data-remove-slide="true" data-no-preview="true" class="fa fa-fw fa-minus"/>
+        </we-row>
     </div>
 
     <!-- Accordion -->
@@ -469,7 +471,7 @@
     </div>
 
     <!-- Stretch section -->
-    <div data-js="ContainerWidth" data-selector="section"
+    <div data-js="ContainerWidth" data-selector="section, .s_carousel .carousel-item, s_quotes_carousel .carousel-item"
         data-target="> .container, > .container-fluid, > .o_container_small">
         <we-select string="Content Width">
             <we-button data-select-class="container-fluid">Full</we-button>
