@@ -110,6 +110,7 @@
                 <script type="text/javascript" src="/mail/static/src/owl/components/attachment_viewer/attachment_viewer.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/autocomplete_input/autocomplete_input.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/chatter/chatter.js"></script>
+                <script type="text/javascript" src="/mail/static/src/owl/components/chatter/chatter_component_wrapper.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/chatter_topbar/chatter_topbar.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/chat_window/chat_window.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/chat_window_header/chat_window_header.js"></script>

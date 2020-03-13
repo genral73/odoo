@@ -1782,15 +1782,15 @@ const actions = {
                 await dispatch('_loadNewMessagesOnThread', threadLocalId);
             }
             await dispatch('_fetchThreadAttachments', threadLocalId);
-            if (chatter.activityIds) {
-                if (chatter.activityIds.length > 0) {
-                    chatter.activityLocalIds = await dispatch('_fetchActivities',
-                        chatter.activityIds,
-                        chatter.localId
-                    );
-                }
-                delete chatter.activityIds;
+            if (chatter.activityIds && chatter.activityIds.length > 0) {
+                chatter.activityLocalIds = await dispatch('_fetchActivities',
+                    chatter.activityIds,
+                    chatter.localId
+                );
+            } else {
+                chatter.activityLocalIds = [];
             }
+            delete chatter.activityIds;
         }
         chatter.threadLocalId = threadLocalId;
     },
