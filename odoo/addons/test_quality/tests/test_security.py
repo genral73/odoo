@@ -77,7 +77,7 @@ class TestIrModelAccess(TransactionCase):
             if useless_rules:
                 _logger.warning(
                     "Model %s has public rules giving more or as much rights as rules: %s",
-                    model.model, useless_rules.mapped('name'),
+                    model.model, useless_rules.mapped('csv_id'),
                 )
 
         Groups = self.env["res.groups"]
