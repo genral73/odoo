@@ -113,6 +113,7 @@ class PurchaseOrder(models.Model):
         default=lambda self: self.env.user, check_company=True)
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True, states=READONLY_STATES, default=lambda self: self.env.company.id)
     currency_rate = fields.Float("Currency Rate", compute='_compute_currency_rate', compute_sudo=True, store=True, readonly=True, help='Ratio between the purchase order currency and the company currency')
+    date_used_in_calendar = fields.Datetime(compute='_compute_date_used_in_calendar', readonly=True)
 
     @api.constrains('company_id', 'order_line')
     def _check_order_line_company_id(self):
@@ -140,6 +141,11 @@ class PurchaseOrder(models.Model):
     def _compute_currency_rate(self):
         for order in self:
             order.currency_rate = self.env['res.currency']._get_conversion_rate(order.company_id.currency_id, order.currency_id, order.company_id, order.date_order)
+
+    @api.depends('state', 'date_order', 'date_approve')
+    def _compute_date_used_in_calendar(self):
+        for order in self:
+            order.date_used_in_calendar = order.date_approve if (order.state in ['purchase', 'done']) else order.date_order
 
     @api.depends('name', 'partner_ref')
     def name_get(self):
