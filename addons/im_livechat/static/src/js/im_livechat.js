@@ -170,7 +170,7 @@ var LivechatButton = Widget.extend({
      * @private
      * @param {Array} notification
      */
-    _handleNotification: function  (notification){
+    _handleNotification: function (notification) {
         if (this._livechat && (notification[0] === this._livechat.getUUID())) {
             if (notification[1]._type === 'history_command') { // history request
                 var cookie = utils.get_cookie(LIVECHAT_COOKIE_HISTORY);

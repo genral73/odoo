@@ -145,9 +145,10 @@
                 <script type="text/javascript" src="/mail/static/src/owl/components/thread/thread.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/thread_icon/thread_icon.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/components/thread_preview/thread_preview.js"></script>
-                <script type="text/javascript" src="/mail/static/src/owl/hooks/use_store.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/hooks/use_drag_visible_dropzone.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/hooks/use_refs.js"></script>
+                <script type="text/javascript" src="/mail/static/src/owl/hooks/use_store.js"></script>
+                <script type="text/javascript" src="/mail/static/src/owl/messaging_env.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/services/chat_window_service.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/services/dialog_service.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/services/messaging_service.js"></script>

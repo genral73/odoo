@@ -593,6 +593,7 @@ const actions = {
         { autoselect=false }={}
     ) {
         const channel = state.threads[`mail.channel_${channelId}`];
+        // TODO FIXME we shouldn't assume that only joined channels are known
         if (channel) {
             return;
         }

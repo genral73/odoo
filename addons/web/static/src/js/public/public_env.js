@@ -1,8 +1,10 @@
-odoo.define("web.public_env", function (require) {
-    "use strict";
+odoo.define('web.public_env', function (require) {
+    'use strict';
 
-    const { _t } = require("web.core");
-    const rpc = require("web.rpc");
+    const { device, isDebug } = require("web.config");
+    const { _lt, _t } = require('web.core');
+    const rpc = require('web.rpc');
+    const session = require('web.session');
 
     const qweb = new owl.QWeb({ translateFn: _t });
 
@@ -16,9 +18,14 @@ odoo.define("web.public_env", function (require) {
     // See https://github.com/odoo/owl/blob/master/doc/reference/environment.md#content-of-an-environment
     // for more information on environments.
     return {
+        _lt,
+        _t,
+        device,
+        isDebug,
         qweb,
         services: {
             rpc: performRPC,
         },
+        session,
     };
 });

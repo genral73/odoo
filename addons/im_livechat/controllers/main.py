@@ -3,7 +3,7 @@
 
 import base64
 
-from odoo import http,tools, _
+from odoo import http, tools, _
 from odoo.http import request
 from odoo.addons.base.models.assetsbundle import AssetsBundle
 
@@ -31,12 +31,35 @@ class LivechatController(http.Controller):
 
     @http.route('/im_livechat/load_templates', type='json', auth='none', cors="*")
     def load_templates(self, **kwargs):
-        base_url = request.httprequest.base_url
         templates = [
+            'im_livechat/static/src/owl/components/livechat_button/livechat_button.xml',
+            'im_livechat/static/src/owl/components/livechat_manager/livechat_manager.xml',
+            'im_livechat/static/src/xml/im_livechat.xml',
+            'mail/static/src/owl/components/attachment/attachment.xml',
+            'mail/static/src/owl/components/attachment_list/attachment_list.xml',
+            'mail/static/src/owl/components/autocomplete_input/autocomplete_input.xml',
+            'mail/static/src/owl/components/chat_window/chat_window.xml',
+            'mail/static/src/owl/components/chat_window_header/chat_window_header.xml',
+            'mail/static/src/owl/components/chat_window_hidden_menu/chat_window_hidden_menu.xml',
+            'mail/static/src/owl/components/chat_window_manager/chat_window_manager.xml',
+            'mail/static/src/owl/components/composer/composer.xml',
+            'mail/static/src/owl/components/composer_text_input/composer_text_input.xml',
+            'mail/static/src/owl/components/drop_zone/drop_zone.xml',
+            'mail/static/src/owl/components/emojis_button/emojis_button.xml',
+            'mail/static/src/owl/components/emojis_popover/emojis_popover.xml',
+            'mail/static/src/owl/components/file_uploader/file_uploader.xml',
+            'mail/static/src/owl/components/message/message.xml',
+            'mail/static/src/owl/components/message_list/message_list.xml',
+            'mail/static/src/owl/components/moderation_ban_dialog/moderation_ban_dialog.xml',
+            'mail/static/src/owl/components/moderation_discard_dialog/moderation_discard_dialog.xml',
+            'mail/static/src/owl/components/moderation_reject_dialog/moderation_reject_dialog.xml',
+            'mail/static/src/owl/components/partner_im_status_icon/partner_im_status_icon.xml',
+            'mail/static/src/owl/components/popover_button/popover_button.xml',
+            'mail/static/src/owl/components/thread/thread.xml',
+            'mail/static/src/owl/components/thread_icon/thread_icon.xml',
             'mail/static/src/xml/abstract_thread_window.xml',
             'mail/static/src/xml/discuss.xml',
             'mail/static/src/xml/thread.xml',
-            'im_livechat/static/src/xml/im_livechat.xml',
         ]
         return [tools.file_open(tmpl, 'rb').read() for tmpl in templates]
 
