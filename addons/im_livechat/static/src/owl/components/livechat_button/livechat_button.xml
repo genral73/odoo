@@ -2,7 +2,9 @@
 <templates xml:space="preserve">
 
     <t t-name="im_livechat.component.LivechatButton" owl="1">
-        <div t-on-click="_onClick">I'm a livechat button.</div>
+        <div class="o_LivechatButton" t-on-click="_onClick">
+            <t t-esc="storeProps.publicLivechat.button_text"/>
+        </div>
     </t>
 
 </templates>

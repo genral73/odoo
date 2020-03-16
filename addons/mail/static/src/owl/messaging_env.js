@@ -40,6 +40,9 @@ function getMessagingEnv(name, initialEnv = {}) {
         });
         Object.assign(env, {
             envName: name,
+            hasAttachments: true,
+            hasEmojis: true,
+            hasFontAwesome: true,
             store,
         });
         envs[name] = env;

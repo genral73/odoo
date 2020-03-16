@@ -3,8 +3,9 @@
 
     <t t-name="im_livechat.component.LivechatManager" owl="1">
         <div class="o_LivechatManager">
-            <ChatWindowManager/>
-            <t t-if="state.result.available_for_me">
+            <ChatWindowManager hasChatWindowExpand="false"/>
+            <t t-if="storeProps.publicLivechat.result.available_for_me">
+                <!-- TODO SEB if any chat open, hide the button -->
                 <LivechatButton/>
             </t>
         </div>

@@ -44,7 +44,12 @@
                 </t>
                 <t t-if="!props.hasCloseAsBackButton">
                     <div class="o_ChatWindowHeader_command o_ChatWindowHeader_commandClose" t-att-class="{ 'o-mobile': storeProps.isMobile }" t-on-click.stop="_onClickClose" title="Close chat window" aria-label="Close chat window">
-                        <i class="fa fa-close"/>
+                        <t t-if="env.hasFontAwesome">
+                            <i class="fa fa-close"/>
+                        </t>
+                        <t t-else="">
+                            x
+                        </t>
                     </div>
                 </t>
             </div>

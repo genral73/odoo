@@ -577,7 +577,7 @@ const actions = {
         return thread.localId;
     },
     /**
-     * Join a channel. This channel may not yet exists in the store.
+     * Join a channel. This channel may not yet exist in the store.
      *
      * @param {Object} param0
      * @param {function} param0.dispatch
