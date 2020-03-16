@@ -490,6 +490,21 @@
     </Portal>
 </t>
 
+<t t-name="OwlPopover" owl="1">
+    <Portal target="'body'">
+        <div role="tooltip" class="o_popover"
+            t-ref="popover"
+            t-on-close_popover.stop="_close"
+            >
+            <div class="arrow"/>
+            <h3 t-if="props.title" class="o_popover_header"><t t-esc="props.title"/></h3>
+            <div class="popover-body">
+                <t t-slot="default"/>
+            </div>
+        </div>
+    </Portal>
+</t>
+
 <t t-name="web.Pager" owl="1">
     <nav class="o_pager" aria-label="Pager">
         <span class="o_pager_counter" t-on-click.stop="">
