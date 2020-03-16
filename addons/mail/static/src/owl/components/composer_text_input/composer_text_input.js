@@ -242,18 +242,22 @@ class ComposerTextInput extends Component {
             this._insertMentionSuggestion(active);
         } else {
             // navigation in propositions
-            if (key === 'ArrowDown') {
+            if (key === 'ArrowDown' || key === 'PageDown') {
                 if (selectionIndex !== this.state.mentionSuggestions[0].length - 1) {
                     active = this.state.mentionSuggestions[0][selectionIndex + 1];
                 } else {
                     active = this.state.mentionSuggestions[0][0];
                 }
-            } else if (key === 'ArrowUp') {
+            } else if (key === 'ArrowUp' || key === 'PageUp') {
                 if (selectionIndex !== 0) {
                     active = this.state.mentionSuggestions[0][selectionIndex - 1];
                 } else {
                     active = this.state.mentionSuggestions[0][this.state.mentionSuggestions[0].length - 1];
                 }
+            } else if (key === 'Home') {
+                active = this.state.mentionSuggestions[0][0];
+            } else if (key === 'End') {
+                active = this.state.mentionSuggestions[0][this.state.mentionSuggestions[0].length - 1];
             } else if (key === 'Tab') {
                 if (shiftkey) {
                     if (selectionIndex === 0) {
@@ -422,10 +426,9 @@ class ComposerTextInput extends Component {
     _onKeyupTextarea(ev) {
         switch (ev.key) {
             // ESCAPED KEYS: do nothing
-            case 'End':
+
             case 'Shift':
-            case 'PageUp':
-            case 'PageDown':
+
                 break;
             // ESCAPE: close mention propositions
             case 'Escape':
@@ -442,6 +445,10 @@ class ComposerTextInput extends Component {
             case 'Enter':
             case 'ArrowUp':
             case 'ArrowDown':
+            case 'PageUp':
+            case 'PageDown':
+            case 'Home':
+            case 'End':
             case 'Tab':
                 if (this.state.isMentionsOpen) {
                     this._propositionNavigation(ev.key, ev.shiftKey);

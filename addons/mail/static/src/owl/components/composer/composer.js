@@ -349,7 +349,6 @@ class Composer extends Component {
 Composer.components = { AttachmentList, DropZone, EmojisButton, FileUploader, TextInput };
 
 Composer.defaultProps = {
-    mentionedPartners: [],
     attachmentLocalIds: [],
     focusCounter: 0,
     hasCurrentPartnerAvatar: true,
@@ -363,13 +362,10 @@ Composer.defaultProps = {
     isExpandable: false,
     isFocusOnMount: false,
     isLog: false,
+    mentionedPartners: [],
 };
 
 Composer.props = {
-    mentionedPartners: {
-        type: Array,
-        element: Object,
-    },
     attachmentLocalIds: {
         type: Array,
         element: String,
@@ -429,6 +425,16 @@ Composer.props = {
     },
     isLog: {
         type: Boolean,
+    },
+    mentionedPartners: {
+        type: Array,
+        element: Object,
+            shape: {
+                id: Number,
+                name: String,
+                mail: String,
+                im_status: String,
+            },
     },
 };
 
