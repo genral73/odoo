@@ -133,6 +133,7 @@
         <script type="text/javascript" src="/web/static/src/js/core/abstract_storage_service.js"></script>
         <script type="text/javascript" src="/web/static/src/js/core/ajax.js"></script>
         <script type="text/javascript" src="/web/static/src/js/core/bus.js"></script>
+        <script type="text/javascript" src="/web/static/src/js/core/class_patcher.js"></script>
         <script type="text/javascript" src="/web/static/src/js/core/custom_hooks.js"></script>
         <script type="text/javascript" src="/web/static/src/js/core/class.js"></script>
         <script type="text/javascript" src="/web/static/src/js/core/collections.js"/>
@@ -694,6 +695,7 @@
                 <script type="text/javascript" src="/web/static/tests/core/ajax_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/core/registry_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/core/py_utils_tests.js"></script>
+                <script type="text/javascript" src="/web/static/tests/core/class_patcher_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/core/class_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/core/rpc_tests.js"></script>
                 <script type="text/javascript" src="/web/static/tests/core/domain_tests.js"></script>
