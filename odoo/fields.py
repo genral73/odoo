@@ -62,11 +62,14 @@ def resolve_mro(model, name, predicate):
     """
     result = []
     for cls in type(model).__mro__:
-        if not getattr(cls, 'pool', None) and name in cls.__dict__:
-            value = cls.__dict__[name]
-            if not predicate(value):
-                break
-            result.append(value)
+        if getattr(cls, 'pool', None) is not None:
+            continue
+        value = cls.__dict__.get(name, Default)
+        if value is Default:
+            continue
+        if not predicate(value):
+            break
+        result.append(value)
     return result
 
 
