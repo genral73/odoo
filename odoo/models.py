@@ -163,11 +163,13 @@ class MetaModel(api.Meta):
             self.module_to_models[self._module].append(self)
 
         # check for new-api conversion error: leave comma after field definition
+        self._ff = []
         for key, val in attrs.items():
             if type(val) is tuple and len(val) == 1 and isinstance(val[0], Field):
                 _logger.error("Trailing comma after field definition: %s.%s", self, key)
             if isinstance(val, Field):
                 val.args = dict(val.args, _module=self._module)
+                self._ff.append(key)
 
     def _get_addon_name(self, full_name):
         # The (OpenERP) module name can be in the ``odoo.addons`` namespace
@@ -2665,7 +2667,12 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             for name in cls._fields:
                 delattr(cls, name)
             cls._fields = OrderedDict()
-            for name, field in sorted(getmembers(cls, Field.__instancecheck__), key=lambda f: f[1]._sequence):
+            stuff = {
+                name: getattr(cls, name)
+                for klass in cls.mro()
+                for name in getattr(klass, '_ff', ())
+            }
+            for name, field in sorted(stuff.items(), key=lambda f: f[1]._sequence):
                 # do not retrieve magic, custom and inherited fields
                 if not any(field.args.get(k) for k in ('automatic', 'manual', 'inherited')):
                     self._add_field(name, field.new())

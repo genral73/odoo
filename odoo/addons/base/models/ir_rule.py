@@ -251,3 +251,4 @@ class IrRule(models.Model):
 setattr(IrRule, 'global',
         fields.Boolean(compute='_compute_global', store=True, _module=IrRule._module,
                        help="If no group is specified the rule is global and applied to everyone"))
+IrRule._ff.append('global')
