@@ -50,56 +50,50 @@ var BarcodeParser = Class.extend({
         return this.loaded;
     },
 
-    // returns the checksum of the ean13, or -1 if the ean has not the correct length, ean must be a string
-    ean_checksum: function(ean){
-        var code = ean.split('');
-        if(code.length !== 13){
+    /**
+     * This algorithm is identical for all fixed length numeric GS1 data structures.
+     *
+     * It is also valid for ean8,12(upca),13 check digit, just need to shift with zero to the left to have 18 digit.
+     * https://www.gs1.org/sites/default/files/docs/barcodes/GS1_General_Specifications.pdf
+     * 
+     * @param {String} numericBarcode Need to have a length of 18, and the last numeric char is the check digit (or '0')
+     * @returns {Number} Check Digit
+     */
+    get_barcode_check_digit(numericBarcode) {
+        var code = numericBarcode.split('');
+        if (code.length !== 18) {
             return -1;
         }
+    
+        // Multiply value of each position by
+        // N1  N2  N3  N4  N5  N6  N7  N8  N9  N10 N11 N12 N13 N14 N15 N16 N17 N18
+        // x3  X1  x3  x1  x3  x1  x3  x1  x3  x1  x3  x1  x3  x1  x3  x1  x3  CHECK_DIGIT
         var oddsum = 0, evensum = 0, total = 0;
-        code = code.reverse().splice(1);
-        for(var i = 0; i < code.length; i++){
-            if(i % 2 === 0){
-                oddsum += Number(code[i]);
-            }else{
+        code.pop();
+        for (var i = 0; i < code.length; i++) {
+            if (i % 2 === 0){
                 evensum += Number(code[i]);
+            } else {
+                oddsum += Number(code[i]);
             }
         }
-        total = oddsum * 3 + evensum;
+        total = evensum * 3 + oddsum;
         return Number((10 - total % 10) % 10);
-    },
-
-    // returns the checksum of the ean8, or -1 if the ean has not the correct length, ean must be a string
-    ean8_checksum: function(ean){
-        var code = ean.split('');
-        if (code.length !== 8) {
-            return -1;
-        }
-        var sum1  = Number(code[1]) + Number(code[3]) + Number(code[5]);
-        var sum2  = Number(code[0]) + Number(code[2]) + Number(code[4]) + Number(code[6]);
-        var total = sum1 + 3 * sum2;
-        return Number((10 - total % 10) % 10);
-    },
-
-
-    // returns true if the ean is a valid EAN barcode number by checking the control digit.
-    // ean must be a string
-    check_ean: function(ean){
-        return /^\d+$/.test(ean) && this.ean_checksum(ean) === Number(ean[ean.length-1]);
     },
 
     // returns true if the barcode string is encoded with the provided encoding.
     check_encoding: function(barcode, encoding) {
-        var len    = barcode.length;
+        var len = barcode.length;
         var allnum = /^\d+$/.test(barcode);
-        var check  = Number(barcode[len-1]);
+        var check = Number(barcode[len - 1]);
+        var shiftedNumericBarcode = "0".repeat(18 - len) + barcode;
 
         if (encoding === 'ean13') {
-            return len === 13 && allnum && this.ean_checksum(barcode) === check;
+            return len === 13 && allnum && this.get_barcode_check_digit(shiftedNumericBarcode) === check;
         } else if (encoding === 'ean8') {
-            return len === 8  && allnum && this.ean8_checksum(barcode) === check;
+            return len === 8 && allnum && this.get_barcode_check_digit(shiftedNumericBarcode) === check;
         } else if (encoding === 'upca') {
-            return len === 12 && allnum && this.ean_checksum('0'+barcode) === check;
+            return len === 12 && allnum && this.get_barcode_check_digit(shiftedNumericBarcode) === check;
         } else if (encoding === 'any') {
             return true;
         } else {
