@@ -117,6 +117,7 @@ var GraphView = AbstractView.extend({
         this.controllerParams.groupableFields = groupableFields;
         this.rendererParams.fields = this.fields;
         this.rendererParams.title = this.arch.attrs.title; // TODO: use attrs.string instead
+        this.rendererParams.modelName = params.modelName;
 
         this.loadParams.mode = this.arch.attrs.type || 'bar';
         this.loadParams.measure = measure || '__count__';

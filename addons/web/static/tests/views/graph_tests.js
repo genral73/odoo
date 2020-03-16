@@ -1523,5 +1523,134 @@ QUnit.module('Views', {
             assert.ok(true, "No combination causes a crash");
         });
     });
+
+    QUnit.test('Drill down to bar chart with click on any bar', async function (assert) {
+        assert.expect(3);
+
+        const graph = await createView({
+            View: GraphView,
+            model: "foo",
+            data: this.data,
+            arch: '<graph string="Partners">' +
+                        '<field name="bar"/>' +
+                  '</graph>',
+            intercepts: {
+                do_action: function (event) {
+                    assert.deepEqual(event.data.action, {
+                        type: 'ir.actions.act_window',
+                        name: true,
+                        res_model: "foo",
+                        views: [[false, 'list'], [false, 'form']],
+                        view_mode: 'list',
+                        target: 'current',
+                        context: {},
+                        domain: [["bar", "=", true]]
+                    }, "should trigger do_action with correct action parameter");
+                }
+            },
+        });
+
+        await testUtils.nextTick();
+        assert.strictEqual(graph.renderer.state.mode, "bar", "should be in bar chart mode");
+        assert.checkDatasets(graph, ['domain'], { domain: [[["bar", "=", true]],[["bar", "=", false]]],});
+
+        const myChart = graph.renderer.chart;
+        const meta = myChart.getDatasetMeta(0);
+        const rectangle = myChart.canvas.getBoundingClientRect();
+        const point = meta.data[0].getCenterPoint();
+
+        const mouseMoveEvent = new MouseEvent('click', {
+            clientX: rectangle.left + point.x,
+            clientY: rectangle.top + point.y
+        });
+        myChart.canvas.dispatchEvent(mouseMoveEvent);
+        graph.destroy();
+    });
+
+    QUnit.test('Drill down to pie chart with click on any piece of Pie', async function (assert) {
+        assert.expect(3);
+
+        const graph = await createView({
+            View: GraphView,
+            model: "foo",
+            data: this.data,
+            arch: '<graph string="Partners" type="pie">' +
+                        '<field name="bar"/>' +
+                  '</graph>',
+            intercepts: {
+                do_action: function (event) {
+                    assert.deepEqual(event.data.action, {
+                        type: 'ir.actions.act_window',
+                        name: true,
+                        res_model: "foo",
+                        views: [[false, 'list'], [false, 'form']],
+                        view_mode: 'list',
+                        target: 'current',
+                        context: {},
+                        domain: [["bar", "=", true]]
+                    }, "should trigger do_action with correct action parameter");
+                }
+            },
+        });
+
+        await testUtils.nextTick();
+        assert.strictEqual(graph.renderer.state.mode, "pie", "should be in pie chart mode");
+        assert.checkDatasets(graph, ['domain'], { domain: [[["bar", "=", true]],[["bar", "=", false]]],});
+
+        const myChart = graph.renderer.chart;
+        const meta = myChart.getDatasetMeta(0);
+        const rectangle = myChart.canvas.getBoundingClientRect();
+        const point = meta.data[0].getCenterPoint();
+
+        const mouseMoveEvent = new MouseEvent('click', {
+            clientX: rectangle.left + point.x,
+            clientY: rectangle.top + point.y
+        });
+        myChart.canvas.dispatchEvent(mouseMoveEvent);
+        graph.destroy();
+    });
+
+    QUnit.test('Drill down to line chart with click on any line dot', async function (assert) {
+        assert.expect(3);
+
+        const graph = await createView({
+            View: GraphView,
+            model: "foo",
+            data: this.data,
+            arch: '<graph string="Partners" type="line">' +
+                        '<field name="bar"/>' +
+                  '</graph>',
+            intercepts: {
+                do_action: function (event) {
+                    assert.deepEqual(event.data.action, {
+                        type: 'ir.actions.act_window',
+                        name: true,
+                        res_model: "foo",
+                        views: [[false, 'list'], [false, 'form']],
+                        view_mode: 'list',
+                        target: 'current',
+                        context: {},
+                        domain: [["bar", "=", true]]
+                    }, "should trigger do_action with correct action parameter");
+                }
+            },
+        });
+
+        await testUtils.nextTick();
+        assert.strictEqual(graph.renderer.state.mode, "line", "should be in pie chart mode");
+        assert.checkDatasets(graph, ['domain'], { domain: [[["bar", "=", true]],[["bar", "=", false]]],});
+
+        const myChart = graph.renderer.chart;
+        const meta = myChart.getDatasetMeta(0);
+        const rectangle = myChart.canvas.getBoundingClientRect();
+        const point = meta.data[0].getCenterPoint();
+
+        const mouseMoveEvent = new MouseEvent('click', {
+            clientX: rectangle.left + point.x,
+            clientY: rectangle.top + point.y
+        });
+        myChart.canvas.dispatchEvent(mouseMoveEvent);
+        graph.destroy();
+    });
 });
 });

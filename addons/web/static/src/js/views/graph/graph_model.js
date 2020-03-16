@@ -246,6 +246,7 @@ return AbstractModel.extend({
                 value: value,
                 labels: labels,
                 originIndex: originIndex,
+                domain: dataPt['__domain']
             });
         });
     },
