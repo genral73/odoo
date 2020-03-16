@@ -1,51 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-<record model="ir.ui.view" id="view_event_question_form">
-    <field name="name">event.question.form</field>
-    <field name="model">event.question</field>
-    <field name="arch" type="xml">
-        <form string="Question">
-            <sheet>
-                <h1><field name="title" /></h1>
-                <group>
-                    <group>
-                        <div colspan="2">
-                            <field name="once_per_order"/>
-                            <label for="once_per_order"/>
-                        </div>
-                        <field name="question_type" widget="radio" options="{'horizontal': true}" />
-                    </group>
-                </group>
-                <notebook attrs="{'invisible': [('question_type', '!=', 'simple_choice')]}">
-                    <page string="Answers" name="answers">
-                        <field name="answer_ids">
-                            <tree editable="bottom">
-                                <!-- 'display_name' is necessary for the many2many_tags to work on the event view -->
-                                <field name="display_name" invisible="1" />
-                                <field name="sequence" widget="handle" />
-                                <field name="name"/>
-                            </tree>
-                        </field>
-                    </page>
-                </notebook>
-            </sheet>
-        </form>
-    </field>
-</record>
-
-<record model="ir.ui.view" id="view_event_answer_simplified_form">
-    <field name="name">event.question.answer.simplified.form</field>
-    <field name="model">event.question.answer</field>
-    <field name="arch" type="xml">
-        <form string="Answer">
-            <group>
-                <field name="name"/>
-            </group>
-        </form>
-    </field>
-</record>
-
 <record id="event_type_view_form_inherit_question" model="ir.ui.view">
     <field name="name">event.type.view.form.inherit.question</field>
     <field name="model">event.type</field>
@@ -74,7 +29,7 @@
     </field>
 </record>
 
-<record model="ir.ui.view" id="view_event_form_inherit_question">
+<record model="ir.ui.view" id="event_event_view_form_inherit_question">
     <field name="name">event.event.view.form.inherit.question</field>
     <field name="model">event.event</field>
     <field name="inherit_id" ref="website_event.event_event_view_form_inherit_website"/>
@@ -97,8 +52,8 @@
                         <form string="Question">
                             <sheet>
                                 <h1><field name="title" /></h1>
-                                <group>
-                                    <group>
+                                <group class="mb-0">
+                                    <group class="mb-0">
                                         <div colspan="2">
                                             <field name="once_per_order"/>
                                             <label for="once_per_order"/>
@@ -124,31 +79,6 @@
                 </page>
             </xpath>
        </data>
-    </field>
-</record>
-
-<record model="ir.ui.view" id="view_event_registration_form_inherit_question">
-    <field name="name">event.registration.form.inherit.question</field>
-    <field name="model">event.registration</field>
-    <field name="inherit_id" ref="event.view_event_registration_form" />
-    <field name="arch" type="xml">
-        <sheet position="inside">
-            <notebook>
-                <page string="Questions" name="questions">
-                    <field name="registration_answer_ids" widget="one2many">
-                        <tree editable="bottom">
-                            <field name="event_id" invisible="1" />
-                            <field name="question_id" domain="[('event_id', '=', event_id)]" options="{'no_create': True}" />
-                            <field name="question_type" />
-                            <field name="value_answer_id"
-                                attrs="{'invisible': [('question_type', '!=', 'simple_choice')]}"
-                                domain="[('question_id', '=', question_id)]" options="{'no_create': True}"/>
-                            <field name="value_text_box" attrs="{'invisible': [('question_type', '!=', 'text_box')]}" />
-                        </tree>
-                    </field>
-                </page>
-            </notebook>
-        </sheet>
     </field>
 </record>
 
