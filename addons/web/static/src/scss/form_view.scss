@@ -526,6 +526,9 @@
                     }
                 }
             }
+            &:not(.o_group_col_6) .o_field_x2many_list .o_list_view {
+                display: grid;
+            }
         }
 
         .o_form_label {
