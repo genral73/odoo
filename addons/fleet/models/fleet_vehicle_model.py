@@ -16,14 +16,8 @@ class FleetVehicleModel(models.Model):
                                  domain=lambda self: [('groups_id', 'in', self.env.ref('fleet.fleet_group_manager').id)])
     image_128 = fields.Image(related='brand_id.image_128', readonly=True)
     active = fields.Boolean(default=True)
-    vehicle_type_id = fields.Many2one('fleet.vehicle.model.type')
-    is_a_car = fields.Boolean(compute='_compute_is_a_car')
-
-    @api.depends('vehicle_type_id')
-    def _compute_is_a_car(self):
-        type_car = self.env.ref('fleet.fleet_vehicle_model_type_car')
-        for model in self:
-            model.is_a_car = model.vehicle_type_id == type_car
+    # vehicle_type_id = fields.Many2one('fleet.vehicle.model.type')
+    vehicle_type = fields.Selection([('car', 'Car'), ('bike', 'Bike')], default='car')
 
     @api.depends('name', 'brand_id')
     def name_get(self):
