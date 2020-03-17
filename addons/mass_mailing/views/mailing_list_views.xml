@@ -100,15 +100,45 @@
             <kanban js_class="mass_mailing_list_kanban" class="o_kanban_mobile" on_create="mass_mailing.open_create_mass_mailing_list">
                 <field name="name"/>
                 <field name="contact_nbr"/>
+                <field name="contact_total"/>
+                <field name="contact_ids_blackmailed"/>
                 <field name="active"/>
                 <templates>
                     <t t-name="kanban-box">
-                        <div t-attf-class="oe_kanban_global_click">
+                        <div>
                             <div class="o_mass_mailing_kanban_main">
                                 <div class="o_kanban_card_content">
-                                    <div class="o_kanban_primary_left">
-                                        <div class="o_primary">
-                                            <span><t t-esc="record.name.value"/></span>
+                                    <div class="mb-3">
+                                        <div class="o_primary mb-3">
+                                            <h3><t t-esc="record.name.value"/></h3>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-auto">
+                                                <button name="action_view_contacts" type="object" class="btn btn-primary oe_kanban_global_click">
+                                                <t t-esc="record.contact_nbr.value"/> Contacts</button>
+                                            </div>
+                                            <div class="col">
+                                                <div class="row">
+                                                    <div class="col-12 my-0 text-info">
+                                                        <div class="row">
+                                                            <small class="col-auto my-0">
+                                                                Valid Email recipients
+                                                            </small>
+                                                            <small class="col my-0">
+                                                                <div class="text-right">159</div>
+                                                            </small>
+                                                        </div>
+                                                        <div class="row">
+                                                            <small class="col-auto my-0">
+                                                                Valid Email recipients
+                                                            </small>
+                                                            <small class="col">
+                                                                <div class="text-right">159</div>
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -129,14 +159,24 @@
                                 </div>
                             </div>
                             <div class="o_mailing_list_kanban_boxes">
-                                <a name="action_view_contacts" type="object">
-                                    <div>
-                                        <span class="badge badge-pill">
-                                            <i class="fa fa-user" role="img" aria-label="Contacts" title="Contacts"/>
-                                            <t t-esc="record.contact_nbr.value"/>
-                                        </span>
-                                    </div>
-                                </a>
+                                <div>
+                                    <span class="mr-3">
+                                        <i class="fa fa-envelope-o" role="img" aria-label="Mail" title="mail"/>
+                                        <t t-esc="record.contact_nbr.value"/>
+                                    </span>
+                                    <span class="mr-3">
+                                        <i class="fa fa-exchange" role="img" aria-label="Bounce" title="bounce"/>
+                                        <t t-esc="record.contact_nbr.value"/>
+                                    </span>
+                                    <span class="mr-3">
+                                        <i class="fa fa-bell-slash" role="img" aria-label="Opt-out" title="Opt out"/>
+                                        <t t-esc="record.contact_nbr.value"/>
+                                    </span>
+                                    <span>
+                                        <i class="fa fa-ban" role="img" aria-label="Black list" title="Black List"/>
+                                        <t t-esc="record.contact_ids_blackmailed"/>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </t>
