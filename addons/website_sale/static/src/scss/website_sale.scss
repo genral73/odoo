@@ -497,6 +497,17 @@ a.no-decoration {
                 border: 1px solid theme-color('primary');
             }
         }
+        li.o_extra_img_upload {
+            border: 2px dashed #949da5;
+            color: #bcc1c6;
+            &:hover {
+                border-color: $o-brand-primary;
+                color: $o-brand-primary;
+            }
+            i.fa-upload {
+                padding: 25px 25px;
+            }
+        }
     }
 }
 
