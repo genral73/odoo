@@ -133,6 +133,7 @@
 "a371","Contracts in progress - Profit recognised","371","account.data_account_type_current_assets","l10n_be.l10nbe_chart_template","","False"
 "a379","Contracts in progress - amounts written down","379","account.data_account_type_current_assets","l10n_be.l10nbe_chart_template","","False"
 "a400","Trade debtors within one year - Customer","400","account.data_account_type_receivable","l10n_be.l10nbe_chart_template","","True"
+"a4001","Customer (POS)","4001","account.data_account_type_receivable","l10n_be.l10nbe_chart_template","","True"
 "a401","Trade debtors within one year - Bills receivable","401","account.data_account_type_current_assets","l10n_be.l10nbe_chart_template","","False"
 "a404","Trade debtors within one year - Income receivable","404","account.data_account_type_current_assets","l10n_be.l10nbe_chart_template","","True"
 "a406","Trade debtors within one year - Advance payments","406","account.data_account_type_receivable","l10n_be.l10nbe_chart_template","","True"

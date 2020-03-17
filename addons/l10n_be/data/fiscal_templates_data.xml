@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Fiscal Position Templates -->
-    
+
     <record id="fiscal_position_template_1" model="account.fiscal.position.template">
             <field name="name">Régime National</field>
             <field name="chart_template_id" ref="l10nbe_chart_template"/>
     </record>
-    
+
     <record id="fiscal_position_template_2" model="account.fiscal.position.template">
             <field name="name">Régime Extra-Communautaire</field>
             <field name="chart_template_id" ref="l10nbe_chart_template"/>
@@ -20,16 +20,16 @@
     <record id="fiscal_position_template_4" model="account.fiscal.position.template">
             <field name="name">Régime Cocontractant</field>
             <field name="chart_template_id" ref="l10nbe_chart_template"/>
-    </record>    
+    </record>
 
     <!-- Fiscal Position Account Templates -->
-    
-    <record id="fiscal_position_account_template_3" model="account.fiscal.position.account.template">
+
+    <!-- <record id="fiscal_position_account_template_3" model="account.fiscal.position.account.template">
             <field name="position_id" ref="fiscal_position_template_3"  />
             <field name="account_src_id" ref="l10n_be.a7000" />
             <field name="account_dest_id" ref="l10n_be.a7001" />
     </record>
-    
+
     <record id="fiscal_position_account_template_4" model="account.fiscal.position.account.template">
             <field name="position_id" ref="fiscal_position_template_3"  />
             <field name="account_src_id" ref="l10n_be.a7010" />
@@ -56,5 +56,5 @@
             <field name="position_id" ref="fiscal_position_template_2"  />
             <field name="account_src_id" ref="l10n_be.a7050" />
             <field name="account_dest_id" ref="l10n_be.a7052" />
-    </record>
+    </record> -->
 </odoo>
