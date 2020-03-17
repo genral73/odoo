@@ -18,45 +18,6 @@ class PurchaseOrder(models.Model):
     _description = "Purchase Order"
     _order = 'date_order desc, id desc'
 
-    @api.depends('order_line.price_total')
-    def _amount_all(self):
-        for order in self:
-            amount_untaxed = amount_tax = 0.0
-            for line in order.order_line:
-                amount_untaxed += line.price_subtotal
-                amount_tax += line.price_tax
-            order.update({
-                'amount_untaxed': order.currency_id.round(amount_untaxed),
-                'amount_tax': order.currency_id.round(amount_tax),
-                'amount_total': amount_untaxed + amount_tax,
-            })
-
-    @api.depends('state', 'order_line.qty_invoiced', 'order_line.qty_received', 'order_line.product_qty')
-    def _get_invoiced(self):
-        precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
-        for order in self:
-            if order.state not in ('purchase', 'done'):
-                order.invoice_status = 'no'
-                continue
-
-            if any(float_compare(line.qty_invoiced, line.product_qty if line.product_id.purchase_method == 'purchase' else line.qty_received, precision_digits=precision) == -1 for line in order.order_line):
-                order.invoice_status = 'to invoice'
-            elif all(
-                (line.product_qty if line.product_id.purchase_method == 'purchase' else line.qty_received)
-                and float_compare(line.qty_invoiced, line.product_qty if line.product_id.purchase_method == 'purchase' else line.qty_received, precision_digits=precision) >= 0
-                for line in order.order_line
-            ):
-                order.invoice_status = 'invoiced'
-            else:
-                order.invoice_status = 'no'
-
-    @api.depends('order_line.invoice_lines.move_id')
-    def _compute_invoice(self):
-        for order in self:
-            invoices = order.mapped('order_line.invoice_lines.move_id')
-            order.invoice_ids = invoices
-            order.invoice_count = len(invoices)
-
     READONLY_STATES = {
         'purchase': [('readonly', True)],
         'done': [('readonly', True)],
@@ -101,7 +62,9 @@ class PurchaseOrder(models.Model):
     ], string='Billing Status', compute='_get_invoiced', store=True, readonly=True, copy=False, default='no')
 
     # There is no inverse function on purpose since the date may be different on each line
-    date_planned = fields.Datetime(string='Receipt Date', index=True)
+    date_planned = fields.Datetime(string='Receipt Date', index=True,
+                                   help='This is the Receipt Date promised by the supplier. If set, the receipt will be scheduled at this date.')
+    date_calendar_start = fields.Datetime(compute='_compute_date_calendar_start', readonly=True, store=True)
 
     amount_untaxed = fields.Monetary(string='Untaxed Amount', store=True, readonly=True, compute='_amount_all', tracking=True)
     amount_tax = fields.Monetary(string='Taxes', store=True, readonly=True, compute='_amount_all')
@@ -126,25 +89,6 @@ class PurchaseOrder(models.Model):
                 bad_products = order.order_line.product_id.filtered(lambda p: p.company_id and p.company_id != order.company_id)
                 raise ValidationError((_("Your quotation contains products from company %s whereas your quotation belongs to company %s. \n Please change the company of your quotation or remove the products from other companies (%s).") % (', '.join(companies.mapped('display_name')), order.company_id.display_name, ', '.join(bad_products.mapped('display_name')))))
 
-    def _compute_access_url(self):
-        super(PurchaseOrder, self)._compute_access_url()
-        for order in self:
-            order.access_url = '/my/purchase/%s' % (order.id)
-
-    @api.model
-    def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):
-        args = args or []
-        domain = []
-        if name:
-            domain = ['|', ('name', operator, name), ('partner_ref', operator, name)]
-        purchase_order_ids = self._search(expression.AND([domain, args]), limit=limit, access_rights_uid=name_get_uid)
-        return models.lazy_name_get(self.browse(purchase_order_ids).with_user(name_get_uid))
-
-    @api.depends('date_order', 'currency_id', 'company_id', 'company_id.currency_id')
-    def _compute_currency_rate(self):
-        for order in self:
-            order.currency_rate = self.env['res.currency']._get_conversion_rate(order.company_id.currency_id, order.currency_id, order.company_id, order.date_order)
-
     @api.depends('name', 'partner_ref')
     def name_get(self):
         result = []
@@ -156,6 +100,69 @@ class PurchaseOrder(models.Model):
                 name += ': ' + formatLang(self.env, po.amount_total, currency_obj=po.currency_id)
             result.append((po.id, name))
         return result
+
+    @api.model
+    def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):
+        args = args or []
+        domain = []
+        if name:
+            domain = ['|', ('name', operator, name), ('partner_ref', operator, name)]
+        purchase_order_ids = self._search(expression.AND([domain, args]), limit=limit, access_rights_uid=name_get_uid)
+        return models.lazy_name_get(self.browse(purchase_order_ids).with_user(name_get_uid))
+
+    @api.depends('order_line.price_total')
+    def _amount_all(self):
+        for order in self:
+            amount_untaxed = amount_tax = 0.0
+            for line in order.order_line:
+                amount_untaxed += line.price_subtotal
+                amount_tax += line.price_tax
+            order.update({
+                'amount_untaxed': order.currency_id.round(amount_untaxed),
+                'amount_tax': order.currency_id.round(amount_tax),
+                'amount_total': amount_untaxed + amount_tax,
+            })
+
+    def _compute_access_url(self):
+        super(PurchaseOrder, self)._compute_access_url()
+        for order in self:
+            order.access_url = '/my/purchase/%s' % (order.id)
+
+    @api.depends('date_order', 'currency_id', 'company_id', 'company_id.currency_id')
+    def _compute_currency_rate(self):
+        for order in self:
+            order.currency_rate = self.env['res.currency']._get_conversion_rate(order.company_id.currency_id, order.currency_id, order.company_id, order.date_order)
+
+    @api.depends('state', 'date_order', 'date_approve')
+    def _compute_date_calendar_start(self):
+        for order in self:
+            order.date_calendar_start = order.date_approve if (order.state in ['purchase', 'done']) else order.date_order
+
+    @api.depends('order_line.invoice_lines.move_id')
+    def _compute_invoice(self):
+        for order in self:
+            invoices = order.mapped('order_line.invoice_lines.move_id')
+            order.invoice_ids = invoices
+            order.invoice_count = len(invoices)
+
+    @api.depends('state', 'order_line.qty_invoiced', 'order_line.qty_received', 'order_line.product_qty')
+    def _get_invoiced(self):
+        precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
+        for order in self:
+            if order.state not in ('purchase', 'done'):
+                order.invoice_status = 'no'
+                continue
+
+            if any(float_compare(line.qty_invoiced, line.product_qty if line.product_id.purchase_method == 'purchase' else line.qty_received, precision_digits=precision) == -1 for line in order.order_line):
+                order.invoice_status = 'to invoice'
+            elif all(
+                (line.product_qty if line.product_id.purchase_method == 'purchase' else line.qty_received)
+                and float_compare(line.qty_invoiced, line.product_qty if line.product_id.purchase_method == 'purchase' else line.qty_received, precision_digits=precision) >= 0
+                for line in order.order_line
+            ):
+                order.invoice_status = 'invoiced'
+            else:
+                order.invoice_status = 'no'
 
     @api.model
     def create(self, vals):
