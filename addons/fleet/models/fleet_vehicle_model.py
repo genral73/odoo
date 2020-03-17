@@ -16,6 +16,7 @@ class FleetVehicleModel(models.Model):
                                  domain=lambda self: [('groups_id', 'in', self.env.ref('fleet.fleet_group_manager').id)])
     image_128 = fields.Image(related='brand_id.image_128', readonly=True)
     active = fields.Boolean(default=True)
+    vehicle_type_id = fields.Many2one('fleet.vehicle.model.type')
 
     @api.depends('name', 'brand_id')
     def name_get(self):
@@ -61,3 +62,10 @@ class FleetVehicleModelBrand(models.Model):
         }
 
         return view
+
+
+class FleetVehicleModelType(models.Model):
+    _name = 'fleet.vehicle.model.type'
+    _description = 'Vehicle Type'
+
+    name = fields.Char()
