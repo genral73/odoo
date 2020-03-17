@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="mail.component.FollowerSubtypesEditDialog" owl="1">
-        <div><!-- TODO FIXME necessary div for useRef, can be removed at next owl update, see https://github.com/odoo/owl/issues/638 -->
-            <t t-set="title">Edit Subscription</t>
-            <Dialog contentClass="'FollowerSubtypesEditDialog'" title="title" size="'medium'" t-ref="dialog" t-on-dialog-closed="_onDialogClosed">
+    <div class="o_FollowerSubtypesEditDialog modal-dialog" t-name="mail.component.FollowerSubtypesEditDialog" owl="1">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h4 class="modal-title">
+                    Edit Subscription of <t t-esc="storeProps.follower.name"/>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" t-on-click="_onClickCancel">
+                    ×
+                </button>
+            </header>
+            <main class="modal-body">
                 <div class="o_FollowerSubtypes">
                     <t t-foreach="storeProps.subtypes" t-as="subtype" t-key="subtype.id">
                         <FollowerSubtype
@@ -13,11 +20,15 @@
                         />
                     </t>
                 </div>
-                <t t-set="buttons">
-                    <button class="o-apply btn btn-primary" t-on-click="_onClickApply">Apply</button>
-                    <button class="o-cancel btn btn-secondary" t-on-click="_onClickCancel">Cancel</button>
-                </t>
-            </Dialog>
+            </main>
+            <div class="modal-footer">
+                <button class="o-apply btn btn-primary" t-on-click="_onClickApply">
+                    Apply
+                </button>
+                <button class="o-cancel btn btn-secondary" t-on-click="_onClickCancel">
+                    Cancel
+                </button>
+            </div>
         </div>
-    </t>
+    </div>
 </templates>

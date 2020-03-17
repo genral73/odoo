@@ -7,7 +7,7 @@ const useStore = require('mail.hooks.useStore');
 const Dialog = require('web.OwlDialog');
 
 const { Component, QWeb } = owl;
-const { useDispatch, useRef } = owl.hooks;
+const { useDispatch } = owl.hooks;
 
 class FollowerSubtypesEditDialog extends Component {
 
@@ -25,8 +25,6 @@ class FollowerSubtypesEditDialog extends Component {
                 subtypes,
             };
         });
-        // to manually trigger the dialog close event
-        this._dialogRef = useRef('dialog');
     }
 
     /**
@@ -49,7 +47,7 @@ class FollowerSubtypesEditDialog extends Component {
      * @param {MouseEvent} ev
      */
     _onClickCancel(ev) {
-        this._dialogRef.comp._close();
+        this.storeDispatch('closeDialog', this.props.id);
     }
 
     /**
@@ -59,18 +57,8 @@ class FollowerSubtypesEditDialog extends Component {
      * @param {MouseEvent} ev
      */
     _onClickApply(ev) {
-        this._dialogRef.comp._close();
-        this.storeDispatch('updateFollowerSubtypes', this.props.info.followerLocalId);
-    }
-
-    /**
-     * Called when clicking on cross button.
-     *
-     * @private
-     * @param {MouseEvent} ev
-     */
-    _onDialogClosed(ev) {
         this.storeDispatch('closeDialog', this.props.id);
+        this.storeDispatch('updateFollowerSubtypes', this.props.info.followerLocalId);
     }
 }
 
