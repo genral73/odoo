@@ -2693,7 +2693,6 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         self._add_inherited_fields()
 
         # 4. initialize more field metadata
-        cls._field_computed = {}            # fields computed with the same method
         cls._field_inverses = Collector()   # inverse fields for related fields
 
         cls._setup_done = True
@@ -2749,17 +2748,23 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             field = cls._fields['display_name']
             field.depends = tuple(name for name in field.depends if name != 'x_name')
 
+        cls._field_computed = cls._get_field_computed()
+
+    @classmethod
+    def _get_field_computed(cls):
         # map each field to the fields computed with the same method
+        computed = {}
         groups = defaultdict(list)
         for field in cls._fields.values():
             if field.compute:
-                cls._field_computed[field] = group = groups[field.compute]
+                computed[field] = group = groups[field.compute]
                 group.append(field)
         for fields in groups.values():
             compute_sudo = fields[0].compute_sudo
             if not all(field.compute_sudo == compute_sudo for field in fields):
                 _logger.warning("%s: inconsistent 'compute_sudo' for computed fields: %s",
-                                self._name, ", ".join(field.name for field in fields))
+                                cls._name, ", ".join(field.name for field in fields))
+        return computed
 
     @api.model
     def _setup_complete(self):
