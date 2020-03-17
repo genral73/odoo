@@ -34,7 +34,14 @@
     opacity: 0.6;
 }
 
-.o_Follower_details.o-inactive {
-    opacity: 0.25;
-    font-style: italic;
+.o_Follower_details {
+
+    &:hover {
+        opacity: 0.6;
+    }
+
+    &.o-inactive {
+        opacity: 0.25;
+        font-style: italic;
+    }
 }

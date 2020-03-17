@@ -58,6 +58,7 @@ class Follower extends Component {
             id: this.resId,
             model: this.resModel,
         });
+        ev.stopPropagation();
     }
 
     /**
