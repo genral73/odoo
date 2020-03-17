@@ -7,45 +7,175 @@
             <field name="name">SampleDoc.doc</field>
         </record>
 
+
         <!-- Create mailing lists -->
-        <record id="mass_mail_list_2" model="mailing.list">
-            <field name="name">Imported Contacts</field>
+        <record id="mass_mail_list_1" model="mailing.list">
+            <field name="name">Imported Contacts 1</field>
         </record>
 
         <!-- Create Contacts -->
-        <record id="mass_mail_contact_1" model="mailing.contact">
+        <record id="mass_mail_1_contact_1" model="mailing.contact">
+            <field name="name">Susan Webster</field>
+            <field name="email">qbradley@gmail.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_2" model="mailing.contact">
+            <field name="name">Christine Ford</field>
+            <field name="email">robleschristopher@gmail.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_3" model="mailing.contact">
+            <field name="name">Christine Morris</field>
+            <field name="email">jacob56@gmail.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_4" model="mailing.contact">
+            <field name="name">Christian Moore DDS</field>
+            <field name="email">jorge67@gmail.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_5" model="mailing.contact">
+            <field name="name">Elizabeth Harris</field>
+            <field name="email">jason31@martinez.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_6" model="mailing.contact">
+            <field name="name">Mary Skinner</field>
+            <field name="email">bperez@fowler.biz</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_7" model="mailing.contact">
+            <field name="name">John Taylor</field>
+            <field name="email">qperez@velazquez.info</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_8" model="mailing.contact">
+            <field name="name">Eric Stewart</field>
+            <field name="email">mstone@santiago.biz</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_9" model="mailing.contact">
+            <field name="name">Michael Walker</field>
+            <field name="email">jeanne42@yahoo.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_10" model="mailing.contact">
+            <field name="name">Stephanie Schmidt</field>
+            <field name="email">uclark@yahoo.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_11" model="mailing.contact">
+            <field name="name">Charles Davis</field>
+            <field name="email">brookejenkins@hotmail.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_12" model="mailing.contact">
+            <field name="name">Stephanie Palmer</field>
+            <field name="email">sadams@yahoo.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_13" model="mailing.contact">
+            <field name="name">Joseph Russell</field>
+            <field name="email">michaelaali@gmail.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_14" model="mailing.contact">
+            <field name="name">Luke Ramirez</field>
+            <field name="email">johnbrooks@yahoo.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_15" model="mailing.contact">
+            <field name="name">Taylor Mccoy</field>
+            <field name="email">chrisfisher@gmail.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_16" model="mailing.contact">
+            <field name="name">Nathaniel Medina</field>
+            <field name="email">zlopez@hotmail.com</field>
+        </record>
+        <record id="mass_mail_1_contact_17" model="mailing.contact">
+            <field name="name">Charles Powell</field>
+            <field name="email">benjaminvasquez@hammond-hale.org</field>
+        </record>
+        <record id="mass_mail_1_contact_18" model="mailing.contact">
+            <field name="name">Taylor Taylor</field>
+            <field name="email">drodriguez@francis-jennings.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_19" model="mailing.contact">
+            <field name="name">Lawrence Mcneil</field>
+            <field name="email">ibaker@gmail.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_20" model="mailing.contact">
+            <field name="name">Elizabeth Bishop</field>
+            <field name="email">kristen77@coleman-walker.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        
+        <!-- Create Opt-out Records -->
+        <record id="mass_mail_contact_rel_1_1" model="mailing.contact.subscription">
+            <field name="list_id" ref="mass_mailing.mass_mail_list_1"/>
+            <field name="contact_id" ref="mass_mail_1_contact_16"/>
+            <field name="opt_out">True</field>
+        </record>
+        <record id="mass_mail_contact_rel_1_2" model="mailing.contact.subscription">
+            <field name="list_id" ref="mass_mailing.mass_mail_list_1"/>
+            <field name="contact_id" ref="mass_mail_1_contact_17"/>
+            <field name="opt_out">True</field>
+        </record>
+
+        <!-- Create Blacklist Records -->
+        <record id="blacklist_1_1" model="mail.blacklist">
+            <field name="email">drodriguez@francis-jennings.com</field>
+        </record>
+        <record id="blacklist_1_2" model="mail.blacklist">
+            <field name="email">ibaker@gmail.com</field>
+        </record>
+        <record id="blacklist_1_3" model="mail.blacklist">
+            <field name="email">kristen77@coleman-walker.com</field>
+        </record>
+
+
+        <!-- Create mailing lists 2 -->
+        <record id="mass_mail_list_2" model="mailing.list">
+            <field name="name">Imported Contacts 2</field>
+        </record>
+
+        <!-- Create Contacts 2 -->
+        <record id="mass_mail_2_contact_1" model="mailing.contact">
             <field name="name">Aristide Antario</field>
             <field name="email">aa@example.com</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_2')])]"/>
         </record>
-        <record id="mass_mail_contact_2" model="mailing.contact">
+        <record id="mass_mail_2_contact_2" model="mailing.contact">
             <field name="name">Beverly Bridge</field>
             <field name="email">bb@example.com</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_2')])]"/>
         </record>
-        <record id="mass_mail_contact_3" model="mailing.contact">
+        <record id="mass_mail_2_contact_3" model="mailing.contact">
             <field name="name">Carol Cartridge</field>
             <field name="email">cc@example.com</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_2')])]"/>
         </record>
-        <record id="mass_mail_contact_4" model="mailing.contact">
+        <record id="mass_mail_2_contact_4" model="mailing.contact">
             <field name="name">David Dawson</field>
             <field name="email">dd@example.com</field>
         </record>
-        <record id="mass_mail_contact_5" model="mailing.contact">
+        <record id="mass_mail_2_contact_5" model="mailing.contact">
             <field name="name">Elsa Ericson</field>
             <field name="email">ee@example.com</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_2')])]"/>
         </record>
 
-        <!-- Create Opt-out Records -->
-        <record id="mass_mail_contact_list_rel_1" model="mailing.contact.subscription">
+        <!-- Create Opt-out Records 2 -->
+        <record id="mass_mail_contact_list_rel_2_1" model="mailing.contact.subscription">
             <field name="list_id" ref="mass_mailing.mass_mail_list_2"/>
-            <field name="contact_id" ref="mass_mailing.mass_mail_contact_4"/>
+            <field name="contact_id" ref="mass_mailing.mass_mail_2_contact_4"/>
             <field name="opt_out">True</field>
         </record>
 
-        <!-- Create Blacklist Records -->
+        <!-- Create Blacklist Records 2 -->
         <record id="blacklist_1" model="mail.blacklist">
             <field name="email">ee@example.com</field>
         </record>
