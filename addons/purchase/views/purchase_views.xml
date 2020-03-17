@@ -547,8 +547,7 @@
               <p class="o_view_nocontent_smiling_face">
                 Create a request for quotation
               </p><p>
-                The quotation contains the history of the discussion
-                you had with your vendor.
+                The requests for quotation are documents that will be sent to your suppliers to request prices for different products you consider buying. Once an agreement has been found with the supplier, they will be confirmed and turned into purchase orders.
               </p>
             </field>
         </record>
