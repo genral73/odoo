@@ -80,6 +80,15 @@ class SurveyQuestion(models.Model):
         ('simple_choice', 'Multiple choice: only one answer'),
         ('multiple_choice', 'Multiple choice: multiple answers allowed'),
         ('matrix', 'Matrix')], string='Question Type')
+    is_scored_question = fields.Boolean(
+        'Is a scored question', compute='_compute_is_scored_question',
+        readonly=False, store=True, copy=True,
+        help="Include this question as part of quiz scoring. Requires an answer and answer score to be taken into account.")
+    # -- scoreable/answerable simple answer_types: numerical_box / date / datetime
+    answer_numerical_box = fields.Float('Numerical answer', help="Correct number answer for this question.")
+    answer_date = fields.Date('Date answer', help="Correct date answer for this question.")
+    answer_datetime = fields.Datetime('Datetime answer', help="Correct date and time answer for this question.")
+    answer_score = fields.Float('Score', help="Score value for a correct answer to this question.")
     # -- char_box
     save_as_email = fields.Boolean(
         "Save as user email", compute='_compute_save_as_email', readonly=False, store=True, copy=True,
@@ -99,14 +108,6 @@ class SurveyQuestion(models.Model):
     matrix_row_ids = fields.One2many(
         'survey.question.answer', 'matrix_question_id', string='Matrix Rows', copy=True,
         help='Labels used for proposed choices: rows of matrix')
-    # -- scoreable/answerable simple answer_types: numerical_box / date / datetime
-    is_scored_question = fields.Boolean(
-        'Is a scored question', compute='_compute_is_scored_question', readonly=False, store=True, copy=True,
-        help="Include this question as part of quiz scoring. Requires an answer and answer score to be taken into account.")
-    answer_numerical_box = fields.Float('Numerical answer', help="Correct number answer for this question.")
-    answer_date = fields.Date('Date answer', help="Correct date answer for this question.")
-    answer_datetime = fields.Datetime('Datetime answer', help="Correct date and time answer for this question.")
-    answer_score = fields.Float('Score', help="Score value for a correct answer to this question.")
     # -- display & timing options
     column_nb = fields.Selection([
         ('12', '1'), ('6', '2'), ('4', '3'), ('3', '4'), ('2', '6')],
@@ -485,15 +486,8 @@ class SurveyQuestion(models.Model):
         elif self.question_type == 'numerical_box':
             stats.update(self._get_stats_summary_data_numerical(user_input_lines))
 
-        if self.question_type in ['numerical_box', 'date']:
-            stats.update({
-                'common_lines': collections.Counter(user_input_lines.filtered(lambda line: not line.skipped).mapped('value_%s' % self.question_type)).most_common(5)
-            })
-
         if self.question_type in ['numerical_box', 'date', 'datetime']:
-            stats.update({
-                'right_inputs_count': len(user_input_lines.filtered(lambda line: line.answer_is_correct).mapped('user_input_id')),
-            })
+            stats.update(self._get_stats_summary_data_scored(user_input_lines))
         return stats
 
     def _get_stats_summary_data_choice(self, user_input_lines):
@@ -522,6 +516,15 @@ class SurveyQuestion(models.Model):
             'numerical_min': min(all_values, default=0),
             'numerical_average': round(lines_sum / (len(all_values) or 1), 2),
         }
+
+    def _get_stats_summary_data_scored(self, user_input_lines):
+        return {
+            'common_lines': collections.Counter(
+                user_input_lines.filtered(lambda line: not line.skipped).mapped('value_%s' % self.question_type)
+            ).most_common(5) if self.question_type != 'datetime' else [],
+            'right_inputs_count': len(user_input_lines.filtered(lambda line: line.answer_is_correct).mapped('user_input_id'))
+        }
+
 
 class SurveyQuestionAnswer(models.Model):
     """ A preconfigured answer for a question. This model stores values used
