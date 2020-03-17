@@ -120,6 +120,29 @@ class StockWarehouseOrderpoint(models.Model):
             })
             orderpoint.lead_days_date = lead_days_date
 
+    def _compute_qty(self):
+        orderpoints_contexts = defaultdict(lambda: self.env['stock.warehouse.orderpoint'])
+        for orderpoint in self:
+            orderpoint_context = orderpoint._get_product_context()
+            product_context = frozendict({**self.env.context, **orderpoint_context})
+            orderpoints_contexts[product_context] |= orderpoint
+        for orderpoint_context, orderpoints_by_context in orderpoints_contexts.items():
+            products_qty = orderpoints_by_context.product_id.with_context(orderpoint_context)._product_available()
+            products_qty_in_progress = orderpoints_by_context._quantity_in_progress()
+            for orderpoint in orderpoints_by_context:
+                orderpoint.qty_on_hand = products_qty[orderpoint.product_id.id]['qty_available']
+                orderpoint.qty_forecast = products_qty[orderpoint.product_id.id]['virtual_available'] + products_qty_in_progress[orderpoint.id]
+
+                qty_to_order = 0.0
+                rounding = orderpoint.product_uom.rounding
+                if float_compare(orderpoint.qty_forecast, orderpoint.product_min_qty, precision_rounding=rounding) < 0:
+                    qty_to_order = max(orderpoint.product_min_qty, orderpoint.product_max_qty) - orderpoint.qty_forecast
+
+                    remainder = orderpoint.qty_multiple > 0 and qty_to_order % orderpoint.qty_multiple or 0.0
+                    if float_compare(remainder, 0.0, precision_rounding=rounding) > 0:
+                        qty_to_order += orderpoint.qty_multiple - remainder
+                orderpoint.qty_to_order = qty_to_order
+
     def _quantity_in_progress(self):
         """Return Quantities that are not yet in virtual stock but should be deduced from orderpoint rule
         (example: purchases created from orderpoints)"""
