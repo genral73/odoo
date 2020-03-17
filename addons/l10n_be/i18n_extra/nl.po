@@ -1756,6 +1756,21 @@ msgid "VAT payable"
 msgstr "Te betalen BTW"
 
 #. module: l10n_be
+#: model:account.account.template,name:l10n_be.a451055
+msgid "VAT payable - Intra-community"
+msgstr "Te betalen BTW - Intra-community"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a451056
+msgid "VAT payable - Cocontractant"
+msgstr "Te betalen BTW - Cocontractant"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a451057
+msgid "VAT payable - Import"
+msgstr "Te betalen BTW - Import"
+
+#. module: l10n_be
 #: model:account.account.template,name:l10n_be.a452
 msgid "Taxes payable"
 msgstr "Te betalen belastingen en taksen"
@@ -1879,6 +1894,11 @@ msgstr "Resultaten uit de omrekening van vreemde valuta - Activa"
 #: model:account.account.template,name:l10n_be.a497
 msgid "Foreign currency translation differences - Liabilities"
 msgstr "Resultaten uit de omrekening van vreemde valuta - Passiva"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a499
+msgid "Suspense account"
+msgstr "Wachtrekening"
 
 #. module: l10n_be
 #: model:account.account.template,name:l10n_be.a500
@@ -2201,6 +2221,11 @@ msgid "Taxes related to operation"
 msgstr "Bedrijfsbelastingen en -taksen"
 
 #. module: l10n_be
+#: model:account.account.template,name:l10n_be.a64012
+msgid "Non deductible taxes"
+msgstr "Niet aftrekbare BTW"
+
+#. module: l10n_be
 #: model:account.account.template,name:l10n_be.a641
 msgid "Loss on ordinary disposal of tangible fixed assets"
 msgstr "Minderwaarden bij de courante realisatie van materiële vaste activa"
@@ -2461,9 +2486,49 @@ msgid "Other allocations entitlements"
 msgstr "Uitkering aan andere rechthebbenden"
 
 #. module: l10n_be
-#: model:account.account.template,name:l10n_be.a70
-msgid "Turnover"
-msgstr "Omzet"
+#: model:account.account.template,name:l10n_be.a7000
+msgid "Sales rendered in Belgium (marchandises)"
+msgstr "Verkopen: België (handelsgoederen)"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7001
+msgid "Sales rendered in E.E.C. (marchandises)"
+msgstr "Verkopen: leden van de Europese gemeenschap (handelsgoederen)"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7002
+msgid "Sales rendered for export (marchandises)"
+msgstr "Verkopen: export (handelsgoederen)"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7010
+msgid "Sales rendered in Belgium (finished goods)"
+msgstr "Verkopen: België (gereed product)"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7011
+msgid "Sales rendered in E.E.C. (finished goods)"
+msgstr "Verkopen: leden van de Europese gemeenschap (gereed product)"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7012
+msgid "Sales rendered for export (finished goods)"
+msgstr "Verkopen: export (gereed product)"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7050
+msgid "Services rendered in Belgium"
+msgstr "Prestations de services en Belgique"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7051
+msgid "Services rendered in E.E.C."
+msgstr "Dienstverlening in lidstaten van de E.E.G."
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7052
+msgid "Services rendered for export"
+msgstr "Dienstverlening buiten de E.E.G. (export)"
 
 #. module: l10n_be
 #: model:account.account.template,name:l10n_be.a708

@@ -19,64 +19,64 @@ msgstr ""
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-00
 msgid "0% Biens d'investissement"
-msgstr "0% Investeringsgoederen"
+msgstr "0% Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-00-G
 msgid "0% Biens divers"
-msgstr "0% Diverse goederen"
+msgstr "0% Biens divers"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-00-CC
 msgid "0% Cocont."
-msgstr "0% Medecont."
+msgstr "0% Cocont."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-00-CC
 msgid "0% Cocont. - Biens d'investissement"
-msgstr "0% Medecont. - Investeringsgoederen"
+msgstr "0% Cocont. - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-00-CC
 msgid "0% Cocont. M."
-msgstr "0% Medecont. G."
+msgstr "0% Cocont. M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-00-CC
 msgid "0% Cocont. S."
-msgstr "0% Medecont. D."
+msgstr "0% Cocont. S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-00-EU
 msgid "0% EU - Biens d'investissement"
-msgstr "0% EU - Investeringsgoederen"
+msgstr "0% EU - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-00-EU-G
 msgid "0% EU - Biens divers"
-msgstr "0% EU - Diverse goederen"
+msgstr "0% EU - Biens divers"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-00-EU
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-00-EU-L
 msgid "0% EU M."
-msgstr "0% EU G."
+msgstr "0% EU M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-00-EU-S
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-00-EU-S
 msgid "0% EU S."
-msgstr "0% EU D."
+msgstr "0% EU S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-00-EU-T
 msgid "0% EU T."
-msgstr "0% EU. T."
+msgstr "0% EU T."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-00
 msgid "0% M."
-msgstr "0% G."
+msgstr "0% M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-00-ROW
@@ -86,23 +86,23 @@ msgstr "0% Non EU"
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-00-ROW-CC
 msgid "0% Non EU - Biens d'investissement"
-msgstr "0% Niet EU - Investeringsgoederen"
+msgstr "0% Non EU - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-00-ROW-CC
 msgid "0% Non EU M."
-msgstr "0% Non EU G. "
+msgstr "0% Non EU M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-00-ROW-CC
 msgid "0% Non EU S."
-msgstr "0% Non EU D."
+msgstr "0% Non EU S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-00-S
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-00-S
 msgid "0% S."
-msgstr "0% D."
+msgstr "0% S."
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_00
@@ -112,7 +112,7 @@ msgstr "00"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_00
 msgid "00 - Opérations soumises à un régime particulier"
-msgstr "00 - Handelingen onderworpen aan een bijzondere regeling"
+msgstr "00 - Opérations soumises à un régime particulier"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_01
@@ -122,7 +122,7 @@ msgstr "01"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_01
 msgid "01 - Opérations avec TVA à 6%"
-msgstr "01 - Operaties met 6% BTW"
+msgstr "01 - Opérations avec TVA à 6%"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_02
@@ -132,7 +132,7 @@ msgstr "02"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_02
 msgid "02 - Opérations avec TVA à 12%"
-msgstr "02 - Operaties met 12% BTW"
+msgstr "02 - Opérations avec TVA à 12%"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_03
@@ -142,7 +142,7 @@ msgstr "03"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_03
 msgid "03 - Opérations avec TVA à 21%"
-msgstr "03 - Operaties met 21% BTW"
+msgstr "03 - Opérations avec TVA à 21%"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-12-L
@@ -152,73 +152,73 @@ msgstr "12%"
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-12
 msgid "12% Biens d'investissement"
-msgstr "12% Investeringsgoederen"
+msgstr "12% Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-12-G
 msgid "12% Biens divers"
-msgstr "12% Diverse goederen"
+msgstr "12% Biens divers"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-12-CC
 msgid "12% Cocont. - Biens d'investissement"
-msgstr "12% Medecont. - Investeringsgoederen"
+msgstr "12% Cocont. - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-12-CC
 msgid "12% Cocont. M."
-msgstr "12% Medecont. G."
+msgstr "12% Cocont. M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-12-CC
 msgid "12% Cocont. S."
-msgstr "12% Medecont. D."
+msgstr "12% Cocont. S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-12-EU
 msgid "12% EU - Biens d'investissement"
-msgstr "12% EU - Investeringsgoederen"
+msgstr "12% EU - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-12-EU-G
 msgid "12% EU - Biens divers"
-msgstr "12% EU - Diverse goederen"
+msgstr "12% EU - Biens divers"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-12-EU
 msgid "12% EU M."
-msgstr "12% EU G."
+msgstr "12% EU M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-12-EU-S
 msgid "12% EU S."
-msgstr "12% EU D."
+msgstr "12% EU S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-12
 msgid "12% M."
-msgstr "12% G."
+msgstr "12% M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-12-ROW-CC
 msgid "12% Non EU - Biens d'investissement"
-msgstr "12% Niet EU - Investeringsgoederen"
+msgstr "12% Non EU - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-12-ROW-CC
 msgid "12% Non EU M."
-msgstr "12% Niet EU G."
+msgstr "12% Non EU M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-12-ROW-CC
 msgid "12% Non EU S."
-msgstr "12% Niet EU D."
+msgstr "12% Non EU S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-12-S
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-12-S
 msgid "12% S."
-msgstr "12% D."
+msgstr "12% S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-21-L
@@ -228,78 +228,78 @@ msgstr "21%"
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-21
 msgid "21% Biens d'investissement"
-msgstr "21% Investeringsgoederen"
+msgstr "21% Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-21-G
 msgid "21% Biens divers"
-msgstr "21% Diverse goederen"
+msgstr "21% Biens divers"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-21-CC
 msgid "21% Cocont .S."
-msgstr "21% Medecont. D."
+msgstr "21% Cocont .S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-21-CC
 msgid "21% Cocont. - Biens d'investissement"
-msgstr "21% Medecont. - Investeringsgoederen"
+msgstr "21% Cocont. - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-21-CC
 msgid "21% Cocont. M."
-msgstr "21% Medecont. G."
+msgstr "21% Cocont. M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-21-EU
 msgid "21% EU - Biens d'investissement"
-msgstr "21% EU - Investeringsgoederen"
+msgstr "21% EU - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-21-EU-G
 msgid "21% EU - Biens divers"
-msgstr "21% EU - Diverse goederen"
+msgstr "21% EU - Biens divers"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-21-EU
 msgid "21% EU M."
-msgstr "21% EU. G."
+msgstr "21% EU M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-21-EU-S
 msgid "21% EU S."
-msgstr "21% EU D."
+msgstr "21% EU S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-21
 msgid "21% M."
-msgstr "21% G."
+msgstr "21% M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-21-ROW-CC
 msgid "21% Non EU - Biens d'investissement"
-msgstr "21% Niet EU - Investeringsgoederen"
+msgstr "21% Non EU - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-21-ROW-CC
 msgid "21% Non EU M."
-msgstr "21% Niet EU G."
+msgstr "21% Non EU M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-21-ROW-CC
 msgid "21% Non EU S."
-msgstr "21% Non EU D."
+msgstr "21% Non EU S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-21-S
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-21-S
 msgid "21% S."
-msgstr "21% D."
+msgstr "21% S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_TVA-21-inclus-dans-prix
 msgid "21% S. TTC"
-msgstr "21% D. (Inclusief BTW)"
+msgstr "21% S. TTC"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_44
@@ -309,7 +309,7 @@ msgstr "44"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_44
 msgid "44 - Services intra-communautaires"
-msgstr "44 - Intracommunautaire diensten"
+msgstr "44 - Services intra-communautaires"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_45
@@ -319,12 +319,12 @@ msgstr "45"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_45
 msgid "45 - Opérations avec TVA due par le cocontractant"
-msgstr "45 - Transacties met BTW verschuldigd door de wederpartij"
+msgstr "45 - Opérations avec TVA due par le cocontractant"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_title_operations_sortie_46
 msgid "46 - Livraisons intra-communautaires exemptées"
-msgstr "46 - Vrijgestelde intracommunautaire leveringen"
+msgstr "46 - Livraisons intra-communautaires exemptées"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_46L
@@ -334,7 +334,7 @@ msgstr "46L"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_46L
 msgid "46L - Livraisons biens intra-communautaires exemptées"
-msgstr "46L - vrijgestelde intracommunautaire leveringen van goederen"
+msgstr "46L - Livraisons biens intra-communautaires exemptées"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_46T
@@ -344,7 +344,7 @@ msgstr "46T"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_46T
 msgid "46T - Livraisons biens intra-communautaire exemptées"
-msgstr "46T - Vrijgestelde intracommunautaire leveringen van goederen"
+msgstr "46T - Livraisons biens intra-communautaire exemptées"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_47
@@ -354,12 +354,12 @@ msgstr "47"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_47
 msgid "47 - Autres opérations exemptées"
-msgstr "47 - Overige vrijgestelde transacties"
+msgstr "47 - Autres opérations exemptées"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_title_operations_sortie_48
 msgid "48 - Notes de crédit aux opérations grilles [44] et [46]"
-msgstr "48 - Creditnota's op handelingen ingeschreven in de roosters [44] en [46]"
+msgstr "48 - Notes de crédit aux opérations grilles [44] et [46]"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_48s44
@@ -369,7 +369,7 @@ msgstr "48s44"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_48s44
 msgid "48s44 - Notes de crédit aux opérations grilles [44]"
-msgstr "48s44 - Creditnota's op handelingen ingeschreven in de rooster [44]"
+msgstr "48s44 - Notes de crédit aux opérations grilles [44]"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_48s46L
@@ -379,7 +379,7 @@ msgstr "48s46L"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_48s46L
 msgid "48s46L - Notes de crédit aux opérations grilles [46L]"
-msgstr "48s46L - Creditnota's op handelingen ingeschreven in de rooster [46L]"
+msgstr "48s46L - Notes de crédit aux opérations grilles [46L]"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_48s46T
@@ -389,7 +389,7 @@ msgstr "48s46T"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_48s46T
 msgid "48s46T - Notes de crédit aux opérations grilles [46T]"
-msgstr "48s46T - Creditnota's op handelingen ingeschreven in de rooster [46T]"
+msgstr "48s46T - Notes de crédit aux opérations grilles [46T]"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_49
@@ -399,7 +399,7 @@ msgstr "49"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_49
 msgid "49 - Notes de crédit aux opérations du point II"
-msgstr "49 - Creditnota's op handlingen ingeschreven in de punt II"
+msgstr "49 - Notes de crédit aux opérations du point II"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-CAR-EXC
@@ -414,7 +414,7 @@ msgstr "54"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_54
 msgid "54 - TVA sur opérations des grilles [01], [02], [03]"
-msgstr "54 - BTW op handelingen in de roosters [01], [02], [03]"
+msgstr "54 - TVA sur opérations des grilles [01], [02], [03]"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_55
@@ -424,7 +424,7 @@ msgstr "55"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_55
 msgid "55 - TVA sur opérations des grilles [86] et [88]"
-msgstr "55 - BTW op handelingen in de roosters  [86] en [88]"
+msgstr "55 - TVA sur opérations des grilles [86] et [88]"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_56
@@ -434,7 +434,7 @@ msgstr "56"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_56
 msgid "56 - TVA sur opérations de la grille [87]"
-msgstr "56 - BTW op handelingen in de roosters [87]"
+msgstr "56 - TVA sur opérations de la grille [87]"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_57
@@ -444,7 +444,7 @@ msgstr "57"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_57
 msgid "57 - TVA relatives aux importations"
-msgstr "57 - BTW op invoer"
+msgstr "57 - TVA relatives aux importations"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_59
@@ -454,78 +454,78 @@ msgstr "59"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_59
 msgid "59 - TVA déductible"
-msgstr "59 - Aftrekbare BTW"
+msgstr "59 - TVA déductible"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-06
 msgid "6% Biens d'investissement"
-msgstr "6% Investeringsgoederen"
+msgstr "6% Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-06-G
 msgid "6% Biens divers"
-msgstr "6% Diverse goederen"
+msgstr "6% Biens divers"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-06-CC
 msgid "6% Cocont. - Biens d'investissement"
-msgstr "6% Medecont. - Investeringsgoederen"
+msgstr "6% Cocont. - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-06-CC
 msgid "6% Cocont. M."
-msgstr "6% Medecont. G."
+msgstr "6% Cocont. M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-06-CC
 msgid "6% Cocont. S."
-msgstr "6% Medecont. D."
+msgstr "6% Cocont. S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-06-EU
 msgid "6% EU - Biens d'investissement"
-msgstr "6% EU - Investeringsgoederen"
+msgstr "6% EU - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-06-EU-G
 msgid "6% EU - Biens divers"
-msgstr "6% EU - Diverse goederen"
+msgstr "6% EU - Biens divers"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-06-EU
 msgid "6% EU M."
-msgstr "6% EU G."
+msgstr "6% EU M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-06-EU-S
 msgid "6% EU S."
-msgstr "6% EU D."
+msgstr "6% EU S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-06
 msgid "6% M."
-msgstr "6% G."
+msgstr "6% M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V83-06-ROW-CC
 msgid "6% Non EU - Biens d'investissement"
-msgstr "6% Niet EU - Investeringsgoederen"
+msgstr "6% Non EU - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V81-06-ROW-CC
 msgid "6% Non EU M."
-msgstr "6% Niet EU G."
+msgstr "6% Non EU M."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-06-ROW-CC
 msgid "6% Non EU S."
-msgstr "6% Niet EU D."
+msgstr "6% Non EU S."
 
 #. module: l10n_be
 #: model:account.tax.template,name:l10n_be.attn_VAT-IN-V82-06-S
 #: model:account.tax.template,name:l10n_be.attn_VAT-OUT-06-S
 msgid "6% S."
-msgstr "6% D."
+msgstr "6% S."
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_61
@@ -535,7 +535,7 @@ msgstr "61"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_61
 msgid "61 - Diverses régularisations en faveur de l'Etat"
-msgstr "61 - diverse BTW herzieningen in het voordeel van de Staat"
+msgstr "61 - Diverses régularisations en faveur de l'Etat"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_62
@@ -545,7 +545,7 @@ msgstr "62"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_62
 msgid "62 - Diverses régularisations en faveur du déclarant"
-msgstr "62 - diverse BTW herzieningen in het voordeel van de aangever"
+msgstr "62 - Diverses régularisations en faveur du déclarant"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_63
@@ -555,7 +555,7 @@ msgstr "63"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_63
 msgid "63 - TVA à reverser sur notes de crédit recues"
-msgstr "63 - Terug te storten btw vermeld op ontvangen creditnota's"
+msgstr "63 - TVA à reverser sur notes de crédit recues"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_64
@@ -565,17 +565,17 @@ msgstr "64"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_64
 msgid "64 - TVA à récupérer sur notes de crédit delivrées"
-msgstr "64 - Te recupereren btw vermeld op uitgereikte creditnota's"
+msgstr "64 - TVA à récupérer sur notes de crédit delivrées"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_71
 msgid "71 - Taxes dues à l'état"
-msgstr "71 - bedrag van aan de Staat verschuldigde belasting "
+msgstr "71 - Taxes dues à l'état"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_72
 msgid "72 - Somme due par l'état"
-msgstr "72 - bedrag van de sommen verschuldigd door de Staat"
+msgstr "72 - Somme due par l'état"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_81
@@ -585,7 +585,7 @@ msgstr "81"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_81
 msgid "81 - Marchandises, matières premières et auxiliaires"
-msgstr "81 - Goederen, grondstoffen en hulpstoffen"
+msgstr "81 - Marchandises, matières premières et auxiliaires"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_82
@@ -595,7 +595,7 @@ msgstr "82"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_82
 msgid "82 - Services et biens divers"
-msgstr "82 - Diverse goederen en diensten"
+msgstr "82 - Services et biens divers"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_83
@@ -605,7 +605,7 @@ msgstr "83"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_83
 msgid "83 - Biens d'investissement"
-msgstr "83 - Bedrijfsmiddelen"
+msgstr "83 - Biens d'investissement"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_84
@@ -615,7 +615,7 @@ msgstr "84"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_84
 msgid "84 - Notes de crédits sur opérations case [86] et [88]"
-msgstr "84 - Creditnota's ingeschreven in de rooster [86] en [88]"
+msgstr "84 - Notes de crédits sur opérations case [86] et [88]"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_85
@@ -625,7 +625,7 @@ msgstr "85"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_85
 msgid "85 - Notes de crédits autres opérations"
-msgstr "85 - Creditnota's voor overige bewerkingen"
+msgstr "85 - Notes de crédits autres opérations"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_86
@@ -635,7 +635,7 @@ msgstr "86"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_86
 msgid "86 - Acquisition intra-communautaires et ventes ABC"
-msgstr "86 - Intracommunautaire verwerving en ABC verkopen"
+msgstr "86 - Acquisition intra-communautaires et ventes ABC"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_87
@@ -645,7 +645,7 @@ msgstr "87"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_87
 msgid "87 - Autres opérations"
-msgstr "87 - Overige bewerkingen"
+msgstr "87 - Autres opérations"
 
 #. module: l10n_be
 #: model:account.tax.report.line,tag_name:l10n_be.tax_report_line_88
@@ -655,62 +655,68 @@ msgstr "88"
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_line_88
 msgid "88 - Acquisition services intra-communautaires"
-msgstr "88 - Verwerving van intracommunautaire diensten"
+msgstr "88 - Acquisition services intra-communautaires"
 
 #. module: l10n_be
 #: model:ir.model,name:l10n_be.model_account_chart_template
 msgid "Account Chart Template"
-msgstr ""
+msgstr "Account Chart Template"
 
 #. module: l10n_be
 #: model:account.chart.template,name:l10n_be.l10nbe_chart_template
 msgid "Belgian PCMN"
-msgstr ""
+msgstr "Belgian PCMN"
 
 #. module: l10n_be
 #: model:ir.ui.menu,name:l10n_be.account_reports_be_statements_menu
 msgid "Belgium"
-msgstr ""
+msgstr "Belgium"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_title_operations_sortie
 msgid "II A la sortie"
-msgstr "II Uitgaande handelingen"
+msgstr "II A la sortie"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_title_operations_entree
 msgid "III A l'entrée"
-msgstr "III Inkomende handelingen"
+msgstr "III A l'entrée"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_title_taxes_dues
 msgid "IV Dues"
-msgstr "IV Verschuldigd"
+msgstr "IV Dues"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_title_operations
 msgid "Opérations"
-msgstr "Verrichtingen"
+msgstr "Opérations"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a4168
+msgid ""
+"Rabais, ristournes, remises à obtenir et autres avoirs non encore reçus"
+msgstr "Kortingen, rabatten en andere nog te ontvangen tegoeden"
 
 #. module: l10n_be
 #: model:account.fiscal.position.template,name:l10n_be.fiscal_position_template_4
 msgid "Régime Cocontractant"
-msgstr "Medecontractant"
+msgstr "Régime Cocontractant"
 
 #. module: l10n_be
 #: model:account.fiscal.position.template,name:l10n_be.fiscal_position_template_2
 msgid "Régime Extra-Communautaire"
-msgstr "Export"
+msgstr "Régime Extra-Communautaire"
 
 #. module: l10n_be
 #: model:account.fiscal.position.template,name:l10n_be.fiscal_position_template_3
 msgid "Régime Intra-Communautaire"
-msgstr "Intra-Communautair"
+msgstr "Régime Intra-Communautaire"
 
 #. module: l10n_be
 #: model:account.fiscal.position.template,name:l10n_be.fiscal_position_template_1
 msgid "Régime National"
-msgstr "Nationaal"
+msgstr "Régime National"
 
 #. module: l10n_be
 #: model:account.tax.group,name:l10n_be.tax_group_tva_0
@@ -721,7 +727,7 @@ msgstr "Nationaal"
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-00-L
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-00-S
 msgid "TVA 0%"
-msgstr "BTW 0%"
+msgstr "TVA 0%"
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-00-CC
@@ -729,7 +735,7 @@ msgstr "BTW 0%"
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-00-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-00-CC
 msgid "TVA 0% Cocont."
-msgstr "BTW 0% Medecont."
+msgstr "TVA 0% Cocont."
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-00-EU
@@ -740,7 +746,7 @@ msgstr "BTW 0% Medecont."
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-00-EU-S
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-00-EU-T
 msgid "TVA 0% EU"
-msgstr "BTW 0% EU"
+msgstr "TVA 0% EU"
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-00-ROW-CC
@@ -748,7 +754,7 @@ msgstr "BTW 0% EU"
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-00-ROW-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-00-ROW
 msgid "TVA 0% Non EU"
-msgstr "BTW 0% Non EU"
+msgstr "TVA 0% Non EU"
 
 #. module: l10n_be
 #: model:account.tax.group,name:l10n_be.tax_group_tva_12
@@ -759,14 +765,14 @@ msgstr "BTW 0% Non EU"
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-12-L
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-12-S
 msgid "TVA 12%"
-msgstr "BTW 12%"
+msgstr "TVA 12%"
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-12-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V82-12-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-12-CC
 msgid "TVA 12% Cocont."
-msgstr "BTW 12% Medecont."
+msgstr "TVA 12% Cocont."
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-12-EU
@@ -774,14 +780,14 @@ msgstr "BTW 12% Medecont."
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V82-12-EU-S
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-12-EU
 msgid "TVA 12% EU"
-msgstr "BTW 12% EU"
+msgstr "TVA 12% EU"
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-12-ROW-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V82-12-ROW-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-12-ROW-CC
 msgid "TVA 12% Non EU"
-msgstr "BTW 12% Niet EU"
+msgstr "TVA 12% Non EU"
 
 #. module: l10n_be
 #: model:account.tax.group,name:l10n_be.tax_group_tva_21
@@ -792,14 +798,14 @@ msgstr "BTW 12% Niet EU"
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-21-L
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-21-S
 msgid "TVA 21%"
-msgstr "BTW 21%"
+msgstr "TVA 21%"
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-21-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V82-21-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-21-CC
 msgid "TVA 21% Cocont."
-msgstr "BTW 21% Medecont."
+msgstr "TVA 21% Cocont."
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-21-EU
@@ -807,24 +813,24 @@ msgstr "BTW 21% Medecont."
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V82-21-EU-S
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-21-EU
 msgid "TVA 21% EU"
-msgstr "BTW 21% EU"
+msgstr "TVA 21% EU"
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-21-ROW-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V82-21-ROW-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-21-ROW-CC
 msgid "TVA 21% Non EU"
-msgstr "BTW 21% Niet EU"
+msgstr "TVA 21% Non EU"
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_TVA-21-inclus-dans-prix
 msgid "TVA 21% TTC"
-msgstr "VAT 21% (inclusief BTW)"
+msgstr "TVA 21% TTC"
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V82-CAR-EXC
 msgid "TVA 50% Non Déductible - Frais de voiture (Prix Excl.)"
-msgstr "BTW 50% Niet Aftrekbaar - Auto kosten (Prijs Excl.)"
+msgstr "TVA 50% Non Déductible - Frais de voiture (Prix Excl.)"
 
 #. module: l10n_be
 #: model:account.tax.group,name:l10n_be.tax_group_tva_6
@@ -835,14 +841,14 @@ msgstr "BTW 50% Niet Aftrekbaar - Auto kosten (Prijs Excl.)"
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-06-L
 #: model:account.tax.template,description:l10n_be.attn_VAT-OUT-06-S
 msgid "TVA 6%"
-msgstr "BTW 6%"
+msgstr "TVA 6%"
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-06-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V82-06-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-06-CC
 msgid "TVA 6% Cocont."
-msgstr "BTW 6% Medecont."
+msgstr "TVA 6% Cocont."
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-06-EU
@@ -850,34 +856,29 @@ msgstr "BTW 6% Medecont."
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V82-06-EU-S
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-06-EU
 msgid "TVA 6% EU"
-msgstr "BTW 6% EU"
+msgstr "TVA 6% EU"
 
 #. module: l10n_be
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V81-06-ROW-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V82-06-ROW-CC
 #: model:account.tax.template,description:l10n_be.attn_VAT-IN-V83-06-ROW-CC
 msgid "TVA 6% Non EU"
-msgstr "BTW 6% Niet EU"
+msgstr "TVA 6% Non EU"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_title_taxes
 msgid "Taxes"
-msgstr "Belastingen"
+msgstr "Taxes"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_title_taxes_deductibles
 msgid "V Déductibles"
-msgstr "V Aftrekbaar"
+msgstr "V Déductibles"
 
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_title_taxes_soldes
 msgid "VI Soldes"
-msgstr "VI Saldo's"
-
-#. module: l10n_be
-#: model:account.account.template,name:l10n_be.a24100
-msgid "Voitures"
-msgstr "Wagens"
+msgstr "VI Soldes"
 
 #. module: l10n_be
 #: model:account.account.template,name:l10n_be.a060
@@ -2198,6 +2199,11 @@ msgstr "Provisions pour autres risques et charges - Obligations environnementale
 #: model:account.account.template,name:l10n_be.a640
 msgid "Taxes related to operation"
 msgstr "Impôts et taxes relatifs à l'exploitation"
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a64012
+msgid "Non deductible taxes"
+msgstr "T.V.A. non déductible"
 
 #. module: l10n_be
 #: model:account.account.template,name:l10n_be.a641

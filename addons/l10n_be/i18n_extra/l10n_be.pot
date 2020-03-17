@@ -1754,6 +1754,21 @@ msgid "VAT payable"
 msgstr ""
 
 #. module: l10n_be
+#: model:account.account.template,name:l10n_be.a451055
+msgid "VAT payable - Intra-community"
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a451056
+msgid "VAT payable - Cocontractant"
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a451057
+msgid "VAT payable - Import"
+msgstr ""
+
+#. module: l10n_be
 #: model:account.account.template,name:l10n_be.a452
 msgid "Taxes payable"
 msgstr ""
@@ -1876,6 +1891,11 @@ msgstr ""
 #. module: l10n_be
 #: model:account.account.template,name:l10n_be.a497
 msgid "Foreign currency translation differences - Liabilities"
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a499
+msgid "Suspense account"
 msgstr ""
 
 #. module: l10n_be
@@ -2199,6 +2219,11 @@ msgid "Taxes related to operation"
 msgstr ""
 
 #. module: l10n_be
+#: model:account.account.template,name:l10n_be.a64012
+msgid "Non deductible taxes"
+msgstr ""
+
+#. module: l10n_be
 #: model:account.account.template,name:l10n_be.a641
 msgid "Loss on ordinary disposal of tangible fixed assets"
 msgstr ""
@@ -2459,8 +2484,48 @@ msgid "Other allocations entitlements"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.account.template,name:l10n_be.a70
-msgid "Turnover"
+#: model:account.account.template,name:l10n_be.a7000
+msgid "Sales rendered in Belgium (marchandises)"
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7001
+msgid "Sales rendered in E.E.C. (marchandises)"
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7002
+msgid "Sales rendered for export (marchandises)"
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7010
+msgid "Sales rendered in Belgium (finished goods)"
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7011
+msgid "Sales rendered in E.E.C. (finished goods)"
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7012
+msgid "Sales rendered for export (finished goods)"
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7050
+msgid "Services rendered in Belgium"
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7051
+msgid "Services rendered in E.E.C."
+msgstr ""
+
+#. module: l10n_be
+#: model:account.account.template,name:l10n_be.a7052
+msgid "Services rendered for export"
 msgstr ""
 
 #. module: l10n_be
