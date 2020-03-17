@@ -140,6 +140,31 @@ function _useChatWindow(callbacks) {
  * @param {function[]} callbacks.return
  * @return {Object} update callbacks
  */
+function _useDialog(callbacks) {
+    const {
+        mount: prevMount,
+        destroy: prevDestroy,
+    } = callbacks;
+    return Object.assign({}, callbacks, {
+        mount: prevMount.concat(({ widget }) => {
+            // trigger mounting of dialog manager
+            widget.call('dialog', '_onWebClientReady');
+        }),
+        destroy: prevDestroy.concat(({ widget }) => {
+            widget.call('dialog', 'destroy');
+        }),
+    });
+}
+
+/**
+ * @private
+ * @param {Object} callbacks
+ * @param {function[]} callbacks.init
+ * @param {function[]} callbacks.mount
+ * @param {function[]} callbacks.destroy
+ * @param {function[]} callbacks.return
+ * @return {Object} update callbacks
+ */
 function _useDiscuss(callbacks) {
     const {
         init: prevInit,
@@ -543,6 +568,7 @@ async function start(param0) {
     };
     const {
         hasChatWindow = false,
+        hasDialog = false,
         hasDiscuss = false,
         hasMessagingMenu = false,
         hasView = false,
@@ -553,6 +579,9 @@ async function start(param0) {
     delete param0.hasView;
     if (hasChatWindow) {
         callbacks = _useChatWindow(callbacks);
+    }
+    if (hasDialog) {
+        callbacks = _useDialog(callbacks);
     }
     if (hasDiscuss) {
         callbacks = _useDiscuss(callbacks);

@@ -336,9 +336,10 @@ QUnit.test('click on remove follower', async function (assert) {
 });
 
 QUnit.test('click on edit follower', async function (assert) {
-    assert.expect(6);
+    assert.expect(5);
 
     await this.start({
+        hasDialog: true,
         async mockRPC(route, args) {
             if (route === 'web/image/res.partner/3/image_128') {
                 return;
@@ -387,14 +388,9 @@ QUnit.test('click on edit follower', async function (assert) {
 
     // Check the dialog has been created (dialogService does not work in tests)
     assert.strictEqual(
-        this.env.store.state.dialogManager.dialogs.length,
+        document.querySelectorAll('.o_FollowerSubtypesEditDialog').length,
         1,
-        "A dialog should have been created"
-    );
-    assert.strictEqual(
-        this.env.store.state.dialogManager.dialogs[0].componentName,
-        'FollowerSubtypesEditDialog',
-        "The created dialog should be the right one"
+        "A dialog allowing to edit follower subtypes should have been created"
     );
 });
 
