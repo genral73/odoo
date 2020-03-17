@@ -90,6 +90,7 @@ class FleetVehicle(models.Model):
     net_car_value = fields.Float(string="Purchase Value", help="Purchase Value of the car")
     residual_value = fields.Float()
     plan_to_change_car = fields.Boolean(related='driver_id.plan_to_change_car', store=True, readonly=False)
+    is_a_car = fields.Boolean(related='model_id.is_a_car')
 
     @api.depends('model_id.brand_id.name', 'model_id.name', 'license_plate')
     def _compute_vehicle_name(self):

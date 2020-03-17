@@ -22,6 +22,7 @@
                         <group>
                             <field name="active" invisible="1"/>
                             <field name="vehicle_type_id"/>
+                            <field name="is_a_car" invisible="1"/>
                             <field name="manager_id" groups="fleet.fleet_group_manager"/>
                         </group>
                     </group>
