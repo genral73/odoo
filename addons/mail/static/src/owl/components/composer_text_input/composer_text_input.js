@@ -225,61 +225,6 @@ class ComposerTextInput extends Component {
     }
 
     /**
-     * Allows to navigate in mentions suggestions.
-     *
-     * @private
-     * @param key
-     * @param shiftkey
-     */
-    _propositionNavigation(key, shiftkey) {
-        const active_id = this.state.active_id;
-        let active = this.state.mentionSuggestions[0].find(function(item) {
-            return item.id === active_id;
-        });
-        const selectionIndex = this.state.mentionSuggestions[0].indexOf(active);
-        if (key === 'Enter') {
-            // selecting proposition
-            this._insertMentionSuggestion(active);
-        } else {
-            // navigation in propositions
-            if (key === 'ArrowDown' || key === 'PageDown') {
-                if (selectionIndex !== this.state.mentionSuggestions[0].length - 1) {
-                    active = this.state.mentionSuggestions[0][selectionIndex + 1];
-                } else {
-                    active = this.state.mentionSuggestions[0][0];
-                }
-            } else if (key === 'ArrowUp' || key === 'PageUp') {
-                if (selectionIndex !== 0) {
-                    active = this.state.mentionSuggestions[0][selectionIndex - 1];
-                } else {
-                    active = this.state.mentionSuggestions[0][this.state.mentionSuggestions[0].length - 1];
-                }
-            } else if (key === 'Home') {
-                active = this.state.mentionSuggestions[0][0];
-            } else if (key === 'End') {
-                active = this.state.mentionSuggestions[0][this.state.mentionSuggestions[0].length - 1];
-            } else if (key === 'Tab') {
-                if (shiftkey) {
-                    if (selectionIndex === 0) {
-                        active = this.state.mentionSuggestions[0][this.state.mentionSuggestions[0].length - 1];
-                    }
-                    else {
-                        active = this.state.mentionSuggestions[0][selectionIndex - 1];
-                    }
-                } else {
-                    if (selectionIndex === this.state.mentionSuggestions[0].length - 1) {
-                        active = this.state.mentionSuggestions[0][0];
-                    }
-                    else {
-                        active = this.state.mentionSuggestions[0][selectionIndex + 1];
-                    }
-                }
-            }
-            this.state.active_id = active.id;
-        }
-    }
-
-    /**
      * Updates the content and height of a textarea
      *
      * @private
@@ -424,12 +369,16 @@ class ComposerTextInput extends Component {
      * @param ev
      */
     _onKeyupTextarea(ev) {
+        let active = undefined;
+        let selectionIndex = undefined;
+        if (this.state.isMentionsOpen) {
+            const active_id = this.state.active_id;
+            active = this.state.mentionSuggestions[0].find(function (item) {
+                return item.id === active_id;
+            });
+            selectionIndex = this.state.mentionSuggestions[0].indexOf(active);
+        }
         switch (ev.key) {
-            // ESCAPED KEYS: do nothing
-
-            case 'Shift':
-
-                break;
             // ESCAPE: close mention propositions
             case 'Escape':
                 if (this.state.isMentionsOpen) {
@@ -441,17 +390,64 @@ class ComposerTextInput extends Component {
                     this._onKeyupTextareaEscape(ev);
                 }
                 break;
-            // ENTER, UP, DOWN, TAB: check if navigation in mention propositions
+            // ENTER, HOME, END, UP, DOWN, PAGE UP, PAGE DOWN, TAB: check if navigation in mention propositions
             case 'Enter':
+                if (this.state.isMentionsOpen) {
+                    this._insertMentionSuggestion(active);
+                }
+                break;
             case 'ArrowUp':
-            case 'ArrowDown':
             case 'PageUp':
+                if (this.state.isMentionsOpen) {
+                    if (selectionIndex !== 0) {
+                        active = this.state.mentionSuggestions[0][selectionIndex - 1];
+                    } else {
+                        active = this.state.mentionSuggestions[0][this.state.mentionSuggestions[0].length - 1];
+                    }
+                    this.state.active_id = active.id;
+                }
+                break;
+            case 'ArrowDown':
             case 'PageDown':
+                if (this.state.isMentionsOpen) {
+                    if (selectionIndex !== this.state.mentionSuggestions[0].length - 1) {
+                        active = this.state.mentionSuggestions[0][selectionIndex + 1];
+                    } else {
+                        active = this.state.mentionSuggestions[0][0];
+                    }
+                    this.state.active_id = active.id;
+                }
+                break;
             case 'Home':
+                if (this.state.isMentionsOpen) {
+                    active = this.state.mentionSuggestions[0][0];
+                    this.state.active_id = active.id;
+                }
+                break;
             case 'End':
+                if (this.state.isMentionsOpen) {
+                    active = this.state.mentionSuggestions[0][this.state.mentionSuggestions[0].length - 1];
+                    this.state.active_id = active.id;
+                }
+                break;
             case 'Tab':
                 if (this.state.isMentionsOpen) {
-                    this._propositionNavigation(ev.key, ev.shiftKey);
+                    if (ev.shiftKey) {
+                        if (selectionIndex === 0) {
+                            active = this.state.mentionSuggestions[0][this.state.mentionSuggestions[0].length - 1];
+                        }
+                        else {
+                            active = this.state.mentionSuggestions[0][selectionIndex - 1];
+                        }
+                    } else {
+                        if (selectionIndex === this.state.mentionSuggestions[0].length - 1) {
+                            active = this.state.mentionSuggestions[0][0];
+                        }
+                        else {
+                            active = this.state.mentionSuggestions[0][selectionIndex + 1];
+                        }
+                    }
+                    this.state.active_id = active.id;
                 }
                 break;
             // Otherwise, check if a mention is typed

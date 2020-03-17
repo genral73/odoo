@@ -28,28 +28,13 @@
             padding-inline-end: map-get($spacers, 2);
         }
         .o_mention_name {
-            font-weight: $font-weight-bold;
             padding-inline-end: map-get($spacers, 2);
-        }
-        .o_mention_info {
-            font-style: italic;
-            color: $gray-600;
-        }
-        .fa {
-            font-size: $font-size-sm;
         }
     }
 }
 
 .o_mail_user_status {
-    font-size: $font-size-base;
     position: relative;
-    &.o_user_online {
-        color: $o-enterprise-primary-color;
-    }
-    &.o_user_idle {
-        color: theme-color('warning');
-    }
     &.fa-stack {
         width: 1em;
         height: 1em;
@@ -67,5 +52,30 @@
 
     > .note-resizebar {
         display: none;
+    }
+}
+
+.o_ComposerTextInput_mention_dropdown .o_mention_proposition_list {
+  .o_mention_proposition {
+        .o_mention_name {
+            font-weight: $font-weight-bold;
+        }
+        .o_mention_info {
+            font-style: italic;
+            color: $gray-600;
+        }
+        .fa {
+            font-size: $font-size-sm;
+        }
+    }
+}
+
+.o_mail_user_status {
+    font-size: $font-size-base;
+    &.o_user_online {
+        color: $o-enterprise-primary-color;
+    }
+    &.o_user_idle {
+        color: theme-color('warning');
     }
 }
