@@ -31,6 +31,7 @@ class FollowerSubtypesEditDialog extends Component {
 
     /**
      * Mandatory method for dialog components.
+     *
      * @return {boolean}
      */
     isCloseable() {

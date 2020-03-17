@@ -4,19 +4,29 @@
     <t t-name="mail.component.FollowersMenu" owl="1">
         <div class="o_FollowersMenu">
             <t t-if="storeProps.isFollowing">
-                <button class="btn btn-link o_FollowersMenu_buttonUnfollow" type="button" t-att-disabled="props.isDisabled" t-on-click="_onClickUnfollow">
-                    <span class="o_ButtonUnfollow_following">
-                        <i class="fa fa-check o_ButtonUnfollow_followingIcon"/>
-                        Following
-                    </span>
-                    <span class="o_ButtonUnfollow_unfollow">
-                        <i class="fa fa-times o_ButtonUnfollow_unfollowIcon"/>
+                <button class="btn btn-link o_FollowersMenu_unfollowButton"
+                        type="button"
+                        t-att-disabled="props.isDisabled"
+                        t-on-click="_onClickUnfollow"
+                        t-on-mouseenter="_onMouseEnterUnfollow"
+                        t-on-mouseleave="_onMouseLeaveUnfollow"
+                        t-att-class="{
+                            'o-following': !state.hasUnfollowHover,
+                            'o-unfollow': state.hasUnfollowHover,
+                        }"
+                >
+                    <t t-if="state.hasUnfollowHover">
+                        <i class="fa fa-times"/>
                         Unfollow
-                    </span>
+                    </t>
+                    <t t-else="">
+                        <i class="fa fa-check"/>
+                        Following
+                    </t>
                 </button>
             </t>
             <t t-else="">
-                <button class="btn btn-link o_FollowersMenu_buttonFollow" type="button" t-att-disabled="props.isDisabled" t-on-click="_onClickFollow">
+                <button class="btn btn-link o_FollowersMenu_followButton" type="button" t-att-disabled="props.isDisabled" t-on-click="_onClickFollow">
                     Follow
                 </button>
             </t>

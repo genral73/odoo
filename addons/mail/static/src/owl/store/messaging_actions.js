@@ -48,20 +48,18 @@ const actions = {
     /**
      * @param {Object} param0
      * @param {function} param0.dispatch
-     * @param {Object} param0.state
      * @param {string} threadLocalId
      */
-    async addChannelFollowersToThread({ dispatch, state }, threadLocalId) {
-        await dispatch('_addFollowersToThread', threadLocalId, { onlyChannel: true});
+    async addChannelFollowersToThread({ dispatch }, threadLocalId) {
+        await dispatch('_addFollowersToThread', threadLocalId, { onlyChannel: true });
     },
     /**
      * @param {Object} param0
      * @param {function} param0.dispatch
-     * @param {Object} param0.state
      * @param {string} threadLocalId
      */
-    async addPartnerFollowersToThread({ dispatch, state }, threadLocalId) {
-        await dispatch('_addFollowersToThread', threadLocalId, { onlyChannel: false});
+    async addPartnerFollowersToThread({ dispatch }, threadLocalId) {
+        await dispatch('_addFollowersToThread', threadLocalId, { onlyChannel: false });
     },
     /**
      * Close all chat windows.
@@ -1244,21 +1242,21 @@ const actions = {
         delete chatter.activityIds;
     },
     /**
+     * @private
      * @param {Object} param0
      * @param {Object} param0.env
      * @param {Object} param0.state
      * @param {string} threadLocalId
      * @param {string} followerLocalId
-     * @private
      */
-    async removeFollowerFromThread({ env, state }, threadLocalId, followerLocalId){
+    async removeFollowerFromThread({ env, state }, threadLocalId, followerLocalId) {
         const thread = state.threads[threadLocalId];
         const follower = state.followers[followerLocalId];
         if (!thread || !follower) {
             return;
         }
-        let partnerIds = [];
-        let channelIds = [];
+        const partnerIds = [];
+        const channelIds = [];
         if (follower.partnerId) {
             partnerIds.push(follower.partnerId);
         } else {
@@ -1910,6 +1908,7 @@ const actions = {
     //--------------------------------------------------------------------------
 
     /**
+     * @private
      * @param {Object} param0
      * @param {function} param0.dispatch
      * @param {Object} param0.env
@@ -1917,9 +1916,8 @@ const actions = {
      * @param {string} threadLocalId
      * @param {Object} param2
      * @param {boolean} param2.onlyChannel
-     * @private
      */
-    _addFollowersToThread({ dispatch, env, state }, threadLocalId, { onlyChannel }){
+    _addFollowersToThread({ dispatch, env, state }, threadLocalId, { onlyChannel }) {
         const thread = state.threads[threadLocalId];
         if (!thread) {
             return;
@@ -1996,7 +1994,7 @@ const actions = {
             // Followers
             if (chatter.followerIds) {
                 if (chatter.followerIds.length > 0) {
-                    thread.followerLocalIds = await dispatch('_fetchThreadFollowers',
+                    await dispatch('_fetchThreadFollowers',
                         chatter.followerIds,
                         threadLocalId
                     );
@@ -2840,11 +2838,13 @@ const actions = {
      * @param {Object} param0
      * @param {function} param0.dispatch
      * @param {Object} param0.env
+     * @param {Object} param0.getters
+     * @param {Object} param0.state
      * @param {Array} followerIds
      * @param {String} threadLocalId
      * @returns {Promise<Array>}
      */
-    async _fetchThreadFollowers({ dispatch, env }, followerIds, threadLocalId) {
+    async _fetchThreadFollowers({ dispatch, getters, env, state }, followerIds, threadLocalId) {
         const { followers } = await env.rpc({
             route: '/mail/read_followers',
             params: {
@@ -2853,11 +2853,18 @@ const actions = {
             }
         });
         const followerLocalIds = [];
-        for (const follower of followers) {
-            const followerLocalId = dispatch('_insertFollower', follower, threadLocalId);
-            followerLocalIds.push(followerLocalId);
+        for (const followerData of followers) {
+            const existingFollower = getters.follower(followerData.id);
+            if (existingFollower) {
+                dispatch('_updateFollower', existingFollower.localId, followerData);
+                followerLocalIds.push(existingFollower.localId);
+            } else {
+                const followerLocalId = dispatch('_createFollower', followerData, threadLocalId);
+                followerLocalIds.push(followerLocalId);
+            }
         }
-        return followerLocalIds;
+        const thread = state.threads[threadLocalId];
+        thread.followerLocalIds = followerLocalIds;
     },
     /**
      * @private
@@ -3921,27 +3928,6 @@ const actions = {
         return attachmentLocalId;
     },
     /**
-     * Update existing follower or create a new follower
-     *
-     * @private
-     * @param {Object} param0
-     * @param {function} param0.dispatch
-     * @param {Object} param0.getters
-     * @param {Object} followerData
-     * @param {integer} followerData.id
-     * @param {string} threadLocalId
-     * @return {string} the existing or created follower local id
-     */
-    _insertFollower({ dispatch, getters }, followerData, threadLocalId) {
-        const existingFollower = getters.follower(followerData.id);
-        if (existingFollower) {
-            dispatch('_updateFollower', existingFollower.localId, followerData);
-            return existingFollower.localId;
-        } else {
-            return dispatch('_createFollower', followerData, threadLocalId);
-        }
-    },
-    /**
      * Update existing mail template or create a new mail template
      *
      * @private
@@ -4544,13 +4530,13 @@ const actions = {
         });
         return id;
     },
-
     /**
+     * @private
      * @param {Object} param0
      * @param {function} param0.dispatch
      * @param {Object} param0.env
      * @param {Object} param0.state
-     * @param threadLocalId
+     * @param {string} threadLocalId
      */
     async _refreshThreadFollowers({ dispatch, env, state }, threadLocalId) {
         // A bit "extreme", may be improved
@@ -4560,7 +4546,7 @@ const actions = {
             method: 'read',
             args: [thread.id, ['message_follower_ids']]
         });
-        thread.followerLocalIds = await dispatch('_fetchThreadFollowers', followerIds, threadLocalId);
+        await dispatch('_fetchThreadFollowers', followerIds, threadLocalId);
     },
     /**
      * @private
@@ -4665,8 +4651,8 @@ const actions = {
         const follower = state.followers[followerLocalId];
         const subtypes = {};
         for (const subtypeData of subtypesData) {
-            let {
-                'default': isDefault,
+            const {
+                default: isDefault,
                 followed: isFollowed,
                 id,
                 internal: isInternal,
@@ -4968,7 +4954,6 @@ const actions = {
      * @param {Object} followerData
      */
     _updateFollower({ state }, followerLocalId, followerData) {
-        console.log(followerLocalId, followerData);
         const {
             channel_id: channelId,
             email,

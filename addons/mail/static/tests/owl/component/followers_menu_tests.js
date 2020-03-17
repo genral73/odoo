@@ -60,12 +60,12 @@ QUnit.test('base rendering not editable', async function (assert) {
         "should have followers menu component"
     );
     assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_buttonFollow').length,
+        document.querySelectorAll('.o_FollowersMenu_followButton').length,
         1,
         "should have 'Follow' button"
     );
     assert.ok(
-        document.querySelector('.o_FollowersMenu_buttonFollow').disabled,
+        document.querySelector('.o_FollowersMenu_followButton').disabled,
         "'Follow' button should be disabled"
     );
     assert.strictEqual(
@@ -105,12 +105,12 @@ QUnit.test('base rendering editable', async function (assert) {
         "should have followers menu component"
     );
     assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_buttonFollow').length,
+        document.querySelectorAll('.o_FollowersMenu_followButton').length,
         1,
         "should have 'Follow' button"
     );
     assert.notOk(
-        document.querySelector('.o_FollowersMenu_buttonFollow').disabled,
+        document.querySelector('.o_FollowersMenu_followButton').disabled,
         "'Follow' button should not be disabled"
     );
     assert.strictEqual(
@@ -137,13 +137,13 @@ QUnit.test('base rendering editable', async function (assert) {
     );
 });
 
-QUnit.test('click on add followers', async function (assert) {
-    assert.expect(12);
-
+QUnit.test('click on "add followers" button of chatter', async function (assert) {
+    assert.expect(18);
+    const followerIds = [];
     await this.start({
         intercepts: {
             do_action: function (event) {
-                assert.step('add_followers_action');
+                assert.step('action:open_view');
                 assert.strictEqual(
                     event.data.action.context.default_res_model,
                     'res.partner',
@@ -163,129 +163,8 @@ QUnit.test('click on add followers', async function (assert) {
                     event.data.action.type,
                     "ir.actions.act_window",
                     "The 'add followers' action should be of type 'ir.actions.act_window'");
-            },
-        },
-    });
-    const threadLocalId = this.env.store.dispatch('_createThread', {
-        id: 100,
-        _model: 'res.partner',
-    });
-    await this.createFollowersMenuComponent(threadLocalId);
-    assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu').length,
-        1,
-        "should have followers menu component"
-    );
-    assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_buttonFollowers').length,
-        1,
-        "should have followers button"
-    );
-
-    await document.querySelector('.o_FollowersMenu_buttonFollowers').click();
-    await afterNextRender();
-    assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_dropdown').length,
-        1,
-        "followers dropdown should be opened"
-    );
-    assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_addFollowersButton').length,
-        1,
-        "followers dropdown should contain a 'Add followers' button"
-    );
-    await document.querySelector('.o_FollowersMenu_addFollowersButton').click();
-    await afterNextRender();
-    assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_dropdown').length,
-        0,
-        "followers dropdown should be closed after click on 'Add followers'"
-    );
-    assert.verifySteps(
-        ['add_followers_action'],
-        "Click on 'Add followers' should trigger the right action"
-    );
-});
-
-QUnit.test('click on add channels', async function (assert) {
-    assert.expect(12);
-
-    await this.start({
-        intercepts: {
-            do_action: function (event) {
-                assert.step('add_followers_action');
-                assert.strictEqual(
-                    event.data.action.context.default_res_model,
-                    'res.partner',
-                    "'The 'add channels' action should contain thread model in context'");
-                assert.ok(
-                    event.data.action.context.mail_invite_follower_channel_only,
-                    "The 'add channels' action should be restricted to channels only");
-                assert.strictEqual(
-                    event.data.action.context.default_res_id,
-                    100,
-                    "The 'add channels' action should contain thread id in context");
-                assert.strictEqual(
-                    event.data.action.res_model,
-                    'mail.wizard.invite',
-                    "The 'add channels' action should be a wizard invite of mail module");
-                assert.strictEqual(
-                    event.data.action.type,
-                    "ir.actions.act_window",
-                    "The 'add channels' action should be of type 'ir.actions.act_window'");
-            },
-        },
-    });
-    const threadLocalId = this.env.store.dispatch('_createThread', {
-        id: 100,
-        _model: 'res.partner',
-    });
-    await this.createFollowersMenuComponent(threadLocalId);
-    assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu').length,
-        1,
-        "should have followers menu component"
-    );
-    assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_buttonFollowers').length,
-        1,
-        "should have followers button"
-    );
-
-    await document.querySelector('.o_FollowersMenu_buttonFollowers').click();
-    await afterNextRender();
-    assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_dropdown').length,
-        1,
-        "followers dropdown should be opened"
-    );
-    assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_addChannelsButton').length,
-        1,
-        "followers dropdown should contain a 'add channels' button"
-    );
-    await document.querySelector('.o_FollowersMenu_addChannelsButton').click();
-    await afterNextRender();
-    assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_dropdown').length,
-        0,
-        "followers dropdown should be closed after click on 'add channels'"
-    );
-    assert.verifySteps(
-        ['add_followers_action'],
-        "Click on 'add channels' should trigger the right action"
-    );
-});
-
-QUnit.test('add followers', async function (assert) {
-    assert.expect(10);
-    const followerIds = [];
-    await this.start({
-        intercepts: {
-            do_action: function (e) {
-                assert.step('action:open_view');
                 followerIds.push(1);
-                e.data.options.on_close();
+                event.data.options.on_close();
             },
         },
         async mockRPC(route, args) {
@@ -324,6 +203,11 @@ QUnit.test('add followers', async function (assert) {
         "should have followers menu component"
     );
     assert.strictEqual(
+        document.querySelectorAll('.o_FollowersMenu_buttonFollowers').length,
+        1,
+        "should have followers button"
+    );
+    assert.strictEqual(
         document.querySelector('.o_FollowersMenu_buttonFollowersCount').textContent,
         "0",
         "Followers counter should be equal to 0"
@@ -332,6 +216,11 @@ QUnit.test('add followers', async function (assert) {
     await document.querySelector('.o_FollowersMenu_buttonFollowers').click();
     await afterNextRender();
     assert.strictEqual(
+        document.querySelectorAll('.o_FollowersMenu_dropdown').length,
+        1,
+        "followers dropdown should be opened"
+    );
+    assert.strictEqual(
         document.querySelectorAll('.o_FollowersMenu_addFollowersButton').length,
         1,
         "followers dropdown should contain a 'Add followers' button"
@@ -339,6 +228,11 @@ QUnit.test('add followers', async function (assert) {
 
     await document.querySelector('.o_FollowersMenu_addFollowersButton').click();
     await afterNextRender();
+    assert.strictEqual(
+        document.querySelectorAll('.o_FollowersMenu_dropdown').length,
+        0,
+        "followers dropdown should be closed after click on 'Add followers'"
+    );
     assert.verifySteps(['action:open_view', 'rpc:read_follower_ids', 'rpc:read_followers_details']);
     assert.strictEqual(
         document.querySelector('.o_FollowersMenu_buttonFollowersCount').textContent,
@@ -359,15 +253,34 @@ QUnit.test('add followers', async function (assert) {
     );
 });
 
-QUnit.test('add channels', async function (assert) {
-    assert.expect(10);
+QUnit.test('click on "add channels" button of chatter', async function (assert) {
+    assert.expect(18);
     const followerIds = [];
     await this.start({
         intercepts: {
-            do_action: function (e) {
+            do_action: function (event) {
                 assert.step('action:open_view');
+                assert.strictEqual(
+                    event.data.action.context.default_res_model,
+                    'res.partner',
+                    "'The 'add channels' action should contain thread model in context'");
+                assert.ok(
+                    event.data.action.context.mail_invite_follower_channel_only,
+                    "The 'add channels' action should be restricted to channels only");
+                assert.strictEqual(
+                    event.data.action.context.default_res_id,
+                    100,
+                    "The 'add channels' action should contain thread id in context");
+                assert.strictEqual(
+                    event.data.action.res_model,
+                    'mail.wizard.invite',
+                    "The 'add channels' action should be a wizard invite of mail module");
+                assert.strictEqual(
+                    event.data.action.type,
+                    "ir.actions.act_window",
+                    "The 'add channels' action should be of type 'ir.actions.act_window'");
                 followerIds.push(1);
-                e.data.options.on_close();
+                event.data.options.on_close();
             },
         },
         async mockRPC(route, args) {
@@ -410,9 +323,19 @@ QUnit.test('add channels', async function (assert) {
         "0",
         "Followers counter should be equal to 0"
     );
+    assert.strictEqual(
+        document.querySelectorAll('.o_FollowersMenu_buttonFollowers').length,
+        1,
+        "should have followers button"
+    );
 
     await document.querySelector('.o_FollowersMenu_buttonFollowers').click();
     await afterNextRender();
+    assert.strictEqual(
+        document.querySelectorAll('.o_FollowersMenu_dropdown').length,
+        1,
+        "followers dropdown should be opened"
+    );
     assert.strictEqual(
         document.querySelectorAll('.o_FollowersMenu_addChannelsButton').length,
         1,
@@ -421,6 +344,11 @@ QUnit.test('add channels', async function (assert) {
 
     await document.querySelector('.o_FollowersMenu_addChannelsButton').click();
     await afterNextRender();
+    assert.strictEqual(
+        document.querySelectorAll('.o_FollowersMenu_dropdown').length,
+        0,
+        "followers dropdown should be closed after click on 'add channels'"
+    );
     assert.verifySteps(['action:open_view', 'rpc:read_follower_ids', 'rpc:read_followers_details']);
     assert.strictEqual(
         document.querySelector('.o_FollowersMenu_buttonFollowersCount').textContent,
@@ -442,7 +370,7 @@ QUnit.test('add channels', async function (assert) {
     );
 });
 
-QUnit.test('follow', async function (assert) {
+QUnit.test('click on "follow" button of chatter', async function (assert) {
     assert.expect(12);
     const self = this;
     await this.start({
@@ -491,21 +419,21 @@ QUnit.test('follow', async function (assert) {
         "Followers counter should be equal to 0"
     );
     assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_buttonFollow').length,
+        document.querySelectorAll('.o_FollowersMenu_followButton').length,
         1,
         "should have button follow"
     );
 
-    await document.querySelector('.o_FollowersMenu_buttonFollow').click();
+    await document.querySelector('.o_FollowersMenu_followButton').click();
     await afterNextRender();
     assert.verifySteps(['rpc:message_subscribe', 'rpc:read_follower_ids', 'rpc:read_followers_details']);
     assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_buttonFollow').length,
+        document.querySelectorAll('.o_FollowersMenu_followButton').length,
         0,
         "should not have follow button after clicked on follow"
     );
     assert.strictEqual(
-        document.querySelectorAll('.o_FollowersMenu_buttonUnfollow').length,
+        document.querySelectorAll('.o_FollowersMenu_unfollowButton').length,
         1,
         "should have unfollow button after clicked on follow"
     );

@@ -27,12 +27,18 @@ class Follower extends Component {
     // Getters
     //--------------------------------------------------------------------------
 
+    /**
+     * @returns {integer}
+     */
     get resId() {
         return this.storeProps.follower.partnerId
             ? this.storeProps.follower.partnerId
             : this.storeProps.follower.channelId;
     }
 
+    /**
+     * @returns {string}
+     */
     get resModel() {
         return this.storeProps.follower.partnerId
             ? 'res.partner'

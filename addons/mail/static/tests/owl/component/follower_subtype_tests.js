@@ -14,11 +14,11 @@ QUnit.module('component', {}, function () {
 QUnit.module('FollowerSubtype', {
     beforeEach() {
         utilsBeforeEach(this);
-        this.createFollowerSubtypeComponent = async (subtypeId, followerLocalId, otherProps) => {
+        this.createFollowerSubtypeComponent = async ({ followerLocalId, subtypeId }) => {
             FollowerSubtype.env = this.env;
             this.subtype = new FollowerSubtype(
                 null,
-                Object.assign({ followerLocalId, subtypeId }, otherProps)
+                { followerLocalId, subtypeId }
             );
             await this.subtype.mount(this.widget.el);
         };
@@ -50,6 +50,10 @@ QUnit.test('simplest layout of a followed subtype', async function (assert) {
     assert.expect(5);
 
     await this.start();
+    const threadLocalId = this.env.store.dispatch('_createThread', {
+        id: 100,
+        _model: 'res.partner',
+    });
     const followerLocalId = await this.env.store.dispatch('_createFollower', {
         channel_id: 1,
         email: "bla@bla.bla",
@@ -58,7 +62,7 @@ QUnit.test('simplest layout of a followed subtype', async function (assert) {
         is_editable: true,
         name: "François Perusse",
         partner_id: null,
-    }, 'dummy_and_useless_thread_local_id');
+    }, threadLocalId);
     await this.env.store.dispatch('_setFollowerSubtypes', followerLocalId, [{
         default: true,
         followed: true,
@@ -67,7 +71,10 @@ QUnit.test('simplest layout of a followed subtype', async function (assert) {
         name: "Dummy test",
         res_model: 'res.partner'
     }]);
-    await this.createFollowerSubtypeComponent(1, followerLocalId);
+    await this.createFollowerSubtypeComponent({
+        followerLocalId,
+        subtypeId: 1,
+    });
     assert.strictEqual(
         document.querySelectorAll('.o_FollowerSubtype').length,
         1,
@@ -98,6 +105,10 @@ QUnit.test('simplest layout of a not followed subtype', async function (assert) 
     assert.expect(5);
 
     await this.start();
+    const threadLocalId = this.env.store.dispatch('_createThread', {
+        id: 100,
+        _model: 'res.partner',
+    });
     const followerLocalId = await this.env.store.dispatch('_createFollower', {
         channel_id: 1,
         email: "bla@bla.bla",
@@ -106,7 +117,7 @@ QUnit.test('simplest layout of a not followed subtype', async function (assert) 
         is_editable: true,
         name: "François Perusse",
         partner_id: null,
-    }, 'dummy_and_useless_thread_local_id');
+    }, threadLocalId);
     await this.env.store.dispatch('_setFollowerSubtypes', followerLocalId, [{
         default: true,
         followed: false,
@@ -115,7 +126,10 @@ QUnit.test('simplest layout of a not followed subtype', async function (assert) 
         name: "Dummy test",
         res_model: 'res.partner'
     }]);
-    await this.createFollowerSubtypeComponent(1, followerLocalId);
+    await this.createFollowerSubtypeComponent({
+        followerLocalId,
+        subtypeId: 1,
+    });
     assert.strictEqual(
         document.querySelectorAll('.o_FollowerSubtype').length,
         1,
@@ -146,6 +160,10 @@ QUnit.test('toggle follower subtype checkbox', async function (assert) {
     assert.expect(5);
 
     await this.start();
+    const threadLocalId = this.env.store.dispatch('_createThread', {
+        id: 100,
+        _model: 'res.partner',
+    });
     const followerLocalId = await this.env.store.dispatch('_createFollower', {
         channel_id: 1,
         email: "bla@bla.bla",
@@ -154,7 +172,7 @@ QUnit.test('toggle follower subtype checkbox', async function (assert) {
         is_editable: true,
         name: "François Perusse",
         partner_id: null,
-    }, 'dummy_and_useless_thread_local_id');
+    }, threadLocalId);
     await this.env.store.dispatch('_setFollowerSubtypes', followerLocalId, [{
         default: true,
         followed: false,
@@ -163,7 +181,10 @@ QUnit.test('toggle follower subtype checkbox', async function (assert) {
         name: "Dummy test",
         res_model: 'res.partner'
     }]);
-    await this.createFollowerSubtypeComponent(1, followerLocalId);
+    await this.createFollowerSubtypeComponent({
+        followerLocalId,
+        subtypeId: 1,
+    });
     assert.strictEqual(
         document.querySelectorAll('.o_FollowerSubtype').length,
         1,

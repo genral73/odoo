@@ -58,6 +58,10 @@ QUnit.test('base rendering not editable', async function (assert) {
             return this._super(...arguments);
         },
     });
+    const threadLocalId = this.env.store.dispatch('_createThread', {
+        id: 100,
+        _model: 'res.partner',
+    });
     const followerLocalId = await this.env.store.dispatch('_createFollower', {
         channel_id: 1,
         email: "bla@bla.bla",
@@ -66,7 +70,7 @@ QUnit.test('base rendering not editable', async function (assert) {
         is_editable: false,
         name: "François Perusse",
         partner_id: null,
-    }, 'dummy_and_useless_thread_local_id');
+    }, threadLocalId);
     await this.createFollowerComponent(followerLocalId);
     assert.strictEqual(
         document.querySelectorAll('.o_Follower').length,
@@ -106,6 +110,10 @@ QUnit.test('base rendering editable', async function (assert) {
             return this._super(...arguments);
         },
     });
+    const threadLocalId = this.env.store.dispatch('_createThread', {
+        id: 100,
+        _model: 'res.partner',
+    });
     const followerLocalId = await this.env.store.dispatch('_createFollower', {
         channel_id: 1,
         email: "bla@bla.bla",
@@ -114,7 +122,7 @@ QUnit.test('base rendering editable', async function (assert) {
         is_editable: true,
         name: "François Perusse",
         partner_id: null,
-    }, 'dummy_and_useless_thread_local_id');
+    }, threadLocalId);
     await this.createFollowerComponent(followerLocalId);
     assert.strictEqual(
         document.querySelectorAll('.o_Follower').length,
@@ -159,12 +167,16 @@ QUnit.test('click on channel follower details', async function (assert) {
             if (route === '/web/dataset/call_kw/mail.channel/channel_join_and_get_info') {
                 assert.step('channel_join');
                 return {
-                    _model: 'res.partner',
                     id: 1,
+                    channel_type: 'a',
                 };
             }
             return this._super(...arguments);
         },
+    });
+    const threadLocalId = this.env.store.dispatch('_createThread', {
+        id: 100,
+        _model: 'res.partner',
     });
     const followerLocalId = await this.env.store.dispatch('_createFollower', {
         channel_id: 1,
@@ -173,7 +185,7 @@ QUnit.test('click on channel follower details', async function (assert) {
         is_active: true,
         is_editable: true,
         name: "channel",
-    }, 'dummy_and_useless_thread_local_id');
+    }, threadLocalId);
     await this.createFollowerComponent(followerLocalId);
     assert.strictEqual(
         document.querySelectorAll('.o_Follower').length,
@@ -218,6 +230,10 @@ QUnit.test('click on partner follower details', async function (assert) {
             },
         },
     });
+    const threadLocalId = this.env.store.dispatch('_createThread', {
+        id: 100,
+        _model: 'res.partner',
+    });
     const followerLocalId = await this.env.store.dispatch('_createFollower', {
         partner_id: this.env.session.partner_id,
         email: "bla@bla.bla",
@@ -225,7 +241,7 @@ QUnit.test('click on partner follower details', async function (assert) {
         is_active: true,
         is_editable: true,
         name: "François Perusse",
-    }, 'dummy_and_useless_thread_local_id');
+    }, threadLocalId);
     await this.createFollowerComponent(followerLocalId);
     assert.strictEqual(
         document.querySelectorAll('.o_Follower').length,
@@ -341,6 +357,10 @@ QUnit.test('click on edit follower', async function (assert) {
             return this._super(...arguments);
         },
     });
+    const threadLocalId = this.env.store.dispatch('_createThread', {
+        id: 100,
+        _model: 'res.partner',
+    });
     const followerLocalId = await this.env.store.dispatch('_createFollower', {
         partner_id: this.env.session.partner_id,
         email: "bla@bla.bla",
@@ -348,7 +368,7 @@ QUnit.test('click on edit follower', async function (assert) {
         is_active: true,
         is_editable: true,
         name: "François Perusse",
-    }, 'dummy_and_useless_thread_local_id');
+    }, threadLocalId);
     await this.createFollowerComponent(followerLocalId);
     assert.strictEqual(
         document.querySelectorAll('.o_Follower').length,

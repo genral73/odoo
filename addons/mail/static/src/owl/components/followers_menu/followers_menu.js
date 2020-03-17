@@ -16,6 +16,7 @@ class FollowersMenu extends Component {
         super(...args);
         this.state = useState({
             hasDropdown: false,
+            hasUnfollowHover: false,
         });
         this.storeDispatch = useDispatch();
         this.storeProps = useStore((state, props) => {
@@ -35,16 +36,10 @@ class FollowersMenu extends Component {
         this._onClickCaptureGlobal = this._onClickCaptureGlobal.bind(this);
     }
 
-    /**
-     * @override
-     */
     mounted() {
         document.addEventListener('click', this._onClickCaptureGlobal, true);
     }
 
-    /**
-     * @override
-     */
     willUnmount() {
         document.removeEventListener('click', this._onClickCaptureGlobal, true);
     }
@@ -53,6 +48,9 @@ class FollowersMenu extends Component {
     // Private
     //--------------------------------------------------------------------------
 
+    /**
+     * @private
+     */
     _hide() {
         this.state.hasDropdown = false;
     }
@@ -83,6 +81,7 @@ class FollowersMenu extends Component {
 
     /**
      * Close the dropdown when clicking outside of it.
+     *
      * @private
      * @param {MouseEvent} ev
      */
@@ -117,18 +116,34 @@ class FollowersMenu extends Component {
         this._hide();
     }
 
-        /**
+    /**
      * @private
      * @param {MouseEvent} ev
      */
     _onClickUnfollow(ev) {
         this.storeDispatch('unfollowThread', this.props.threadLocalId);
     }
+
+    /**
+     * @private
+     * @param {MouseEvent} ev
+     */
+    _onMouseLeaveUnfollow(ev) {
+        this.state.hasUnfollowHover = false;
+    }
+
+    /**
+     * @private
+     * @param {MouseEvent} ev
+     */
+    _onMouseEnterUnfollow(ev) {
+        this.state.hasUnfollowHover = true;
+    }
 }
 
 Object.assign(FollowersMenu, {
     components: { Follower },
-    default_props: {
+    defaultProps: {
         isDisabled: false,
     },
     props: {
