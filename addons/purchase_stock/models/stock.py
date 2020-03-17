@@ -163,6 +163,15 @@ class ReturnPicking(models.TransientModel):
 class Orderpoint(models.Model):
     _inherit = "stock.warehouse.orderpoint"
 
+    def _get_default_route_id(self):
+        if self.product_id._prepare_sellers():
+            route_id = self.env['stock.rule'].search([
+                ('action', '=', 'buy')
+            ]).route_id
+            if route_id:
+                return route_id[0]
+        return super()._get_default_route_id()
+
     def _commpute_allowed_route_ids(self):
         super()._commpute_allowed_route_ids()
         if not self.user_has_groups('stock.group_adv_location'):

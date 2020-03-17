@@ -193,6 +193,18 @@ class StockWarehouseOrderpoint(models.Model):
                         qty_to_order += orderpoint.qty_multiple - remainder
                 orderpoint.qty_to_order = qty_to_order
 
+    def _get_default_route_id(self):
+        if not self.location_id or not self.product_id:
+            return False
+        rules = self.env['stock.rule'].search([
+            ('location_id', '=', self.location_id.id),
+            ('action', 'in', ['pull_push', 'pull'])
+        ])
+        routes = rules.route_id.filtered(lambda r: r.product_selectable)
+        if routes:
+            return routes[0]
+        return False
+
     def _get_product_context(self):
         """Used to call `virtual_available` when running an orderpoint."""
         self.ensure_one()
@@ -283,12 +295,9 @@ class StockWarehouseOrderpoint(models.Model):
             })
             orderpoint_values_list.append(orderpoint_values)
 
-        # Remove previous automatically created orderpoint that has been refilled.
-        self.env['stock.warehouse.orderpoint'].search([
-            ('virtual', '=', True),
-            ('qty_to_order', '<=', 0.0)
-        ]).unlink()
-        self.env['stock.warehouse.orderpoint'].create(orderpoint_values_list)
+        orderpoints = self.env['stock.warehouse.orderpoint'].create(orderpoint_values_list)
+        for orderpoint in orderpoints:
+            orderpoint.route_id = orderpoint._get_default_route_id()
         return action
 
     @api.model
