@@ -2,6 +2,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import logging
+import warnings
+import traceback
 
 from odoo import api, models
 from odoo.exceptions import AccessDenied
@@ -13,6 +15,10 @@ class AutoVacuum(models.AbstractModel):
     """ Expose the vacuum method to the cron jobs mechanism. """
     _name = 'ir.autovacuum'
     _description = 'Automatic Vacuum'
+
+    @property
+    def _autovacuum(self):
+        return super()._autovacuum + ('_gc_transient_models', '_gc_user_logs')
 
     @api.model
     def _gc_transient_models(self):
@@ -37,10 +43,32 @@ class AutoVacuum(models.AbstractModel):
         _logger.info("GC'd %d user log entries", self._cr.rowcount)
 
     @api.model
-    def power_on(self, *args, **kwargs):
+    def run_garbage_collectors(self):
         if not self.env.is_admin():
             raise AccessDenied()
-        self.env['ir.attachment']._file_gc()
-        self._gc_transient_models()
-        self._gc_user_logs()
+
+        for model in self.env.values():
+            for method in model._autovacuum:
+                _logger.info("Executing %s.%s", model, method)
+                try:
+                    getattr(model, method)()
+                except Exception:
+                    _logger.warning("Could not vacuum model %s", model, exc_info=True)
+                else:
+                    self.env.cr.commit()
+
         return True
+
+
+    @api.model
+    def power_on(self, *args, **kwargs):
+        # TODO juc v15 remove me and change the cron to point run_garbage_collectors
+        tb = traceback.extract_stack(limit=2)
+        if tb[-2].name == 'power_on':
+            warnings.warn(
+                "You are extending the 'power_on' ir.autovacuum method"
+                f"in {tb[-2].filename} around line {tb[-2].lineno}. You"
+                "should register vacuuming methods via the '_autovacuum'"
+                "property.", DeprecationWarning, stacklevel=2)
+
+        self.run_garbage_collectors()

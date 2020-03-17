@@ -12,6 +12,10 @@ class ProductWishlist(models.Model):
          "UNIQUE(product_id, partner_id)",
          "Duplicated wishlisted product for this partner."),
     ]
+    
+    @property
+    def _autovacuum(self):
+        return super()._autovacuum + ('_garbage_collector',)
 
     partner_id = fields.Many2one('res.partner', string='Owner')
     product_id = fields.Many2one('product.product', string='Product', required=True)

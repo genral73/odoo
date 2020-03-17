@@ -6,6 +6,10 @@ from odoo import api, fields, models, _
 class ChannelPartner(models.Model):
     _inherit = 'mail.channel.partner'
 
+    @property
+    def _autovacuum(self):
+        return super()._autovacuum + ('unpin_old_livechat_sessions',)
+
     @api.model
     def unpin_old_livechat_sessions(self):
         """ Unpin livechat sessions with no activity for at least one day to
@@ -40,6 +44,10 @@ class MailChannel(models.Model):
 
     _sql_constraints = [('livechat_operator_id', "CHECK((channel_type = 'livechat' and livechat_operator_id is not null) or (channel_type != 'livechat'))",
                          'Livechat Operator ID is required for a channel of type livechat.')]
+
+    @property
+    def _autovacuum(self):
+        return super()._autovacuum + ('remove_empty_livechat_sessions',)
 
     def _compute_is_chat(self):
         super(MailChannel, self)._compute_is_chat()

@@ -692,6 +692,10 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         cls._onchange_methods = methods
         return methods
 
+    @property
+    def _autovacuum(self):
+        return tuple()
+
     def __new__(cls):
         # In the past, this method was registering the model class in the server.
         # This job is now done entirely by the metaclass MetaModel.

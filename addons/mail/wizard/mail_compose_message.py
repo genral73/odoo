@@ -3,6 +3,7 @@
 
 import ast
 import base64
+import datetime
 import re
 
 from odoo import _, api, fields, models, tools
@@ -40,6 +41,10 @@ class MailComposer(models.TransientModel):
     _description = 'Email composition wizard'
     _log_access = True
     _batch_size = 500
+
+    @property
+    def _autovacuum(self):
+        return super()._autovacuum + ('_garbage_collect_attachments',)
 
     @api.model
     def default_get(self, fields):
@@ -516,3 +521,22 @@ class MailComposer(models.TransientModel):
             values[res_id] = res_id_values
 
         return multi_mode and values or values[res_ids[0]]
+
+    @api.model
+    def _garbage_collect_attachments(self):
+        """ Garbage collect lost mail attachments. Those are attachments
+            - linked to res_model 'mail.compose.message', the composer wizard
+            - with res_id 0, because they were created outside of an existing
+                wizard (typically user input through Chatter or reports
+                created on-the-fly by the templates)
+            - unused since at least one day (create_date and write_date)
+        """
+        limit_date = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+        limit_date_str = datetime.datetime.strftime(limit_date, tools.DEFAULT_SERVER_DATETIME_FORMAT)
+        self.env['ir.attachment'].search([
+            ('res_model', '=', self._name),
+            ('res_id', '=', 0),
+            ('create_date', '<', limit_date_str),
+            ('write_date', '<', limit_date_str)]
+        ).unlink()
+        return True

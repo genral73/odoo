@@ -15,6 +15,10 @@ from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT, misc
 class MercuryTransaction(models.Model):
     _name = 'pos_mercury.mercury_transaction'
     _description = 'Point of Sale Vantiv Transaction'
+    
+    @property
+    def _autovacuum(self):
+        return super()._autovacuum + ('cleanup_old_tokens',)
 
     def _get_pos_session(self):
         pos_session = self.env['pos.session'].search([('state', '=', 'opened'), ('user_id', '=', self.env.uid)], limit=1)

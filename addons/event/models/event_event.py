@@ -99,6 +99,10 @@ class EventEvent(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'date_begin'
 
+    @property
+    def _autovacuum(self):
+        return super()._autovacuum + ('_clean_pipeline',)
+
     def _get_default_stage_id(self):
         event_stages = self.env['event.stage'].search([])
         return event_stages[0] if event_stages else False
@@ -474,3 +478,12 @@ class EventEvent(models.Model):
 
             result[event.id] = cal.serialize().encode('utf-8')
         return result
+
+    def _clean_pipeline(self):
+        """ move every ended events in the next 'ended stage' """
+        ended_events = self.env['event.event'].search([
+            ('date_end', '<', fields.Datetime.now()),
+            ('stage_id.pipe_end', '=', False),
+        ])
+        if ended_events:
+            ended_events.action_set_done()

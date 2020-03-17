@@ -34,6 +34,10 @@ class ImBus(models.Model):
     _name = 'bus.bus'
     _description = 'Communication Bus'
 
+    @property
+    def _autovacuum(self):
+        return super()._autovacuum + ('gc',)
+
     channel = fields.Char('Channel')
     message = fields.Char('Message')
 

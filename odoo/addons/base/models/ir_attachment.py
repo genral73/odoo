@@ -35,6 +35,10 @@ class IrAttachment(models.Model):
     _name = 'ir.attachment'
     _description = 'Attachment'
     _order = 'id desc'
+    
+    @property
+    def _autovacuum(self):
+        return super()._autovacuum + ('_file_gc',)
 
     def _compute_res_name(self):
         for attachment in self:
