@@ -59,7 +59,7 @@ class link_tracker(models.Model):
             vals['url'] = utils.unescape(long_url)
 
             if not blacklist or not [s for s in blacklist if s in long_url] and not long_url.startswith(short_schema):
-                link = self.create(vals)
+                link = self.search_or_create(vals)
                 shorten_url = self.browse(link.id)[0].short_url
 
                 if shorten_url:
@@ -157,6 +157,23 @@ class link_tracker(models.Model):
             return {'Error': "This filter doesn't exist."}
 
     @api.model
+    def search_or_create(self, vals):
+        if 'url' not in vals:
+            raise ValueError('URL field required')
+        else:
+            vals['url'] = VALIDATE_URL(vals['url'])
+
+        result = self.search([
+            (fname, '=', value)
+            for fname, value in vals.items()
+        ], limit=1)
+
+        if result:
+            return result
+
+        return self.create(vals)
+
+    @api.model
     def create(self, vals):
         create_vals = vals.copy()
 
@@ -164,15 +181,6 @@ class link_tracker(models.Model):
             raise ValueError('URL field required')
         else:
             create_vals['url'] = VALIDATE_URL(vals['url'])
-
-        search_domain = []
-        for fname, value in create_vals.items():
-            search_domain.append((fname, '=', value))
-
-        result = self.search(search_domain, limit=1)
-
-        if result:
-            return result
 
         if not create_vals.get('title'):
             create_vals['title'] = self._get_title_from_url(create_vals['url'])
@@ -198,7 +206,7 @@ class link_tracker(models.Model):
 
         return code_rec.link_id.redirected_url
 
-    sql_constraints = [
+    _sql_constraints = [
         ('url_utms_uniq', 'unique (url, campaign_id, medium_id, source_id)', 'The URL and the UTM combination must be unique')
     ]
 
