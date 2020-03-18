@@ -19,3 +19,11 @@ class TestLunchProductReport(TestsCommon):
 
         self.assertEqual(new_pizza.id, pizza.id)
         self.assertEqual(new_pizza.name, 'Pizza')
+
+    def test_create_lunch_order(self):
+        lunchOrders = self.env['lunch.order'].search([])
+        pizza = self.env['lunch.product.report'].search([('product_id', '=', self.product_pizza.id)], limit=1)
+        pizza._create_lunch_order()
+        self.assertTrue(self.env['lunch.order'].search([('product_id', '=', self.product_pizza.id)]), 'There should be some record on lunch_order')
+        newLunchOrders = self.env['lunch.order'].search([])
+        self.assertEqual(len(newLunchOrders), len(lunchOrders) + 1)

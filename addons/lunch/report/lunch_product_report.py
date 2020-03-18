@@ -74,6 +74,16 @@ class LunchProductReport(models.Model):
 
         return expression.OR([[('supplier_id.available_location_ids', 'in', value)], [('supplier_id.available_location_ids', '=', False)]])
 
+    def _create_lunch_order(self):
+        for record in self:
+            lunch_order = {
+                'product_id': record.product_id.id,
+                'quantity': 1
+            }
+            if 'lunch_user_id' in self._context.keys():
+                lunch_order['user_id'] = self._context['lunch_user_id']
+            self.env['lunch.order'].create(lunch_order)
+
     def write(self, values):
         if 'is_favorite' in values:
             if values['is_favorite']:
