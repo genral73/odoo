@@ -17,10 +17,27 @@ class KarmaRank(models.Model):
     karma_min = fields.Integer(string='Required Karma', required=True, default=1,
         help='Minimum karma needed to reach this rank')
     user_ids = fields.One2many('res.users', 'rank_id', string='Users', help="Users having this rank")
+    rank_users_count = fields.Integer("Nb. Users", compute="_compute_rank_users_count")
 
     _sql_constraints = [
         ('karma_min_check', "CHECK( karma_min > 0 )", 'The required karma has to be above 0.')
     ]
+
+    @api.depends('user_ids')
+    def _compute_rank_users_count(self):
+        for record in self:
+            record.rank_users_count = len(record.user_ids)
+
+    def current_rank_users(self):
+        self.ensure_one()
+        return {
+            'name':      'Users being %s' % (self.name),
+            'type':      'ir.actions.act_window',
+            'res_model': 'res.users',
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'domain':    [('id', 'in', self.user_ids.ids)],
+        }
 
     @api.model_create_multi
     def create(self, values_list):
