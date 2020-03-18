@@ -52,8 +52,25 @@ WebsiteNewMenu.include({
 odoo.define('website_sale.editor', function (require) {
 'use strict';
 
+var editor = require('web_editor.editor');
 var options = require('web_editor.snippets.options');
 var publicWidget = require('web.public.widget');
+var productVariantImage = require('website_sale.product_variant_image');
+
+editor.Class.include({
+    /**
+     * @override
+     */
+    start: function () {
+        const def = this._super.apply(this, arguments);
+        const $productAddImage = $('.o_wsale_product_add_image');
+        if ($productAddImage.length) {
+            this.productVariantImage = new productVariantImage(this);
+            this.productVariantImage.attachTo($productAddImage);
+        }
+        return def;
+    },
+});
 
 publicWidget.registry.websiteSaleCurrency = publicWidget.Widget.extend({
     selector: '.oe_website_sale',
