@@ -1,4 +1,4 @@
-:banner: banners/module.jpg
+loading:banner: banners/module.jpg
 
 ================
 Module Manifests
