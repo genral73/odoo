@@ -57,11 +57,11 @@ class StockWarehouseOrderpoint(models.Model):
         'uom.uom', 'Unit of Measure', related='product_id.uom_id')
     product_uom_name = fields.Char(string='Product unit of measure label', related='product_uom.display_name', readonly=True)
     product_min_qty = fields.Float(
-        'Minimum Quantity', digits='Product Unit of Measure', required=True, default=0.0,
+        'Min Quantity', digits='Product Unit of Measure', required=True, default=0.0,
         help="When the virtual stock equals to or goes below the Min Quantity specified for this field, Odoo generates "
              "a procurement to bring the forecasted quantity to the Max Quantity.")
     product_max_qty = fields.Float(
-        'Maximum Quantity', digits='Product Unit of Measure', required=True, default=0.0,
+        'Max Quantity', digits='Product Unit of Measure', required=True, default=0.0,
         help="When the virtual stock goes below the Min Quantity, Odoo generates "
              "a procurement to bring the forecasted quantity to the Quantity specified as Max Quantity.")
     qty_multiple = fields.Float(
@@ -80,7 +80,7 @@ class StockWarehouseOrderpoint(models.Model):
     lead_days_date = fields.Date(compute='_compute_lead_days')
     allowed_route_ids = fields.One2many('stock.location.route', compute='_commpute_allowed_route_ids')
     route_id = fields.Many2one(
-        'stock.location.route', string='Route', domain="[('id', 'in', allowed_route_ids)]")
+        'stock.location.route', string='Preferred Route', domain="[('id', 'in', allowed_route_ids)]")
     qty_on_hand = fields.Float('On Hand', readonly=True)
     qty_forecast = fields.Float('Forecast', readonly=True)
     qty_to_order = fields.Float('To Order')

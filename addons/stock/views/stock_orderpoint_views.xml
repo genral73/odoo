@@ -43,17 +43,17 @@
                 <field name="allowed_route_ids" invisible="1"/>
                 <field name="virtual" invisible="1"/>
                 <field name="warehouse_id" invisible="1"/>
-                <field name="product_id"/>
+                <field name="product_id" invisible="context.get('default_product_id')"/>
                 <field name="location_id" options="{'no_create': True}" groups="stock.group_stock_multi_locations"/>
                 <field name="qty_on_hand" force_save="1"/>
                 <field name="qty_forecast" force_save="1"/>
-                <field name="json_lead_days_popover" string=" " widget="popover_widget" attrs="{'invisible': ['|', ('id', '=', False), ('virtual', '=', True)]}"/>
+                <field name="json_lead_days_popover" optional="hide" string=" " widget="popover_widget" attrs="{'invisible': ['|', ('id', '=', False), ('virtual', '=', True)]}"/>
                 <field name="qty_to_order"/>
                 <field name="route_id"/>
                 <field name="trigger"/>
                 <field name="product_min_qty"/>
                 <field name="product_max_qty"/>
-                <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                <field name="company_id" optional="hide" readonly="1" groups="base.group_multi_company"/>
             </tree>
         </field>
     </record>
