@@ -31,6 +31,11 @@
 
 .o_ChatterTopbar {
 
+    /*
+    Allow topbar to be used with personalized background.
+    E.g. in documents, the topbar should have a black border top given by its container.
+     */
+    background: none;
     .o-active {
         color: $o-brand-odoo;
         background-color: lighten(gray('300'), 7%);
