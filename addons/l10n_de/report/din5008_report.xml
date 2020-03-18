@@ -59,7 +59,10 @@
                                     <span t-field="company.zip"/> &#8226;
                                 </t>
                                 <t t-if="company.city">
-                                    <span t-field="company.city"/>
+                                    <span t-field="company.city"/> &#8226;
+                                </t>
+                                <t t-if="company.country_id">
+                                    <span t-field="company.country_id.name"/>
                                 </t>
                                 <hr class="company_invoice_line" />
                             </div>

@@ -19,10 +19,12 @@
         position: relative;
         left: 25mm;
         top: 17.7mm;
-        width: 75mm;
-        min-width: 75mm;
+        width: 85mm;
+        min-width: 85mm;
         margin-bottom: 1mm;
-        font-size: 8pt;
+        font-size: 7pt;
+        overflow-y: hidden;
+        word-break: break-word;
     }
     .company_invoice_line {
         margin-top: 1mm;
