@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Written with the help from Komit
+
 import json
 import uuid
 from datetime import date, datetime
@@ -9,6 +13,7 @@ from odoo.tools import float_compare
 
 import logging
 import urllib3
+import certifi
 from odoo import tools
 
 
@@ -224,13 +229,13 @@ class AccountMove(models.Model):
         self.ensure_one()
         l10n_vn_base_url = self.company_id.l10n_vn_base_url
         encoded_body = json.dumps(body).encode('utf-8')
-        http = urllib3.PoolManager()
+        http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
         headers['Content-Type'] = 'application/json'
         headers['Accept'] = 'application/json'
         request_status = 'fail'
         try:
             response = http.request('POST', '%s/InvoiceAPI/%s' % (l10n_vn_base_url, url_tail), headers=headers, body=encoded_body)
-            if response.status != 200:
+            if str(response.status) != '200':
                 raise urllib3.exceptions.LocationValueError(response.status)
             try:
                 json.loads(response.data.decode())
@@ -349,7 +354,7 @@ class AccountMove(models.Model):
         data_error_code = data_dict['errorCode']
 
         result = {
-            'status': r.status,
+            'status': str(r.status),
             'description': data_description,
             'tax_code': data_tax_code,
             'transaction_id': data_tran_id,
