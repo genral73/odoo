@@ -6,6 +6,7 @@ var core = require('web.core');
 var mixins = require('web.mixins');
 var session = require('web.session');
 
+const FCN1_CHAR = String.fromCharCode(29)
 
 // For IE >= 9, use this, new CustomEvent(), instead of new Event()
 function CustomEvent ( event, params ) {

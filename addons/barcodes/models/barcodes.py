@@ -1,11 +1,14 @@
 import logging
 import re
+import datetime
+import calendar
 
 from odoo import tools, models, fields, api, _
 from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
 
+FNC1_CHAR = '\x1D'
 
 UPC_EAN_CONVERSIONS = [
     ('none','Never'),
@@ -71,6 +74,78 @@ class BarcodeNomenclature(models.Model):
     def sanitize_upc(self, upc):
         return self.sanitize_ean('0'+upc)[1:]
 
+    def gs1_date_to_datetime(self, gs1_date):
+        """Convert YYMMDD GS1 date into a datetime"""
+
+        # Determination of century
+        # https://www.gs1.org/sites/default/files/docs/barcodes/GS1_General_Specifications.pdf#page=474&zoom=100,66,113
+        now = datetime.datetime.now()
+        substract_year = int(gs1_date[0:2]) - int(str(now.year)[-2:])
+        century = (51 <= substract_year <= 99 and int(str(now.year)[:-2]) - 1) or (-99 <= substract_year <= -50 and int(str(now.year)[:-2]) + 1) or int(str(now.year)[:-2])
+        year = century * 100 + int(gs1_date[0:2])
+
+        if gs1_date[-2:] == '00':  # Day is not mandatory, when not set -> last day of the month
+            date = datetime.datetime.strptime(str(year) + gs1_date[2:4], '%Y%m')
+            date = date.replace(day=calendar.monthrange(year, int(gs1_date[2:4]))[1])
+        else:
+            date = datetime.datetime.strptime(str(year) + gs1_date[2:4] + gs1_date[-2:], '%Y%m%d')
+        return date
+
+    def parse_gs1_rule_pattern(self, match, rule):
+        result = {
+            'rule_id': rule.id,
+            'ai': match.group(1),
+            'string_value': match.group(2),
+        }
+        if rule.gs1_content_type == 'measure':
+            decimal_position = 0  # Decimal position begin at the end, 0 means no decimal
+            if rule.gs1_decimal_usage:
+                decimal_position = int(match.group(1)[-1])
+            if decimal_position > 0:
+                result['value'] = float(match.group(2)[:-decimal_position] + "." + match.group(2)[-decimal_position:])
+            else:
+                result['value'] = int(match.group(2))
+        elif rule.gs1_content_type == 'identifier':
+            # Check digit
+            if match.group(2)[-1] != self.get_barcode_check_digit("0" * (18 - len(match.group(2))) + match.group(2)):
+                return None
+            result['value'] = match.group(2)[:-1]
+        elif rule.gs1_content_type == 'date' and len(match.group(2)) == 6:
+            result['value'] = self.gs1_date_to_datetime(match.group(2))
+        else:  # when gs1_content_type == 'alpha':
+            result['value'] = match.group(2)
+        return result
+
+    def gs1_decompose_extanded(self, barcode):
+        """Try to decompose the gs1 extanded barcode into several unit of information using gs1 rules.
+
+        Return a ordered list of dict
+        """
+        gs1_rules = self.rule_ids.filtered(lambda r: r.encoding == 'gs1-128')
+        results = []
+
+        def find_next_rule(remaining_barcode):
+            for rule in gs1_rules:
+                # is_variable_length = bool(re.search(r"\{\d?\,\d*\}", rule.pattern))  # TODO: don't catch * or + => maybe a use field or try with lookbehind
+                match = re.search("^" + rule.pattern + FNC1_CHAR + "?", remaining_barcode)
+                # If match and contains 2 groups at minimun, the first one need to be the IA and the second the value
+                # We can't use regex nammed group because in JS, it is not the same regex synthax (and too )
+                if match and len(match.groups()) >= 2:
+                    res = self.parse_gs1_rule_pattern(match, rule)
+                    if res:
+                        return res, remaining_barcode[match.end():]
+            return None
+
+        while len(barcode) > 0:
+            res_bar = find_next_rule(barcode)
+            # Cannot continue -> Fail to decompose gs1 and return
+            if not res_bar or res_bar[1] == barcode:
+                return None
+            barcode = res_bar[1]
+            results.append(res_bar[0])
+
+        return results
+
     # Checks if barcode matches the pattern
     # Additionaly retrieves the optional numerical content in barcode
     # Returns an object containing:
@@ -118,10 +193,10 @@ class BarcodeNomenclature(models.Model):
     #                the product in the backend
     def parse_barcode(self, barcode):
         parsed_result = {
-            'encoding': '', 
-            'type': 'error', 
-            'code': barcode, 
-            'base_code': barcode, 
+            'encoding': '',
+            'type': 'error',
+            'code': barcode,
+            'base_code': barcode,
             'value': 0,
         }
 
@@ -173,13 +248,29 @@ class BarcodeRule(models.Model):
                 ('ean13', 'EAN-13'),
                 ('ean8', 'EAN-8'),
                 ('upca', 'UPC-A'),
+                ('gs1-128', 'GS1-128')
         ], string='Encoding', required=True, default='any', help='This rule will apply only if the barcode is encoded with the specified encoding')
     type = fields.Selection([
             ('alias', 'Alias'),
-            ('product', 'Unit Product')
+            ('product', 'Unit Product'),
+            ('field', "Target Field")
         ], string='Type', required=True, default='product')
     pattern = fields.Char(string='Barcode Pattern', size=32, help="The barcode matching pattern", required=True, default='.*')
+
+    gs1_content_type = fields.Selection([
+        ('date', 'Date'),  # To able to transform YYMMDD date into Odoo datetime
+        ('measure', 'Measure'),  # UOM related
+        ('indentifier', 'Numeric Identifier'),  # When there is a numeric fixed length where there is a check digit ()
+        ('alpha', 'Alpha-Numeric name'),
+    ], string="Type of Content (GS1)")
+    gs1_decimal_usage = fields.Boolean('Decimal', help="If True, use the last digit of IA to dertermine where the first decimal is")
+    associated_uom = fields.Many2one('uom.uom')
+
     alias = fields.Char(string='Alias', size=32, default='0', help='The matched pattern will alias to this barcode', required=True)
+
+    # Specific type data
+    # target_model_id = fields.Many2one('ir.model', "Target Model")
+    # target_field_id = fields.Many2one('ir.model.fields', "Target Field", domain="(['model_id', '=', target_model_id])")
 
     @api.constrains('pattern')
     def _check_pattern(self):
