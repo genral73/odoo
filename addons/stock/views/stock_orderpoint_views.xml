@@ -131,7 +131,7 @@
         <field name="model_id" ref="model_stock_warehouse_orderpoint"/>
         <field name="state">code</field>
         <field name="code">
-            action = model.with_context(search_default_trigger='auto').action_view_orderpoints()
+            action = model.with_context(search_default_trigger='auto').action_open_orderpoints()
         </field>
     </record>
 
@@ -140,7 +140,7 @@
         <field name="model_id" ref="model_stock_warehouse_orderpoint"/>
         <field name="state">code</field>
         <field name="code">
-            action = model.with_context(search_default_trigger='manual').action_view_orderpoints()
+            action = model.with_context(search_default_trigger='manual').action_open_orderpoints()
         </field>
     </record>
 

@@ -163,7 +163,7 @@ class StockWarehouseOrderpoint(models.Model):
         return super().write(vals)
 
     @api.model
-    def action_view_orderpoints(self):
+    def action_open_orderpoints(self):
         orderpoints = self.env['stock.warehouse.orderpoint'].search([])
         return orderpoints._get_orderpoint_action()
 
