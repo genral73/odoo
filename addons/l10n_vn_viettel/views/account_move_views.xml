@@ -7,13 +7,12 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <header position="inside">
-                <button name="action_send_einvoice_mail" type="object" string="Send mail to customer" attrs="{'invisible':['|','|',('l10n_vn_is_success', '=', False), ('state','=', 'posted'),('l10n_vn_is_send_mail_success', '=', True)]}"/>
+                <button name="action_send_einvoice_mail" type="object" string="Send mail to customer" attrs="{'invisible':['|','|',('l10n_vn_invoice_no', '!=', False), ('state','=', 'posted'),('l10n_vn_is_send_mail_success', '=', True)]}"/>
                 <button name="button_export_draft_invoice" type="object" string="Export Draft E-Invoice" attrs="{'invisible':[('l10n_vn_file', '!=', False), ('state', 'not in', ('draft', 'posted'))]}"/>
-                <button name="button_export_confirmed_invoice" type="object" string="Export Confirmed E-Invoice" attrs="{'invisible':['|', ('state','!=', 'posted'), '&amp;', ('l10n_vn_is_success', '=', True), ('l10n_vn_file', '!=', False)]}" groups="l10n_vn_viettel.group_l10n_vn_send_validated_invoice"/>
+                <button name="button_export_confirmed_invoice" type="object" string="Export Confirmed E-Invoice" attrs="{'invisible':['|', ('state','!=', 'posted'), '&amp;', ('l10n_vn_invoice_no', '=', False), ('l10n_vn_file', '!=', False)]}" groups="l10n_vn_viettel.group_l10n_vn_send_validated_invoice"/>
                 <button name="action_get_einvoice_file" type="object" string="Get E-Invoice PDF file" invisible="1" attrs="{'invisible':[('l10n_vn_file', '!=', False)]}"/>
             </header>
             <field name="type" position="after">
-                <field name="l10n_vn_is_success" invisible="1"/>
                 <field name="l10n_vn_is_send_mail_success" invisible="1"/>
             </field>
             <xpath expr="//notebook/page[@name='other_info']" position="inside">
@@ -30,13 +29,6 @@
                     <group>
                         <field name="l10n_vn_file" filename="file_name" string="E-Invoice PDF file"/>
                         <!-- <field name="file_name" invisible="1"/> -->
-                    </group>
-                </group>
-                <group>
-                    <group string="Debug" groups="base.group_no_one">
-                        <field name="l10n_vn_viettel_input" widget="ace" options="{'mode': 'json'}"/>
-                        <field name="l10n_vn_error_code"/>
-                        <field name="l10n_vn_description"/>
                     </group>
                 </group>
             </xpath>

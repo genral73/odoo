@@ -60,27 +60,31 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     payment_journal_id = fields.Many2one('account.journal', domain="[('type', 'in', ('bank', 'cash')), ('bank_account_id', '!=', False)]", string="Payment Journal", states={'open': [('readonly', True)]})
-    l10n_vn_status = fields.Char(readonly=True, copy=False)
     l10n_vn_transaction_id = fields.Char(copy=False)
     l10n_vn_invoice_no = fields.Char(string='Invoice No (Số hóa đơn)', copy=False)
     l10n_vn_reservation_code = fields.Char(string='Reservation Code (Mã số bí mật)', copy=False)
-    l10n_vn_description = fields.Char(readonly=True, copy=False)
-    l10n_vn_error_code = fields.Char(readonly=True, copy=False)
-    l10n_vn_result_error = fields.Char(readonly=True, copy=False)
     l10n_vn_uuid = fields.Char(readonly=True, copy=False)
-    l10n_vn_is_success = fields.Boolean(default=False, readonly=True, copy=False)
     l10n_vn_is_send_mail_success = fields.Boolean(default=False, readonly=True, copy=False)
     l10n_vn_transaction_date = fields.Char(string='Transaction ID (Ngày lập)', readonly=True, copy=False)
     l10n_vn_file = fields.Binary(readonly=True, copy=False)
-    l10n_vn_viettel_input = fields.Text(readonly=True)
     l10n_vn_vas_invoice_date = fields.Datetime(compute='_compute_l10n_vn_vas_invoice_date', store=True)
     l10n_vn_tax_invoice_number = fields.Char(copy=False)
     l10n_vn_tax_invoice_series = fields.Char(copy=False)
 
+    @api.depends('l10n_vn_transaction_date')
+    def _compute_l10n_vn_vas_invoice_date(self):
+        for record in self:
+            if record.l10n_vn_transaction_date:
+                record.l10n_vn_vas_invoice_date = record.l10n_vn_transaction_date[:10]
+            else:
+                record.l10n_vn_vas_invoice_date = False
+
     @api.onchange('payment_journal_id')
-    def onchange_payment_journal(self):
+    def _onchange_payment_journal(self):
         if self.payment_journal_id.bank_account_id:
             self.invoice_partner_bank_id = self.payment_journal_id.bank_account_id
+
+    ##### ACTIONS
 
     def button_export_draft_invoice(self):
         self.action_export_einvoice(is_draft=True)
@@ -106,7 +110,6 @@ class AccountMove(models.Model):
 
         inv_vals = {
             'create_date': create_date,
-            # 'summary': self.summary_vn,  # TODO what?
             'customer_legal_name': self.partner_id.name,
             'customer_tax_code': self.partner_id.vat or '',
             'customer_address': customer_address,
@@ -173,36 +176,31 @@ class AccountMove(models.Model):
             'tax_list': tax_list,
         })
 
-        data_return, viettel_input = self.l10n_vn_export_to_viettel(inv_vals, inv_lines_vals, is_draft=is_draft)
+        data_return, viettel_input = self._l10n_vn_export_to_viettel(inv_vals, inv_lines_vals, is_draft=is_draft)
         self.write({
-            'l10n_vn_status': data_return['status'],
-            'l10n_vn_description': data_return['description'],
             'l10n_vn_transaction_id': data_return['transaction_id'],
             'l10n_vn_invoice_no': data_return['inv_no'],
             'l10n_vn_reservation_code': data_return['reservation_code'],
-            'l10n_vn_result_error': data_return['result_error'],
-            'l10n_vn_error_code': data_return['error_code'],
             'l10n_vn_uuid': inv_vals['transaction_uuid'],
             'l10n_vn_transaction_date': inv_vals['create_date'],
-            'l10n_vn_viettel_input': json.dumps(viettel_input)
         })
 
-        if self.l10n_vn_status != '200':
-            raise UserError(_(self.l10n_vn_result_error))
-        if self.l10n_vn_status == '200' and data_return['tax_code'] == '':
-            if not is_draft:
-                raise UserError(_('%s\nError code:%s' % (self.l10n_vn_description, self.l10n_vn_error_code)))
-            if is_draft:
-                self.message_post(body="Export Draft E-Invoice successfully!")
-        if self.l10n_vn_status == '200' and self.l10n_vn_invoice_no != '':
+        if data_return['status'] != '200' or data_return['result_error']:
+            raise UserError(_('Network error: %s\n\n%s') % (data_return['status'], data_return['result_error']))
+
+        if data_return['error_code']:
+            raise UserError(_('%s\nError code:%s') % (data_return['description'], data_return['error_code']))
+
+        if self.l10n_vn_invoice_no:
             self.message_post(body="Export E-Invoice to Viettel successfully!")
-            self.l10n_vn_is_success = True
+        else:
+            self.message_post(body="Export Draft E-Invoice successfully!")
 
     def action_get_l10n_vn_file(self):
         self.ensure_one()
         if not self.l10n_vn_invoice_no:
             raise UserError(_('The invoice has not been exported to Viettel.\nPlease click to button Export E-Invoice first'))
-        data = self.l10n_vn_get_invoice(self.company_id.vat, self.l10n_vn_invoice_no)[0]
+        data = self._l10n_vn_get_invoice(self.company_id.vat, self.l10n_vn_invoice_no)[0]
         if not data['description'] and not data['errorCode']:
             self.l10n_vn_file = data['fileToBytes']
         else:
@@ -212,7 +210,7 @@ class AccountMove(models.Model):
         self.ensure_one()
         if not self.partner_id.email:
             raise UserError(_("You cannot send email because you did not specify the customer's email. Please setup email for the customer"))
-        data = self.l10n_vn_send_mail(self.company_id.vat, self.l10n_vn_uuid)
+        data = self._l10n_vn_send_mail(self.company_id.vat, self.l10n_vn_uuid)
         data_output = data['commonOutputs']
         if data_output[0]['description'] == 'SUCCESS':
             self.message_post(body="Sent E-Invoice mail to customer")
@@ -220,16 +218,9 @@ class AccountMove(models.Model):
         else:
             raise UserError(_('%s\nError code:%s' % (data_output['description'], data_output['errorCode'])))
 
-    @api.depends('l10n_vn_transaction_date')
-    def _compute_l10n_vn_vas_invoice_date(self):
-        for rec in self:
-            if rec.l10n_vn_transaction_date:
-                vas_date = "".join(list(rec.l10n_vn_transaction_date)[:10])
-                rec.l10n_vn_vas_invoice_date = fields.Datetime.from_string(vas_date)
-            else:
-                rec.l10n_vn_vas_invoice_date = False
+    ##### VIETTEL API METHODS
 
-    def l10n_nv_request_http(self, body, headers, url_tail, return_dict=True):
+    def _l10n_nv_request_http(self, body, headers, url_tail, return_dict=True):
         self.ensure_one()
         l10n_vn_base_url = self.company_id.l10n_vn_base_url
         encoded_body = json.dumps(body).encode('utf-8')
@@ -239,6 +230,8 @@ class AccountMove(models.Model):
         request_status = 'fail'
         try:
             response = http.request('POST', '%s/InvoiceAPI/%s' % (l10n_vn_base_url, url_tail), headers=headers, body=encoded_body)
+            if response.status != 200:
+                raise urllib3.exceptions.LocationValueError(response.status)
             try:
                 json.loads(response.data.decode())
                 if return_dict:
@@ -255,7 +248,7 @@ class AccountMove(models.Model):
             response = e
         return response, request_status
 
-    def l10n_vn_export_to_viettel(self, inv_vals, inv_lines_vals, is_draft=True):
+    def _l10n_vn_export_to_viettel(self, inv_vals, inv_lines_vals, is_draft=True):
         self.ensure_one()
         inv_lines = []
         for line in inv_lines_vals:
@@ -327,7 +320,7 @@ class AccountMove(models.Model):
         headers = urllib3.util.make_headers(basic_auth=self.company_id.l10n_vn_authority)
         create_status = 'createOrUpdateInvoiceDraft' if is_draft else 'createInvoice'
         url_tail = 'InvoiceWS/{0}/{1}'.format(create_status, inv_vals.get('company_tax_code'))
-        r, request_status = self.l10n_nv_request_http(invoice, headers, url_tail, return_dict=False)
+        r, request_status = self._l10n_nv_request_http(invoice, headers, url_tail, return_dict=False)
 
         if request_status == 'fail':
             result = {
@@ -367,7 +360,7 @@ class AccountMove(models.Model):
         }
         return result, invoice
 
-    def l10n_vn_get_invoice(self, tax_code, inv_no):
+    def _l10n_vn_get_invoice(self, tax_code, inv_no):
         self.ensure_one()
         body = {
             "supplierTaxCode": tax_code,
@@ -378,9 +371,9 @@ class AccountMove(models.Model):
 
         headers = urllib3.util.make_headers(basic_auth=self.company_id.l10n_vn_authority)
         url_tail = 'InvoiceUtilsWS/getInvoiceRepresentationFile'
-        return self.l10n_nv_request_http(body, headers, url_tail)
+        return self._l10n_nv_request_http(body, headers, url_tail)
 
-    def l10n_vn_send_mail(self, tax_code, uuid):
+    def _l10n_vn_send_mail(self, tax_code, uuid):
         self.ensure_one()
         body = {
             "supplierTaxCode": tax_code,
@@ -389,4 +382,4 @@ class AccountMove(models.Model):
         l10n_vn_auth = self.company_id.l10n_vn_authority
         headers = urllib3.util.make_headers(basic_auth=l10n_vn_auth)
         url_tail = 'InvoiceUtilsWS/sendHtmlMailProcess'
-        return self.l10n_nv_request_http(body, headers, url_tail)
+        return self._l10n_nv_request_http(body, headers, url_tail)
