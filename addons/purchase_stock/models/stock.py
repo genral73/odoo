@@ -163,6 +163,9 @@ class ReturnPicking(models.TransientModel):
 class Orderpoint(models.Model):
     _inherit = "stock.warehouse.orderpoint"
 
+    show_supplier = fields.Boolean('Show supplier column', compute='_compute_show_suppplier')
+    supplier_id = fields.Many2one('product.supplierinfo', string='Vendor')
+
     def _get_default_route_id(self):
         if self.product_id._prepare_sellers():
             route_id = self.env['stock.rule'].search([
@@ -178,6 +181,10 @@ class Orderpoint(models.Model):
             route_buy = self.env['stock.rule'].search([('action', '=', 'buy')]).route_id
             for orderpoint in self:
                 orderpoint.allowed_route_ids |= route_buy
+
+    def _compute_show_suppplier(self):
+        for orderpoint in self:
+            orderpoint.show_supplier = any(ru.action == 'buy' for ru in orderpoint.route_id.rule_ids)
 
     def _get_quantity_in_progress(self, product_ids, location_ids):
         # TODO maybe it should be an extension of product _compute_quantities
@@ -228,6 +235,11 @@ class Orderpoint(models.Model):
         result['domain'] = "[('id','in',%s)]" % (purchase_ids.ids)
 
         return result
+
+    def _prepare_procurement_values(self, date=False, group=False):
+        values = super()._prepare_procurement_values(date=date, group=group)
+        values['supplier_id'] = self.supplier_id
+        return values
 
 
 class ProductionLot(models.Model):
