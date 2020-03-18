@@ -32,6 +32,37 @@
             <field name="arch" type="xml">
                 <form string="Forum">
                     <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object" class="oe_stat_button" icon="fa-comments" name="action_show_posts">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="total_posts" />
+                                    </span>
+                                    <span class="o_stat_text">Posts</span>
+                                </div>
+                            </button>
+                            <button type="object" class="oe_stat_button" icon="fa-reply" name="action_show_answers">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="total_answers" />
+                                    </span>
+                                    <span class="o_stat_text">Answers</span>
+                                </div>
+                            </button>
+                            <button type="object" class="oe_stat_button" icon="fa-star" name="action_show_favorites">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="total_favorites" />
+                                    </span>
+                                    <span class="o_stat_text">Favorites</span>
+                                </div>
+                            </button>
+                            <button type="object" class="oe_stat_button" icon="fa-globe" name="go_to_website">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_text">Go to <br/>Website</span>
+                                </div>
+                            </button>
+                        </div>
                         <field name="active" invisible="1"/>
                         <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
                         <field name="image_1920" widget="image" options="{'preview_image': 'image_128'}" class="oe_avatar"/>
@@ -149,10 +180,11 @@
                     <field name="name"/>
                     <field name="active" invisible="1"/>
                     <field name="forum_id"/>
-                    <field name="views"/>
-                    <field name="child_count"/>
-                    <field name="favourite_count"/>
+                    <field name="views" sum="Total Views"/>
+                    <field name="child_count" sum="Total Answers"/>
+                    <field name="favourite_count" sum="Total Favorites"/>
                     <field name="website_id" groups="website.group_multi_website"/>
+                    <field name="state"/>
                 </tree>
             </field>
         </record>
@@ -162,7 +194,37 @@
             <field name="model">forum.post</field>
             <field name="arch" type="xml">
                 <form string="Forum Post">
+                    <header>
+                            <button name="validate" string="Validate" type="object" attrs="{'invisible': ['|', ('state', '!=', 'pending'), ('parent_id', '!=', False)]}" class="oe_highlight"/>
+                            <button name="reopen" string="Reopen" type="object" attrs="{'invisible': ['|', ('state', '!=', 'close'), ('parent_id', '!=', False)]}" class="oe_highlight"/>
+                            <button name="show_close_wizard" string="Close" type="object" attrs="{'invisible': ['|', ('state', '!=', 'active'), ('parent_id', '!=', False)]}" class="oe_highlight"/>
+                            <button name="show_offensive_wizard" string="Offensive" type="object" attrs="{'invisible': [('state', '!=', 'flagged')]}" class="oe_highlight"/>
+                            <button name="show_offensive_wizard" string="Offensive" type="object" attrs="{'invisible': [('state', 'in', ('flagged', 'offensive', 'close'))]}"/>
+                    </header>
                     <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object" class="oe_stat_button" icon="fa-reply" name="action_show_answers" attrs="{'invisible': [('parent_id', '!=', False)]}">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="child_count" />
+                                    </span>
+                                    <span class="o_stat_text">Answers</span>
+                                </div>
+                            </button>
+                            <button type="object" class="oe_stat_button" icon="fa-star" name="action_show_favorites" attrs="{'invisible': [('parent_id', '!=', False)]}">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="favourite_count" />
+                                    </span>
+                                    <span class="o_stat_text">Favorites</span>
+                                </div>
+                            </button>
+                            <button type="object" class="oe_stat_button" icon="fa-globe" name="go_to_website">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_text">Go to <br/>Website</span>
+                                </div>
+                            </button>
+                        </div>
                         <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
                         <label for="name" class="oe_edit_only"/>
                         <h1>
@@ -272,9 +334,10 @@
             <field name="name">forum.tag.list</field>
             <field name="model">forum.tag</field>
             <field name="arch" type="xml">
-                <tree string="Tags">
+                <tree string="Tags" editable="bottom">
                     <field name="name"/>
-                    <field name="forum_id"/>
+                    <field name="forum_id" options="{'no_create_edit': True}"/>
+                    <field name="color" string="Color" widget="color_picker"/>
                 </tree>
             </field>
         </record>
@@ -287,7 +350,8 @@
                     <sheet>
                         <group>
                             <field name="name"/>
-                            <field name="forum_id"/>
+                            <field name="forum_id" options="{'no_create_edit': True}"/>
+                            <field name="color" string="Color" widget="color_picker"/>
                         </group>
                     </sheet>
                     <div class="oe_chatter">

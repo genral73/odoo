@@ -145,6 +145,31 @@ $bronze: #eea91e;
     .forum_answer img, .question-block img {
         max-width: 100%
     }
+
+    .o_wforum_index_entry_tags {
+        @for $size from 1 through length($o-colors) {
+            & .o_tag_color_#{$size - 1} {
+                $background-color: white;
+                // no color selected
+                @if $size == 1 {
+                    & {
+                        color: $gray-600;
+                        background-color: $background-color;
+                    }
+                } @else {
+                    $background-color: nth($o-colors, $size);
+                    & {
+                        color: white;
+                        background-color: $background-color;
+                    }
+                }
+                &:hover {
+                    color: color-yiq($background-color);
+                    background-color: darken($background-color, 10%);
+                }
+            }
+        }
+    }
 }
 
 .website_forum, .o_wforum_profile_tab {

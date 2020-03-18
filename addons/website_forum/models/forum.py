@@ -11,6 +11,7 @@ from odoo import api, fields, models, tools, SUPERUSER_ID, _
 from odoo.exceptions import UserError, ValidationError, AccessError
 from odoo.tools import misc
 from odoo.tools.translate import html_translate
+from odoo.addons.http_routing.models.ir_http import slug
 
 _logger = logging.getLogger(__name__)
 
@@ -132,7 +133,7 @@ class Forum(models.Model):
     def _compute_forum_statistics(self):
         result = dict((cid, dict(total_posts=0, total_views=0, total_answers=0, total_favorites=0)) for cid in self.ids)
         read_group_res = self.env['forum.post'].read_group(
-            [('forum_id', 'in', self.ids), ('state', 'in', ('active', 'close'))],
+            [('forum_id', 'in', self.ids), ('state', 'in', ('active', 'close')), ('parent_id', '=', False)],
             ['forum_id', 'views', 'child_count', 'favourite_count'],
             groupby=['forum_id'],
             lazy=False)
@@ -141,7 +142,7 @@ class Forum(models.Model):
             result[cid]['total_posts'] += res_group.get('__count', 0)
             result[cid]['total_views'] += res_group.get('views', 0)
             result[cid]['total_answers'] += res_group.get('child_count', 0)
-            result[cid]['total_favorites'] += res_group.get('favourite_count', 0)
+            result[cid]['total_favorites'] += 1 if res_group.get('favourite_count', 0) else 0
 
         for record in self:
             record.update(result[record.id])
@@ -207,6 +208,46 @@ class Forum(models.Model):
         tags = self.env['forum.tag'].search([('forum_id', '=', self.id), ('posts_count', '>', 0)])
         return sorted(set([tag.name[0].upper() for tag in tags if len(tag.name)]))
 
+    def action_show_posts(self):
+        self.ensure_one()
+        return {
+            'name':      'Posts in %s' % (self.name),
+            'type':      'ir.actions.act_window',
+            'res_model': 'forum.post',
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'domain':    [('id', 'in', self.post_ids.ids), ('parent_id', '=', False)],
+        }
+
+    def action_show_answers(self):
+        self.ensure_one()
+        return {
+            'name':      'Answers in %s' % (self.name),
+            'type':      'ir.actions.act_window',
+            'res_model': 'forum.post',
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'domain':    [('id', 'in', self.post_ids.ids), ('parent_id', '!=', False)],
+        }
+
+    def action_show_favorites(self):
+        self.ensure_one()
+        return {
+            'name':      'Users favorite posts in %s' % (self.name),
+            'type':      'ir.actions.act_window',
+            'res_model': 'forum.post',
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'domain':    [('id', 'in', self.post_ids.ids), ('favourite_count', '>', 0)],
+        }
+
+    def go_to_website(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'target': 'self',
+            'url': '/forum/%s' % (slug(self)),
+        }
 
 class Post(models.Model):
 
@@ -251,7 +292,7 @@ class Post(models.Model):
     is_correct = fields.Boolean('Correct', help='Correct answer or answer accepted')
     parent_id = fields.Many2one('forum.post', string='Question', ondelete='cascade', readonly=True)
     self_reply = fields.Boolean('Reply to own question', compute='_is_self_reply', store=True)
-    child_ids = fields.One2many('forum.post', 'parent_id', string='Answers')
+    child_ids = fields.One2many('forum.post', 'parent_id', string='Post Answers')
     child_count = fields.Integer('Answers', compute='_get_child_count', store=True)
     uid_has_answered = fields.Boolean('Has Answered', compute='_get_uid_has_answered')
     has_validated_answer = fields.Boolean('Is answered', compute='_get_has_validated_answer', store=True)
@@ -364,16 +405,10 @@ class Post(models.Model):
         for post in self:
             post.self_reply = post.parent_id.create_uid.id == post._uid
 
-    @api.depends('child_ids.create_uid', 'website_message_ids')
+    @api.depends('child_ids.create_uid')
     def _get_child_count(self):
-        def process(node):
-            total = len(node.website_message_ids) + len(node.child_ids)
-            for child in node.child_ids:
-                total += process(child)
-            return total
-
         for post in self:
-            post.child_count = process(post)
+            post.child_count = len(post.child_ids)
 
     def _get_uid_has_answered(self):
         for post in self:
@@ -681,6 +716,34 @@ class Post(models.Model):
         _logger.info('User %s marked as spams (in batch): %s' % (self.env.uid, spams))
         return spams.mark_as_offensive(reason_id)
 
+    def show_close_wizard(self):
+        return {
+            "name": _("Close a Forum Post"),
+            "type": 'ir.actions.act_window',
+            "res_model": 'forum.post.close',
+            "views": [[False, "form"]],
+            "target": 'new',
+            "context": {
+                **self.env.context,
+                'active_id': self.id,
+                'active_model': self._name,
+            },
+        }
+
+    def show_offensive_wizard(self):
+        return {
+            "name": _("Mark a Forum Post as Offensive"),
+            "type": 'ir.actions.act_window',
+            "res_model": 'forum.post.offensive',
+            "views": [[False, "form"]],
+            "target": 'new',
+            "context": {
+                **self.env.context,
+                'active_id': self.id,
+                'active_model': self._name,
+            },
+        }
+
     def unlink(self):
         for post in self:
             if not post.can_unlink:
@@ -868,6 +931,36 @@ class Post(models.Model):
             return
         return super(Post, self)._notify_record_by_inbox(message, recipients_data, msg_vals=msg_vals, **kwargs)
 
+    def action_show_answers(self):
+        self.ensure_one()
+        return {
+            'name':      'Answers in "%s"' % (self.name),
+            'type':      'ir.actions.act_window',
+            'res_model': 'forum.post',
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'domain':    [('id', 'in', self.child_ids.ids), ('parent_id', '!=', False)],
+        }
+
+    def action_show_favorites(self):
+        self.ensure_one()
+        return {
+            'name':      'Users which mark "%s" as favorite' % (self.name),
+            'type':      'ir.actions.act_window',
+            'res_model': 'res.users',
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'domain':    [('id', '=', self.favourite_ids.ids)],
+        }
+
+    def go_to_website(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'target': 'self',
+            'url': '/forum/%s/question/%s' % (slug(self.forum_id), slug(self)),
+        }
+
 
 class PostReason(models.Model):
     _name = "forum.post.reason"
@@ -971,6 +1064,7 @@ class Tags(models.Model):
 
     name = fields.Char('Name', required=True)
     forum_id = fields.Many2one('forum.forum', string='Forum', required=True)
+    color = fields.Integer(string='Color Index')
     post_ids = fields.Many2many(
         'forum.post', 'forum_tag_rel', 'forum_tag_id', 'forum_id',
         string='Posts', domain=[('state', '=', 'active')])

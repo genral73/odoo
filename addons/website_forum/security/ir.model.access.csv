@@ -13,3 +13,9 @@ access_forum_post_reason_user,forum.post.reason.user,model_forum_post_reason,bas
 access_forum_tag_public,forum.tag.public,model_forum_tag,base.group_public,1,0,1,0
 access_forum_tag_portal,forum.tag.portal,model_forum_tag,base.group_portal,1,0,1,0
 access_forum_tag_user,forum.tag.user,model_forum_tag,base.group_user,1,1,1,1
+access_forum_post_close_public,forum.post.close.public,model_forum_post_close,base.group_public,1,0,0,0
+access_forum_post_close_portal,forum.post.close.portal,model_forum_post_close,base.group_portal,1,1,1,1
+access_forum_post_close_user,forum.post.close.user,model_forum_post_close,base.group_user,1,1,1,1
+access_forum_post_offensive_public,forum.post.offensive.public,model_forum_post_offensive,base.group_public,1,0,0,0
+access_forum_post_offensive_portal,forum.post.offensive.portal,model_forum_post_offensive,base.group_portal,1,1,1,1
+access_forum_post_offensive_user,forum.post.offensive.user,model_forum_post_offensive,base.group_user,1,1,1,1
