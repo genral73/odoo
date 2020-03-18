@@ -82,6 +82,7 @@ Object.assign(messagingEnv.store.actions, {
             });
             Object.assign(state.publicLivechat, { history });
         }
+        dispatch('_initBusNotifications');
     },
     async openPublicLivechat({ dispatch, env, state }) {
         const livechatData = await env.rpc({
@@ -98,7 +99,38 @@ Object.assign(messagingEnv.store.actions, {
         const threadLocalId = dispatch('insertThread', Object.assign({
             _model: 'mail.channel',
         }, livechatData));
+        const thread = state.threads[threadLocalId];
+        env.services.bus_service.addChannel(thread.uuid);
         dispatch('openThread', threadLocalId);
+    },
+    /**
+     * @override
+     */
+    async postMessage(
+        { dispatch, env, getters, state },
+        composerLocalId,
+        data,
+        options
+    ) {
+        const composer = state.composers[composerLocalId];
+        const thread = state.threads[composer.threadLocalId];
+        const messageId = await env.rpc({
+            route: '/mail/chat_post',
+            params: {
+                message_content: composer.textInputContent,
+                uuid: thread.uuid,
+            },
+        });
+        if (!messageId) {
+            // self.displayNotification({
+            //     title: _t("Session Expired"),
+            //     message: _t("You took to long to send a message. Please refresh the page and try again."),
+            //     sticky: true,
+            // });
+            // self._closeChat();
+        } else {
+            dispatch('_resetComposer', composerLocalId);
+        }
     },
     /**
      * Messages are fetched through "history" for livechat.

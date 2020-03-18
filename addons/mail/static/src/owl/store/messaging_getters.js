@@ -587,6 +587,20 @@ const getters = {
     /**
      * @param {Object} param0
      * @param {Object} param0.state
+     * @param {string} uuid
+     * @return {mail.store.model.Thread|undefined}
+     */
+    threadFromUuid({ state }, uuid) {
+        for (const threadLocalId in state.threads) {
+            const thread = state.threads[threadLocalId];
+            if (thread.uuid === uuid) {
+                return thread;
+            }
+        }
+    },
+    /**
+     * @param {Object} param0
+     * @param {Object} param0.state
      * @param {string} threadLocalId
      * @return {string}
      */

@@ -510,14 +510,11 @@ const actions = {
             params: { context: context }
         });
         dispatch('_initMessaging', data);
-        env.call('bus_service', 'onNotification', null, notifs =>
-            dispatch('_handleNotifications', notifs)
-        );
-        env.call('bus_service', 'on', 'window_focus', null, () =>
+        env.services.bus_service.on('window_focus', null, () =>
             dispatch('_handleGlobalWindowFocus')
         );
+        dispatch('_initBusNotifications');
         state.isMessagingReady = true;
-        env.call('bus_service', 'startPolling');
         dispatch('_startLoopFetchPartnerImStatus');
     },
     /**
@@ -2110,14 +2107,16 @@ const actions = {
         // 2. compute message links (<-- message)
         const currentPartner = state.partners[state.currentPartnerLocalId];
         let threadLocalIds = channel_ids.map(id => `mail.channel_${id}`);
-        if (needaction_partner_ids.includes(currentPartner.id)) {
-            threadLocalIds.push('mail.box_inbox');
-        }
-        if (starred_partner_ids.includes(currentPartner.id)) {
-            threadLocalIds.push('mail.box_starred');
-        }
-        if (history_partner_ids.includes(currentPartner.id)) {
-            threadLocalIds.push('mail.box_history');
+        if (currentPartner) {
+            if (needaction_partner_ids.includes(currentPartner.id)) {
+                threadLocalIds.push('mail.box_inbox');
+            }
+            if (starred_partner_ids.includes(currentPartner.id)) {
+                threadLocalIds.push('mail.box_starred');
+            }
+            if (history_partner_ids.includes(currentPartner.id)) {
+                threadLocalIds.push('mail.box_history');
+            }
         }
         if (model && res_id) {
             const originThreadLocalId = `${model}_${res_id}`;
@@ -3234,6 +3233,7 @@ const actions = {
      * @private
      * @param {Object} param0
      * @param {function} param0.dispatch
+     * @param {Object} param0.getters
      * @param {Object[]} notifications
      * @param {Array} notifications[i][0]
      * @param {string} notifications[i][0][0]
@@ -3242,12 +3242,24 @@ const actions = {
      * @param {Object} notifications[i][1]
      */
     async _handleNotifications(
-        { dispatch },
+        { dispatch, getters },
         notifications
     ) {
+        console.log('store', notifications);
         const filteredNotifications = dispatch('_filterNotificationsOnUnsubscribe', notifications);
         const proms = filteredNotifications.map(notification => {
-            const [[, model, id], data] = notification;
+            const [channel, data] = notification;
+            if (typeof channel === 'string') {
+                const thread = getters.threadFromUuid(channel);
+                if (!thread) {
+                    console.warn(`[messaging store] Unhandled notification because of unknown channel "${channel}"`);
+                    return;
+                }
+                return dispatch('_handleNotificationChannel', Object.assign({
+                    channelId: thread.id,
+                }, data));
+            }
+            const [, model, id] = channel;
             switch (model) {
                 case 'ir.needaction':
                     return dispatch('_handleNotificationNeedaction', data);
@@ -3294,6 +3306,17 @@ const actions = {
                 threadCacheLocalId,
             });
         }
+    },
+    /**
+     * @param {Object} param0
+     * @param {function} param0.dispatch
+     * @param {Object} param0.env
+     */
+    _initBusNotifications({ dispatch, env }) {
+        env.services.bus_service.onNotification(null, notifs =>
+            dispatch('_handleNotifications', notifs)
+        );
+        env.services.bus_service.startPolling();
     },
     /**
      * @private
@@ -4715,14 +4738,16 @@ const actions = {
             !prevAttachmentLocalIds.includes(attachmentLocalId));
         const prevThreadLocalIds = message.threadLocalIds;
         let threadLocalIds = channel_ids.map(id => `mail.channel_${id}`);
-        if (needaction_partner_ids.includes(currentPartner.id)) {
-            threadLocalIds.push('mail.box_inbox');
-        }
-        if (starred_partner_ids.includes(currentPartner.id)) {
-            threadLocalIds.push('mail.box_starred');
-        }
-        if (history_partner_ids.includes(currentPartner.id)) {
-            threadLocalIds.push('mail.box_history');
+        if (currentPartner) {
+            if (needaction_partner_ids.includes(currentPartner.id)) {
+                threadLocalIds.push('mail.box_inbox');
+            }
+            if (starred_partner_ids.includes(currentPartner.id)) {
+                threadLocalIds.push('mail.box_starred');
+            }
+            if (history_partner_ids.includes(currentPartner.id)) {
+                threadLocalIds.push('mail.box_history');
+            }
         }
         if (model && res_id) {
             const originThreadLocalId = `${model}_${res_id}`;
