@@ -32,6 +32,12 @@
             </we-title>
         </we-customizeblock-options>
     </t>
+    <t t-name="web_editor.outdated_block_message">
+        <we-alert>
+            <we-title>This snippet is outdated</we-title>
+            <p>If you wish to make changes we recommend you to use the new version of this block and rebuild it with the new options</p>
+        </we-alert>
+    </t>
 
     <!-- options -->
     <div t-name="web_editor.snippet.option.colorpicker" class="colorpicker">

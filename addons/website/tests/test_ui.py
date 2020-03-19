@@ -138,3 +138,6 @@ class TestUi(odoo.tests.HttpCase):
         })
         self.start_tour("/?fw=%s" % website_default.id, "generic_website_editor", login='admin')
         self.start_tour("/?fw=%s" % new_website.id, "specific_website_editor", login='admin')
+
+    def test_06_snippet_version(self):
+        self.start_tour("/", 'snippet_version', login='admin')
