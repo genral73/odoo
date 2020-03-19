@@ -148,20 +148,15 @@ $bronze: #eea91e;
 
     .o_wforum_index_entry_tags {
         @for $size from 1 through length($o-colors) {
-            & .o_tag_color_#{$size - 1} {
+            .o_tag_color_#{$size - 1} {
                 $background-color: white;
                 // no color selected
                 @if $size == 1 {
-                    & {
-                        color: $gray-600;
-                        background-color: $background-color;
-                    }
+                    color: $gray-600;
+                    background-color: $background-color;
                 } @else {
-                    $background-color: nth($o-colors, $size);
-                    & {
-                        color: white;
-                        background-color: $background-color;
-                    }
+                    color: white;
+                    background-color: nth($o-colors, $size);
                 }
                 &:hover {
                     color: color-yiq($background-color);
@@ -268,4 +263,36 @@ img.o_forum_avatar_big {
     #o_wforum_forums_index_list & {
         min-height: 100px;
     }
+
+    & img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+    }
+}
+
+#o_wforum_forums_index_list {
+
+    @media (max-width: 768px) {
+        .o_forum_row {
+            flex-direction: column !important;
+        }
+
+        .o_forum_image_container {
+            height: 150px;
+        }
+    }
+}
+
+.o_forum_list_view {
+    height: 150px;
+}
+
+.opacity-0 img {
+    opacity: 0;
+}
+
+.accordion > .card:first-of-type:last-of-type {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.25rem;
 }

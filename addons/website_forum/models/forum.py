@@ -46,6 +46,7 @@ class Forum(models.Model):
     active = fields.Boolean(default=True)
     faq = fields.Html('Guidelines', default=_get_default_faq, translate=html_translate, sanitize=False)
     description = fields.Text('Description', translate=True)
+    teaser = fields.Text('Teaser', compute='_compute_teaser', store=True)
     welcome_message = fields.Html(
         'Welcome Message',
         translate=True,
@@ -85,6 +86,7 @@ class Forum(models.Model):
                                       'of the forum content.')
     # posts statistics
     post_ids = fields.One2many('forum.post', 'forum_id', string='Posts')
+    last_post_id = fields.Many2one('forum.post', compute='_compute_last_post_id')
     total_posts = fields.Integer('Post', compute='_compute_forum_statistics')
     total_views = fields.Integer('Views', compute='_compute_forum_statistics')
     total_answers = fields.Integer('Answers', compute='_compute_forum_statistics')
@@ -128,6 +130,25 @@ class Forum(models.Model):
     karma_user_bio = fields.Integer(string='Display detailed user biography', default=750)
     karma_post = fields.Integer(string='Ask questions without validation', default=100)
     karma_moderate = fields.Integer(string='Moderate posts', default=1000)
+
+    @api.depends('post_ids')
+    def _compute_last_post_id(self):
+        for forum in self:
+            last_post = forum.post_ids.search([('parent_id', '=', False)], order='create_date desc', limit=1)
+            if last_post:
+                forum.last_post_id = last_post
+
+    @api.depends('description')
+    def _compute_teaser(self):
+        for forum_post in self:
+            if forum_post.description:
+                desc = forum_post.description.replace('\n', ' ')
+                if len(forum_post.description) > 180:
+                    forum_post.teaser = desc[:180] + '...'
+                else:
+                    forum_post.teaser = forum_post.description
+            else:
+                forum_post.teaser = False
 
     @api.depends('post_ids.state', 'post_ids.views', 'post_ids.child_count', 'post_ids.favourite_count')
     def _compute_forum_statistics(self):
@@ -330,6 +351,9 @@ class Post(models.Model):
     can_flag = fields.Boolean('Can Flag', compute='_get_post_karma_rights', compute_sudo=False)
     can_moderate = fields.Boolean('Can Moderate', compute='_get_post_karma_rights', compute_sudo=False)
 
+    already_upvoted = fields.Boolean('Already Upvoted', compute='_get_post_karma_rights', compute_sudo=False)
+    already_downvoted = fields.Boolean('Already Downvoted', compute='_get_post_karma_rights', compute_sudo=False)
+
     def _search_can_view(self, operator, value):
         if operator not in ('=', '!=', '<>'):
             raise ValueError('Invalid operator: %s' % (operator,))
@@ -427,6 +451,9 @@ class Post(models.Model):
         # prefetched in bulk
         for post, post_sudo in zip(self, self.sudo()):
             is_creator = post.create_uid == user
+
+            post.already_upvoted = post.user_vote == 1
+            post.already_downvoted = post.user_vote == -1
 
             post.karma_accept = post.forum_id.karma_answer_accept_own if post.parent_id.create_uid == user else post.forum_id.karma_answer_accept_all
             post.karma_edit = post.forum_id.karma_edit_own if is_creator else post.forum_id.karma_edit_all
@@ -1044,9 +1071,9 @@ class Vote(models.Model):
 
     def _check_karma_rights(self, upvote=None):
         # karma check
-        if upvote and not self.post_id.can_upvote:
+        if upvote and not self.post_id.can_upvote and not self.post_id.already_downvoted:
             raise AccessError(_('%d karma required to upvote.') % self.post_id.forum_id.karma_upvote)
-        elif not upvote and not self.post_id.can_downvote:
+        elif not upvote and not self.post_id.can_downvote and not self.post_id.already_upvoted:
             raise AccessError(_('%d karma required to downvote.') % self.post_id.forum_id.karma_downvote)
 
     def _vote_update_karma(self, old_vote, new_vote):

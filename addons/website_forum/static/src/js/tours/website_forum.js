@@ -31,7 +31,7 @@ odoo.define("website_forum.tour_forum", function (require) {
             actions.auto("input[id=s2id_autogen2]");
         },
     }, {
-        trigger: "button:contains(\"Post\")",
+        trigger: "a:contains(\"Post\")",
         extra_trigger: "input[id=s2id_autogen2]:not(:propValue(\"Tags\"))",
         content: _t("Click to post your question."),
         position: "bottom",
@@ -39,13 +39,19 @@ odoo.define("website_forum.tour_forum", function (require) {
         extra_trigger: 'div.modal.modal_shown',
         trigger: ".modal-header button.close",
         auto: true,
-    }, {
+    },
+    {
+        trigger: "a:contains(\"Answer\").collapsed",
+        content: _t("Click to answer."),
+        position: "bottom",
+    },
+    {
         trigger: ".note-editable p",
         content: _t("Put your answer here."),
         position: "bottom",
         run: "text",
     }, {
-        trigger: "button:contains(\"Post Answer\")",
+        trigger: "a:contains(\"Post Answer\")",
         extra_trigger: ".note-editable p:not(:containsExact(\"<br>\"))",
         content: _t("Click to post your answer."),
         position: "bottom",

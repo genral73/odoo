@@ -164,6 +164,11 @@ class WebsiteForum(WebsiteProfile):
         values = self._prepare_user_values(forum=forum, searches=dict(), header={'is_guidelines': True}, **post)
         return request.render("website_forum.faq", values)
 
+    @http.route(['''/forum/<model("forum.forum"):forum>/faq/karma'''], type='http', auth="public", website=True, sitemap=True)
+    def forum_faq_karma(self, forum, **post):
+        values = self._prepare_user_values(forum=forum, searches=dict(), header={'is_guidelines': True, 'is_karma': True}, **post)
+        return request.render("website_forum.faq_karma", values)
+
     @http.route('/forum/get_tags', type='http', auth="public", methods=['GET'], website=True, sitemap=False)
     def tag_read(self, query='', limit=25, **post):
         data = request.env['forum.tag'].search_read(
