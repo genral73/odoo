@@ -12,8 +12,13 @@ from odoo.exceptions import UserError
 from odoo.tools import float_compare
 
 import logging
+_logger = logging.getLogger(__name__)
 import urllib3
-import certifi
+try:
+    import certifi
+except ImportError:
+    certifi = None
+    _logger.warning(_('Could not import certifi. Please see https://pypi.org/project/certifi/. SSL verification is disabled for communications with Viettel.'))
 from odoo import tools
 
 
@@ -229,7 +234,10 @@ class AccountMove(models.Model):
         self.ensure_one()
         l10n_vn_base_url = self.company_id.l10n_vn_base_url
         encoded_body = json.dumps(body).encode('utf-8')
-        http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+        if certifi:
+            http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+        else:
+            http = urllib3.PoolManager()
         headers['Content-Type'] = 'application/json'
         headers['Accept'] = 'application/json'
         request_status = 'fail'
@@ -245,11 +253,11 @@ class AccountMove(models.Model):
             except json.decoder.JSONDecodeError:
                 response = response.data.decode()
         except urllib3.exceptions.LocationValueError as e:
-            logging.error(e)
-            logging.info('l10n_vn_base_url: %s', l10n_vn_base_url)
-            logging.info('url_tail: %s', url_tail)
-            logging.info('headers: %s', headers)
-            logging.info('encoded_body: %s', encoded_body)
+            _logger.error(e)
+            _logger.info('l10n_vn_base_url: %s', l10n_vn_base_url)
+            _logger.info('url_tail: %s', url_tail)
+            _logger.info('headers: %s', headers)
+            _logger.info('encoded_body: %s', encoded_body)
             response = e
         return response, request_status
 
