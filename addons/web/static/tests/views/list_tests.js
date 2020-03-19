@@ -5391,6 +5391,33 @@ QUnit.module('Views', {
         list.destroy();
     });
 
+    QUnit.test('list with handle widget, create record and discard should always add empty row at last', async function (assert) {
+        assert.expect(1);
+
+        const list = await createView({
+            View: ListView,
+            model: 'foo',
+            data: this.data,
+            arch: '<tree editable="bottom">' +
+                '<field name="int_field" widget="handle"/>' +
+                '<field name="foo" required="1"/>' +
+                '</tree>',
+            domain: [['bar', '=', false]],
+        });
+
+        await testUtils.dom.click($('.o_list_button_add'));
+        // Drag and drop the first line after creating record row
+        await testUtils.dom.dragAndDrop(
+            list.$('.ui-sortable-handle').eq(0),
+            list.$('tbody tr.o_data_row').eq(1),
+            { position: 'bottom' }
+        );
+        await testUtils.dom.click($('.o_list_button_discard'));
+        assert.strictEqual(list.$('.o_data_row').index(), 0, "data row should be first");
+
+        list.destroy();
+    });
+
     QUnit.test('multiple clicks on Add do not create invalid rows', async function (assert) {
         assert.expect(2);
 
