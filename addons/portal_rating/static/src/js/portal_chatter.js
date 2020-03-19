@@ -118,7 +118,7 @@ PortalChatter.include({
      * @override
      * @private
      */
-    _reloadAfteraPost: async function (newMessage) {
+    _reloadChatterContent: async function (newMessage) {
         await this._super.apply(this, arguments);
         if (this.options['display_rating']) {
             this._renderRatingCard();

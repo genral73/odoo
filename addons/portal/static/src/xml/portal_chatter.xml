@@ -39,8 +39,8 @@
                                 </div>
                                 <div class="o_portal_chatter_attachments mt-3"/>
                                 <div class="mt8">
-                                    <button id="chatter_composer_submit_btn" t-attf-data-action="/mail/chatter_post" t-attf-class="o_portal_chatter_composer_btn btn btn-primary" type="submit">Send</button>
-                                    <button id="chatter_composer_attachment_btn" class="o_portal_chatter_attachment_btn btn btn-secondary" type="button" title="Add attachment">
+                                    <button t-attf-data-action="/mail/chatter_post" class="o_portal_chatter_composer_btn btn btn-primary" type="submit">Send</button>
+                                    <button class="o_portal_chatter_attachment_btn btn btn-secondary" type="button" title="Add attachment">
                                         <i class="fa fa-paperclip"/>
                                     </button>
                                 </div>

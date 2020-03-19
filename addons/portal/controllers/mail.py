@@ -8,7 +8,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 from odoo import http, _
 from odoo.http import request
 from odoo.osv import expression
-from odoo.tools import consteq, plaintext2html, html2plaintext
+from odoo.tools import consteq, plaintext2html
 from odoo.addons.mail.controllers.main import MailController
 from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.exceptions import AccessError, MissingError, UserError
@@ -121,12 +121,12 @@ class PortalChatter(http.Controller):
         `res_model`. The user must have access rights on this target document or
         must provide valid identifiers through `kw`. See `_message_post_helper`.
         """
-
         res_id = int(res_id)
 
         self._portal_post_check_attachments(attachment_ids, attachment_tokens)
 
         if message or attachment_ids:
+            result = {'default_message': message}
             # message is received in plaintext and saved in html
             if message:
                 message = plaintext2html(message)
@@ -140,10 +140,10 @@ class PortalChatter(http.Controller):
             post_values.update((fname, kw.get(fname)) for fname in self._portal_post_filter_params())
             message = _message_post_helper(**post_values)
 
-            return {
-                'message_id': message.id,
-                'message': html2plaintext(message.body)
-            }
+            result.update({
+                'default_message_id': message.id
+            })
+            return result
 
     @http.route('/mail/chatter_init', type='json', auth='public', website=True)
     def portal_chatter_init(self, res_model, res_id, domain=False, limit=False, **kwargs):

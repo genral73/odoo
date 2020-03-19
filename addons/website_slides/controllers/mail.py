@@ -16,7 +16,7 @@ class SlidesPortalChatter(PortalChatter):
     @http.route(['/mail/chatter_post'], type='json', methods=['POST'], auth='public', website=True)
     def portal_chatter_post(self, res_model, res_id, message, **kw):
         result = super(SlidesPortalChatter, self).portal_chatter_post(res_model, res_id, message, **kw)
-        attachments = request.env['mail.message'].browse(result['message_id']).attachment_ids
+        attachments = request.env['mail.message'].browse(result['default_message_id']).attachment_ids
         result.update({'default_attachment_ids': attachments.sudo().read(['id', 'name', 'mimetype', 'file_size', 'access_token'])})
         if res_model == 'slide.channel':
             rating_value = kw.get('rating_value', False)
@@ -25,9 +25,9 @@ class SlidesPortalChatter(PortalChatter):
                 # apply karma gain rule only once
                 request.env.user.add_karma(slide_channel.karma_gen_channel_rank)
             result.update({
-                'rating_value': rating_value,
+                'default_rating_value': rating_value,
                 'ratingAvg': slide_channel.rating_avg,
-                'rating_count': slide_channel.rating_count
+                'ratingTotal': slide_channel.rating_count
                 })
         return result
 
@@ -76,11 +76,10 @@ class SlidesPortalChatter(PortalChatter):
             })
         channel = request.env[res_model].browse(res_id)
         return {
-            'message_id': message.id,
-            'message': html2plaintext(message.body),
-            'rating_value': message.rating_value,
+            'default_message_id': message.id,
+            'default_message': html2plaintext(message.body),
+            'default_rating_value': message.rating_value,
             'ratingAvg': channel.rating_avg,
-            'rating_count': channel.rating_count,
-            'attachment_ids': message.attachment_ids,
+            'ratingTotal': channel.rating_count,
             'default_attachment_ids': message.attachment_ids.sudo().read(['id', 'name', 'mimetype', 'file_size', 'access_token'])
         }

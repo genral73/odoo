@@ -17,10 +17,10 @@ PortalChatter.include({
      * @override
      * @private
      */
-    _reloadAfteraPost: async function (newMessage) {
+    _reloadChatterContent: async function (newMessage) {
         await this._super.apply(this, arguments);
         if (this.options.res_model === "slide.channel") {
-            $('#review-tab').html('Reviews (' + newMessage.data.rating_count + ')');
+            $('#review-tab').html('Reviews (' + newMessage.data.ratingTotal + ')');
         }
     },
 

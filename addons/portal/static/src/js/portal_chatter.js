@@ -86,7 +86,7 @@ var PortalChatter = publicWidget.Widget.extend({
         // bind bus event: this (portal.chatter) and 'portal.rating.composer' in portal_rating
         // are speparate and sibling widgets, this event is to be triggered from portal.rating.composer, 
         // hence bus event is binded to achive usage of the event in another widget.
-        core.bus.on('post_message', this, this._reloadAfteraPost)
+        core.bus.on('reload_chatter_content', this, this._reloadChatterContent)
 
         return Promise.all([this._super.apply(this, arguments), this._reloadComposerWidget()]);
     },
@@ -134,7 +134,7 @@ var PortalChatter = publicWidget.Widget.extend({
      * Reloads chatter and message count after posting message
      * @private
      */
-    _reloadAfteraPost: function (newMessage) {
+    _reloadChatterContent: function (newMessage) {
         this.messageFetch();
     },
     /**
@@ -147,7 +147,7 @@ var PortalChatter = publicWidget.Widget.extend({
         if (oldComposer) {
             oldComposer.destroy();
             // load last message for portal chatter
-            core.bus.trigger('post_message', newMessage);
+            core.bus.trigger('reload_chatter_content', newMessage);
         }
         // instanciate and insert composer widget
         if (this.options['display_composer']) {

@@ -148,28 +148,20 @@ var PortalComposer = publicWidget.Widget.extend({
         });
     },
     /**
-     * check if message (message and attachment) is empty
-     */
-    isEmpty: function () {
-        return !this.$inputTextarea.val().trim() && !this.attachments.length;
-    },
-    /**
      * Send message using rpc call and display new message and message count
      * @private
      * @param {Event} ev
      */
-    _onSubmitButtonClick: function (ev) {
+    _onSubmitButtonClick: async function (ev) {
         ev.preventDefault();
-        if (this.isEmpty()) {
+        if (!this.$inputTextarea.val().trim() && !this.attachments.length) {
             return;
         }
-        const self = this;
-        return this._rpc({
+        const result = await this._rpc({
             route: ev.currentTarget.getAttribute('data-action'),
             params: this._prepareMessageData(),
-        }).then((result) => {
-            self.trigger_up('reload_composer_widget', result);
         });
+        this.trigger_up('reload_composer_widget', result);
     },
 
     //--------------------------------------------------------------------------

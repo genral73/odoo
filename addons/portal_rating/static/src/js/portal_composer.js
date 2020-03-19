@@ -39,7 +39,7 @@ PortalComposer.include({
             'default_message': false,
             'default_message_id': false,
             'default_rating_value': false,
-            'force_submit_url': false,
+            'force_submit_url': this.options.default_message_id ? '/slides/mail/update_comment' : false,
         });
         // star input widget
         this.labels = {
@@ -78,10 +78,10 @@ PortalComposer.include({
      * @override
      * @private
      */
-    _onSubmitButtonClick: function (ev) {
+    _onSubmitButtonClick: async function (ev) {
         //close rating bootstrap modal
         this.$el.closest('#ratingpopupcomposer').modal('hide');
-        return this._super.apply(this, arguments);
+        await this._super.apply(this, arguments);
     },
     /**
      * @override

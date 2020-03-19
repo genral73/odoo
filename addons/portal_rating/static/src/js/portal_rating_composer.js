@@ -78,19 +78,11 @@ publicWidget.registry.RatingPopupComposer = publicWidget.Widget.extend({
         if (oldComposer) {
             oldComposer.destroy();
             // load last message value for portal chatter review
-            core.bus.trigger('post_message', newMessage);
+            core.bus.trigger('reload_chatter_content', newMessage);
         }
         // instanciate and insert ratingPopup widget
         if (this.ratingPopupData['display_composer']) {
-            if (newMessage !== undefined) {
-                this.ratingPopupData.default_message = data.message;
-                this.ratingPopupData.default_message_id =data.message_id;
-                this.ratingPopupData.default_rating_value = data.rating_value;
-                this.ratingPopupData.default_attachment_ids = data.default_attachment_ids;
-                this.ratingPopupData.force_submit_url = '/slides/mail/update_comment';
-                this.ratingPopupData.ratingAvg = data.ratingAvg;
-                this.ratingPopupData.ratingTotal = data.rating_count;
-            }
+            this.ratingPopupData = Object.assign(this.ratingPopupData, data);
             this.ratingPopup = new RatingPopupComposer(this, this.ratingPopupData);
             this.ratingPopup.appendTo(this.$el);
             this.ratingPopup.on('reload_composer_widget', null, this._reloadRatingPopupComposerWidget.bind(this));
