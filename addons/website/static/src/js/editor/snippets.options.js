@@ -744,7 +744,7 @@ options.registry.Theme = options.Class.extend({
      */
     _computeWidgetVisibility: async function (widgetName, params) {
         if (widgetName === 'theme_color_suggestions') {
-            return false;
+            // return false;
         }
         return this._super(...arguments);
     },
