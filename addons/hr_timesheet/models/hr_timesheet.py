@@ -43,6 +43,9 @@ class AccountAnalyticLine(models.Model):
         'project.task', 'Task', index=True,
         domain="[('company_id', '=', company_id), ('project_id.allow_timesheets', '=', True), ('project_id', '=?', project_id)]"
     )
+    task_remaining_hours = fields.Float(related='task_id.remaining_hours')
+    task_planned_hours = fields.Float(related='task_id.planned_hours')
+    task_progress = fields.Float(related='task_id.progress')
     project_id = fields.Many2one('project.project', 'Project', domain=_domain_project_id)
 
     employee_id = fields.Many2one('hr.employee', "Employee", check_company=True, domain=_domain_employee_id)
