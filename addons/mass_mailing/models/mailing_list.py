@@ -13,10 +13,16 @@ class MassMailingList(models.Model):
 
     name = fields.Char(string='Mailing List', required=True)
     active = fields.Boolean(default=True)
-    contact_nbr = fields.Integer(compute="_compute_contact_nbr", string='Number of Contacts')
     contact_ids = fields.Many2many(
         'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
         string='Mailing Lists')
+    contact_nbr = fields.Integer(compute='_compute_contact_nbr', string='Number of Contacts')
+    contact_total = fields.Integer(compute='_compute_contact_total', string='Total of Contacts')
+    contact_ids_blackmailed = fields.Many2many(
+        'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
+        compute='_compute_contact_blacklist', sting='Black listed contact'
+    )
+
     subscription_ids = fields.One2many('mailing.contact.subscription', 'list_id',
         string='Subscription Information')
     is_public = fields.Boolean(default=True, help="The mailing list can be accessible by recipient in the unsubscription"
@@ -42,6 +48,18 @@ class MassMailingList(models.Model):
         data = dict(self.env.cr.fetchall())
         for mailing_list in self:
             mailing_list.contact_nbr = data.get(mailing_list.id, 0)
+
+    @api.depends('contact_ids')
+    def _compute_contact_total(self):
+        for mailing_list in self:
+            mailing_list.contact_total = len(mailing_list.contact_ids)
+
+
+    @api.depends('contact_ids')
+    def _compute_contact_blacklist(self):
+        for mailing_list in self:
+            mailing_list.contact_ids_blackmailed = mailing_list.contact_ids.search([('is_blacklisted', '=', True)])
+
 
     def write(self, vals):
         # Prevent archiving used mailing list
