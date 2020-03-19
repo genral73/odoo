@@ -7,6 +7,7 @@ const ChatWindowManager = require('mail.component.ChatWindowManager');
 const useStore = require('mail.hooks.useStore');
 
 const { Component } = owl;
+const { useGetters } = owl.hooks;
 
 class LivechatManager extends Component {
 
@@ -15,8 +16,11 @@ class LivechatManager extends Component {
      */
     constructor(...args) {
         super(...args);
+        this.storeGetters = useGetters();
         this.storeProps = useStore((state, props) => {
+            const hasChatWindow = !!state.chatWindowManager.computed.visible.length;
             return {
+                hasChatWindow,
                 publicLivechat: state.publicLivechat,
             };
         });

@@ -2825,7 +2825,7 @@ const actions = {
         }
 
         const currentPartner = state.partners[state.currentPartnerLocalId];
-        if (authorPartnerId === currentPartner.id) {
+        if (!currentPartner || authorPartnerId === currentPartner.id) {
             return;
         }
 

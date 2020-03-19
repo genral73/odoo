@@ -5,7 +5,6 @@ const LivechatManager = require('im_livechat.component.LivechatManager');
 const { getMessagingEnv } = require('mail.messaging.env');
 
 const publicEnv = require('web.public_env');
-var utils = require('web.utils');
 
 const messagingEnv = getMessagingEnv('main', publicEnv);
 messagingEnv.rpc = publicEnv.services.rpc;
@@ -35,12 +34,13 @@ Object.assign(messagingEnv.store.actions, {
         input_placeholder,
         title_color,
     }) {
-        var operatorCookie = utils.get_cookie('im_livechat_previous_operator_pid');
+        var operatorCookie = env.services.getCookie('im_livechat_previous_operator_pid');
         const previousOperatorLocalId = operatorCookie
             ? dispatch('_insertPartner', { id: operatorCookie })
             : undefined;
 
         state.publicLivechat = {
+            autoPopupTimeout: undefined,
             button_background_color,
             button_text,
             button_text_color,
@@ -55,14 +55,14 @@ Object.assign(messagingEnv.store.actions, {
             result: {
                 available_for_me: false,
                 rule: {
-                    action: 'popup',
+                    action: 'display_button',
                     auto_popup_timer: 0,
                     regex_url: '/im_livechat/',
                 },
             },
             title_color,
         };
-        var sessionCookie = utils.get_cookie('im_livechat_session');
+        var sessionCookie = env.services.getCookie('im_livechat_session');
         if (!sessionCookie) {
             const result = await env.rpc({
                 route: '/im_livechat/init',
@@ -71,6 +71,15 @@ Object.assign(messagingEnv.store.actions, {
                 },
             });
             Object.assign(state.publicLivechat, { result });
+
+            if (!state.isMobile && state.publicLivechat.result.rule.action === 'auto_popup') {
+                var autoPopupCookie = env.services.getCookie('im_livechat_auto_popup');
+                if (!autoPopupCookie || JSON.parse(autoPopupCookie)) {
+                    state.publicLivechat.autoPopupTimeout = setTimeout(() => {
+                        dispatch('openPublicLivechat');
+                    }, state.publicLivechat.result.rule.auto_popup_timer * 1000);
+                }
+            }
         } else {
             var channel = JSON.parse(sessionCookie);
             const history = await env.rpc({
@@ -85,12 +94,17 @@ Object.assign(messagingEnv.store.actions, {
         dispatch('_initBusNotifications');
     },
     async openPublicLivechat({ dispatch, env, state }) {
+        clearTimeout(state.publicLivechat.autoPopupTimeout);
+        state.publicLivechat.autoPopupTimeout = undefined;
+        const previousOperator = state.publicLivechat.previousOperatorLocalId
+            ? state.partners[state.publicLivechat.previousOperatorLocalId]
+            : undefined;
         const livechatData = await env.rpc({
             route: '/im_livechat/get_session',
             params: {
                 channel_id: state.publicLivechat.channel_id,
                 anonymous_name: state.publicLivechat.default_username,
-                previous_operator_id: state.partners[state.publicLivechat.previousOperatorLocalId].id,
+                previous_operator_id: previousOperator && previousOperator.id,
             },
             settings: {
                 shadow: true,

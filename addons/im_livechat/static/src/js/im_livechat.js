@@ -79,7 +79,7 @@ var LivechatButton = Widget.extend({
             ready = session.rpc('/im_livechat/init', {channel_id: this.options.channel_id})
                 .then(function (result) {
                     if (!result.available_for_me) {
-                        return Promise.reject();
+                        self.destroy();
                     }
                     self._rule = result.rule;
                 });
@@ -97,20 +97,8 @@ var LivechatButton = Widget.extend({
         if (this._history) {
             _.each(this._history.reverse(), this._addMessage.bind(this));
             this._openChat();
-        } else if (!config.device.isMobile && this._rule.action === 'auto_popup') {
-            var autoPopupCookie = utils.get_cookie('im_livechat_auto_popup');
-            if (!autoPopupCookie || JSON.parse(autoPopupCookie)) {
-                this._autoPopupTimeout =
-                    setTimeout(this._openChat.bind(this), this._rule.auto_popup_timer*1000);
-            }
         }
         this.call('bus_service', 'onNotification', this, this._onNotification);
-        if (this.options.button_background_color) {
-            this.$el.css('background-color', this.options.button_background_color);
-        }
-        if (this.options.button_text_color) {
-            this.$el.css('color', this.options.button_text_color);
-        }
         return this._super();
     },
 
