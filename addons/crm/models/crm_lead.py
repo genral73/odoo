@@ -275,7 +275,7 @@ class Lead(models.Model):
             else:
                 lead.is_automated_probability = tools.float_compare(lead.probability, lead.automated_probability, 2) == 0
 
-    @api.depends(lambda self: ['tag_ids', 'stage_id', 'team_id'] + self._pls_get_safe_fields())
+    @api.depends(lambda self: ['stage_id', 'team_id'] + self._pls_get_safe_fields())
     def _compute_probabilities(self):
         for lead in self:
             was_automated = False
@@ -407,7 +407,7 @@ class Lead(models.Model):
         return
 
     def _should_update_probability(self, vals):
-        fields_to_check = ['tag_ids', 'stage_id', 'team_id'] + self._pls_get_safe_fields()
+        fields_to_check = ['stage_id', 'team_id'] + self._pls_get_safe_fields()
         for field, value in vals.items():
             if field in fields_to_check:
                 return True
@@ -1377,10 +1377,13 @@ class Lead(models.Model):
             return values_to_create
 
         fields = ['stage_id', 'team_id'] + self._pls_get_safe_fields()
-        frequencies = dict((field, {}) for field in (fields + ['tag_id']))
+        frequencies = {}
+        if 'tag_ids' in fields:
+            fields.remove('tag_ids')
+            frequencies = {'tag_id': {}}
+        frequencies = {**frequencies, **dict((field, {}) for field in fields)}
 
         frequencies = self._pls_update_frequency_table_fields(frequencies, stage_ids, stage_sequences, fields, team_id, pls_start_date)
-        frequencies = self._pls_update_frequency_table_tag(frequencies, team_id, pls_start_date)
 
         # build the create multi
         for field, value in frequencies.items():
@@ -1439,7 +1442,7 @@ class Lead(models.Model):
                     else:
                         frequencies = self._pls_increment_frequency(frequencies, field, value, won, lost)
 
-        return frequencies
+        return self._pls_update_frequency_table_tag(frequencies, team_id, pls_start_date) if 'tag_id' in frequencies else frequencies
 
     def _pls_update_frequency_table_tag(self, frequencies, team_id, pls_start_date):
         # get all tag_ids won / lost count
@@ -1492,6 +1495,11 @@ class Lead(models.Model):
         """
         leads_values_dict = OrderedDict()
         fields = ["stage_id", "team_id"] + self._pls_get_safe_fields()
+        use_tag = bool(fields.pop(fields.index('tag_ids')) if 'tag_ids' in fields else False)
+        query_tag_select = ", t.id as tag_id" if use_tag else ""
+        query_tag_join = """LEFT JOIN crm_tag_rel rel ON l.id = rel.lead_id
+                            LEFT JOIN crm_tag t ON rel.tag_id = t.id""" if use_tag else ""
+
         if batch_mode:
             # get all info on leads
             #   Prepare fields injection
@@ -1507,11 +1515,12 @@ class Lead(models.Model):
             self._cr.execute(query, [tuple(self.ids)])
             lead_results = self._cr.dictfetchall()
 
-            query = """SELECT l.id as lead_id, t.id as tag_id
+            query = """SELECT l.id as lead_id%s
                         FROM crm_lead l
-                        LEFT JOIN crm_tag_rel rel ON l.id = rel.lead_id
-                        LEFT JOIN crm_tag t ON rel.tag_id = t.id
-                        WHERE ((l.probability > 0 AND l.probability < 100) OR l.probability is null) AND l.active = True AND l.id in %s order by l.team_id asc"""
+                        %s
+                        WHERE ((l.probability > 0 AND l.probability < 100) OR l.probability is null) AND l.active = True AND l.id in %%s order by l.team_id asc"""
+            args = [sql.Identifier('tag_id')]
+            query = sql.SQL(query % (query_tag_select, query_tag_join)).format(*args)
             self._cr.execute(query, [tuple(self.ids)])
             tag_results = self._cr.dictfetchall()
 
@@ -1525,10 +1534,10 @@ class Lead(models.Model):
                     if value or field in ('email_state', 'phone_state'):
                         lead_values.append((field, value))
                 leads_values_dict[lead['id']] = {'values': lead_values, 'team_id': lead['team_id']}
-
-            for tag in tag_results:
-                if tag['tag_id']:
-                    leads_values_dict[tag['lead_id']]['values'].append(('tag_id', tag['tag_id']))
+            if use_tag:
+                for tag in tag_results:
+                    if tag['tag_id']:
+                        leads_values_dict[tag['lead_id']]['values'].append(('tag_id', tag['tag_id']))
             return leads_values_dict
         else:
             for lead in self:
@@ -1539,8 +1548,9 @@ class Lead(models.Model):
                     value = lead[field].id if isinstance(lead[field], models.BaseModel) else lead[field]
                     if value or field in ('email_state', 'phone_state'):
                         lead_values.append((field, value))
-                for tag in lead.tag_ids:
-                    lead_values.append(('tag_id', tag.id))
+                if use_tag:
+                    for tag in lead.tag_ids:
+                        lead_values.append(('tag_id', tag.id))
                 leads_values_dict[lead.id] = {'values': lead_values, 'team_id': lead['team_id'].id}
             return leads_values_dict
 
