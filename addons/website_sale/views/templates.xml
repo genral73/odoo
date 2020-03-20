@@ -1743,7 +1743,7 @@
                             <i t-if="product_image._name == 'product.image' and product_image.embed_code" class="fa fa-2x fa-play-circle-o o_product_video_thumb"/>
                         </li>
                     </t>
-                    <li groups="website.group_website_designer" t-attf-class="d-inline-block m-1 align-top css_non_editable_mode_hidden o_wsale_product_add_image" title="Click to add extra images or videos">
+                    <li groups="website.group_website_designer" t-att-data-product-id="product.id" t-att-data-slide-to="str(len(product_images) > 1 and len(product_images) or 1)" t-attf-class="css_non_editable_mode_hidden d-inline-block m-1 align-top o_wsale_product_add_image" title="Click to add extra images or videos">
                         <i class="fa fa-upload"/>
                     </li>
                 </ol>

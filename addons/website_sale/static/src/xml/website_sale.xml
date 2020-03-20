@@ -8,4 +8,38 @@
         </div>
     </t>
 
+    <t t-name="productImageVideoUploder">
+        <div class="container">
+            <form class="clearfix">
+                <div class="row o_wsale_product_image_modal">
+                    <div class="col-md-6 col-xl-5 form-group">
+                        <label>Image Name</label>
+                        <h3><input type="text" class="form-control" name="name" placeholder="Image Name" required="1"/></h3>
+                        <label>Video URL</label><br/>
+                        <h3><input type="text" class="form-control" name="video_url"/></h3>
+                    </div>
+                    <div class="col-md-6 col-xl-7 form-group o_wsale_preview_container">
+                        <div class="row">
+                            <div class="col-5">
+                                <div class="o_editable o_wsale_product_image_container">
+                                    <div class="o_wsale_product_image p-1">
+                                        <img class="img img-fluid" alt="Binary file" src="/web/static/src/img/placeholder.png" name="image_1920" border="1"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-7">
+                                <div class="text-center o_wsale_product_video_container p-1">
+                                    <div id="o_wsale_product_video_preview">
+                                        <div class="o_wsale_product_video_preview_text">Video Preview</div>
+                                        <iframe class="o_wsale_product_video_dialog_iframe" allowfullscreen="allowfullscreen" frameborder="0" src=""/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </t>
+
 </templates>
