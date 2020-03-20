@@ -91,7 +91,7 @@ QUnit.test('basic chatter rendering', async function (assert) {
 });
 
 QUnit.test('basic chatter rendering without followers', async function (assert) {
-    assert.expect(7);
+    assert.expect(6);
     this.data['res.partner'].records = [{
         activity_ids: [],
         id: 2,
@@ -131,11 +131,8 @@ QUnit.test('basic chatter rendering without followers', async function (assert) 
     assert.containsOnce(document.body, `.o_ChatterTopbar_buttonScheduleActivity`,
         "there should be a schedule activity button"
     );
-    assert.containsNone(document.body, `.o_ChatterTopbar_buttonFollow`,
-        "there should be no follow button"
-    );
-    assert.containsNone(document.body, `.o_ChatterTopbar_buttonFollowers`,
-        "there should be no followers button"
+    assert.containsNone(document.body, `.o_FollowersMenu`,
+        "there should be no followers menu"
     );
     assert.containsOnce(document.body, `.o_Chatter_thread`,
         "there should be a thread"
@@ -143,7 +140,7 @@ QUnit.test('basic chatter rendering without followers', async function (assert) 
 });
 
 QUnit.test('basic chatter rendering without activities', async function (assert) {
-    assert.expect(7);
+    assert.expect(6);
     this.data['res.partner'].records = [{
         activity_ids: [],
         id: 2,
@@ -183,11 +180,8 @@ QUnit.test('basic chatter rendering without activities', async function (assert)
     assert.containsNone(document.body, `.o_ChatterTopbar_buttonScheduleActivity`,
         "there should be a schedule activity button"
     );
-    assert.containsOnce(document.body, `.o_ChatterTopbar_buttonFollow`,
-        "there should be no follow button"
-    );
-    assert.containsOnce(document.body, `.o_ChatterTopbar_buttonFollowers`,
-        "there should be no followers button"
+    assert.containsOnce(document.body, `.o_FollowersMenu`,
+        "there should be a followers menu"
     );
     assert.containsOnce(document.body, `.o_Chatter_thread`,
         "there should be a thread"
@@ -195,7 +189,7 @@ QUnit.test('basic chatter rendering without activities', async function (assert)
 });
 
 QUnit.test('basic chatter rendering without messages', async function (assert) {
-    assert.expect(7);
+    assert.expect(6);
 
     this.data['res.partner'].records = [{
         activity_ids: [],
@@ -236,11 +230,8 @@ QUnit.test('basic chatter rendering without messages', async function (assert) {
     assert.containsOnce(document.body, `.o_ChatterTopbar_buttonScheduleActivity`,
         "there should be a schedule activity button"
     );
-    assert.containsOnce(document.body, `.o_ChatterTopbar_buttonFollow`,
-        "there should be no follow button"
-    );
-    assert.containsOnce(document.body, `.o_ChatterTopbar_buttonFollowers`,
-        "there should be no followers button"
+    assert.containsOnce(document.body, `.o_FollowersMenu`,
+        "there should be a followers menu"
     );
     assert.containsNone(document.body, `.o_Chatter_thread`,
         "there should be a thread"
