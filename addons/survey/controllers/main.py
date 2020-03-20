@@ -315,7 +315,10 @@ class Survey(http.Controller):
         if answer_sudo.state == 'done':
             result = {'survey_content': request.env.ref('survey.survey_fill_form_done').render(survey_data)}
         else:
-            result = {'survey_content': request.env.ref('survey.survey_fill_form_in_progress').render(survey_data)}
+            result = {
+                'survey_content': request.env.ref('survey.survey_fill_form_in_progress').render(survey_data)
+            }
+        result['survey_navigation'] = request.env.ref('survey.survey_navigation').render(survey_data)
 
         if answer_sudo.state == 'in_progress' and not survey_data.get('question', request.env['survey.question']).is_page:
             if survey_sudo.questions_layout == 'page_per_section':
