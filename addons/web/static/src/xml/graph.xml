@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+
+    <div t-name="web.GraphOwlRenderer" owl="1">
+        <div class="o_graph_renderer">
+            <label t-if="title"><t t-esc="title"></t></label>
+            <div class="o_graph_canvas_container"  t-attf-style="{{state.chartStyle}}">
+
+                <t t-if="state.noContentHelper.show" t-call="web.NoContentHelper">
+                    <t t-set="title" t-value="state.noContentHelper.title"/>
+                    <t t-set="description" t-value="state.noContentHelper.message"/>
+                </t>
+
+                <t t-call="web.GraphOwlTooltip">
+
+                </t>
+                <canvas t-ref="chart-canvas">
+
+                </canvas>
+            </div>
+        </div>
+    </div>
+
+    <div t-name="web.GraphOwlTooltip" class="o_graph_custom_tooltip" t-ref="chart-tooltip" owl="1" t-attf-style="{{state.tooltip.style}}">
+        <table>
+            <thead>
+                <tr>
+                    <th class="o_measure"><t t-esc="state.tooltip.measure"/></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr t-foreach="state.tooltip.items" t-as="tooltipItem">
+                    <td>
+                        <span class="o_square" t-att-style="'background-color: ' + tooltipItem.boxColor"/>
+                        <span class="o_label" style="padding-left: 2px;" t-att-style="'max-width: ' + state.tooltip.maxWidth"> <t t-esc="tooltipItem.label" /> </span>
+                    </td>
+                    <td class="o_value">
+                        <t t-esc="tooltipItem.value"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>`
+
+</templates>
