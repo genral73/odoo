@@ -41,6 +41,7 @@ odoo.define('website_form.s_website_form', function (require) {
                     },
                 locale: moment.locale(),
                 format: time.getLangDatetimeFormat(),
+                extraFormats: ['X'],
             };
             this.$target.find('.s_website_form_datetime, .o_website_form_datetime').datetimepicker(datepickers_options); // !compatibility
 
@@ -74,6 +75,21 @@ odoo.define('website_form.s_website_form', function (require) {
 
             // Empty imputs
             this.$target.find('input[type="text"], input[type="email"], input[type="number"], textarea').val('');
+
+            // Apply default values
+            const dateTimeFormat = time.getLangDatetimeFormat();
+            const dateFormat = time.getLangDateFormat();
+            this.$target[0].querySelectorAll('input[type="text"], input[type="email"], input[type="number"]').forEach(el => {
+                let value = el.getAttribute('value');
+                if (value) {
+                    if (el.classList.contains('datetimepicker-input')) {
+                        const format = el.closest('.s_website_form_field').dataset.type === 'date' ? dateFormat : dateTimeFormat;
+                        value = moment.unix(value).format(format);
+                    }
+                    el.value = value;
+                }
+            });
+            this.$target[0].querySelectorAll('textarea').forEach(el => el.value = el.textContent);
 
             // Remove saving of the error colors
             this.$target.find('.o_has_error').removeClass('o_has_error').find('.form-control, .custom-select').removeClass('is-invalid');
