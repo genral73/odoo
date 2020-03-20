@@ -17,6 +17,7 @@ var fieldsToGather = [
     "date_delay",
     "date_stop",
     "all_day",
+    "rec_name",
 ];
 
 var CalendarView = AbstractView.extend({
