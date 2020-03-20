@@ -20,7 +20,7 @@ const CountdownWidget = publicWidget.Widget.extend({
         this.$wrapper = this.$('.s_countdown_canvas_wrapper');
         this.hereBeforeTimerEnds = false;
         this.endAction = this.el.dataset.endAction;
-        this.endTime = parseInt(this.el.dataset.endTime);
+        this.endTime = parseInt(this.el.dataset.endTime) || 0;
         this.size = parseInt(this.el.dataset.size);
         this.display = this.el.dataset.display;
 

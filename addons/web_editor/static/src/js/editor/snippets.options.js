@@ -1238,6 +1238,7 @@ const DatetimePickerUserValueWidget = InputUserValueWidget.extend({
         'change.datetimepicker': '_onDateTimePickerChange',
         'error.datetimepicker': '_onDateTimePickerError',
     },
+    defaultFormat: time.getLangDatetimeFormat(),
 
     /**
      * @override
@@ -1267,9 +1268,10 @@ const DatetimePickerUserValueWidget = InputUserValueWidget.extend({
                 close: 'fa fa-check primary',
             },
             locale: moment.locale(),
-            format: time.getLangDatetimeFormat(),
+            format: this.defaultFormat,
             sideBySide: true,
             buttons: {
+                showClear: true,
                 showClose: true,
                 showToday: true,
             },
@@ -1305,6 +1307,15 @@ const DatetimePickerUserValueWidget = InputUserValueWidget.extend({
     /**
      * @override
      */
+    getMethodsParams: function () {
+        return _.extend(this._super(...arguments), {
+            format: this.defaultFormat,
+        });
+    },
+
+    /**
+     * @override
+     */
     isPreviewed: function () {
         return this._super(...arguments) || !!$(this.inputEl).data('datetimepicker').widget;
     },
@@ -1318,9 +1329,12 @@ const DatetimePickerUserValueWidget = InputUserValueWidget.extend({
      */
     _updateUI: async function () {
         await this._super(...arguments);
-        let momentObj = moment.unix(this._value);
-        if (!momentObj.isValid()) {
-            momentObj = moment();
+        let momentObj = null;
+        if (this._value) {
+            momentObj = moment.unix(this._value);
+            if (!momentObj.isValid()) {
+                momentObj = moment();
+            }
         }
         this.__libInput++;
         $(this.inputEl).datetimepicker('date', momentObj);
@@ -1340,9 +1354,10 @@ const DatetimePickerUserValueWidget = InputUserValueWidget.extend({
             return;
         }
         if (!ev.date || !ev.date.isValid()) {
-            return;
+            this._value = '';
+        } else {
+            this._value = ev.date.unix().toString();
         }
-        this._value = ev.date.unix().toString();
         this._onUserValuePreview(ev);
     },
     /**
@@ -1352,6 +1367,10 @@ const DatetimePickerUserValueWidget = InputUserValueWidget.extend({
     _onDateTimePickerError: function (ev) {
         ev.stopPropagation();
     },
+});
+
+const DatePickerUserValueWidget = DatetimePickerUserValueWidget.extend({
+    defaultFormat: time.getLangDateFormat(),
 });
 
 const ListUserValueWidget = UserValueWidget.extend({
@@ -1574,6 +1593,7 @@ const userValueWidgetsRegistry = {
     'we-multi': MultiUserValueWidget,
     'we-colorpicker': ColorpickerUserValueWidget,
     'we-datetimepicker': DatetimePickerUserValueWidget,
+    'we-datepicker': DatePickerUserValueWidget,
     'we-imagepicker': ImagepickerUserValueWidget,
     'we-list': ListUserValueWidget,
 };
