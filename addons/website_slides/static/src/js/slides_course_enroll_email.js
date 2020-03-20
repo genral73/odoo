@@ -31,7 +31,7 @@ var SlideEnrollEmailDialog = Dialog.extend({
         var self = this;
         this._rpc({
             model: 'slide.channel',
-            method: 'send_message_to_responsible',
+            method: 'request_access_to_responsible',
             args: [self.channelId]
         }).then(function (result) {
             if (result) {

@@ -78,6 +78,7 @@ class Channel(models.Model):
     _description = 'Course'
     _inherit = [
         'mail.thread', 'rating.mixin',
+        'mail.activity.mixin',
         'image.mixin',
         'website.seo.metadata', 'website.published.multi.mixin']
     _order = 'sequence, id'
@@ -660,19 +661,50 @@ class Channel(models.Model):
     def get_backend_menu_id(self):
         return self.env.ref('website_slides.website_slides_menu_root').id
 
-    def send_message_to_responsible(self):
-        message_ids = []
-        sudoed = self.sudo()
-        MailTemplates = sudoed.env['mail.template']
-        for channel in sudoed.filtered(lambda c: c.is_published and c.enroll == 'invite' and not c.is_member):
-            body_html = MailTemplates._render_template(
-                channel.enroll_request_template_id.body_html,
-                'slide.channel',
-                channel.id)
-            message_ids.append(channel.message_post(
-                subject=_('Access course request'),
-                partner_ids=[channel.user_id.partner_id.id],
-                body=body_html,
-                email_layout_xmlid='mail.mail_notification_light',
-            ))
-        return len(message_ids) != 0
+    def request_access_to_responsible(self):
+        activity_ids = []
+        for channel in self.filtered(lambda c: c.is_published and c.enroll == 'invite' and not c.is_member):
+            activity_ids.append(channel.sudo().activity_schedule(
+                'website_slides.mail_activity_data_access_request',
+                note=_('<b>%s</b> is requesting access to this course.') % self.env.user.name,
+                user_id=channel.user_id.id,
+                partner_id=self.env.user.partner_id.id))
+        return len(activity_ids) != 0
+
+        # message_ids = []
+        # sudoed = self.sudo()
+        # MailTemplates = sudoed.env['mail.template']
+        # for channel in sudoed.filtered(lambda c: c.is_published and c.enroll == 'invite' and not c.is_member):
+        #     body_html = MailTemplates._render_template(
+        #         channel.enroll_request_template_id.body_html,
+        #         'slide.channel',
+        #         channel.id)
+        #     message_ids.append(channel.message_post(
+        #         subject=_('Access course request'),
+        #         partner_ids=[channel.user_id.partner_id.id],
+        #         body=body_html,
+        #         email_layout_xmlid='mail.mail_notification_light',
+        #     ))
+        # return len(message_ids) != 0
+
+    def _get_access_request_activities(self, partner_id):
+        domain = [
+            ('res_model', '=', 'slide.channel'),
+            ('res_id', 'in', self.ids),
+            ('activity_type_id', '=', self.env.ref('website_slides.mail_activity_data_access_request').id),
+            ('user_id', '=', self.user_id.id),
+            ('partner_id', '=', partner_id.id)
+        ]
+        activities = self.env['mail.activity'].search(domain)
+        return activities
+
+    def action_grant_access(self, id):
+        partner_id = self.env['res.partner'].browse(id)
+        if partner_id:
+            self._action_add_members(partner_id)
+            self.sudo()._get_access_request_activities(partner_id).action_feedback(feedback=_('Access Granted'))
+
+    def action_refuse_access(self, id):
+        partner_id = self.env['res.partner'].browse(id)
+        if partner_id:
+            self.sudo()._get_access_request_activities(partner_id).action_feedback(feedback=_('Access Refused'))
