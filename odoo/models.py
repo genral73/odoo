@@ -5964,6 +5964,12 @@ Record ids: %(records)s
                 process(method_res)
             return
 
+    def pre_onchange(self, field_names):
+        pass
+
+    def post_onchange(self, changed_fields):
+        pass
+
     def onchange(self, values, field_name, field_onchange):
         """ Perform an onchange on the given field.
 
@@ -6154,6 +6160,10 @@ Record ids: %(records)s
 
         result = {'warnings': OrderedSet()}
 
+        changed_fields = set()
+
+        record.pre_onchange(todo)
+
         # process names in order
         while todo:
             # apply field-specific onchange methods
@@ -6162,6 +6172,9 @@ Record ids: %(records)s
                     record._onchange_eval(name, field_onchange[name], result)
                 done.add(name)
 
+            for name in todo:
+                changed_fields.add(name)
+
             # determine which fields to process for the next pass
             todo = [
                 name
@@ -6169,8 +6182,7 @@ Record ids: %(records)s
                 if name not in done and snapshot0.has_changed(name)
             ]
 
-            if not env.context.get('recursive_onchanges', True):
-                todo = []
+        record.post_onchange(changed_fields)
 
         # make the snapshot with the final values of record
         snapshot1 = Snapshot(record, nametree)
