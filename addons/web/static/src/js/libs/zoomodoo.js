@@ -18,6 +18,7 @@ odoo.define('web.zoomodoo', function (require) {
     included in all copies or substantial portions of the Software.
 **/
 
+var core = require('web.core');
 var dw, dh, rw, rh, lx, ly;
 
 var defaults = {
@@ -89,6 +90,7 @@ ZoomOdoo.prototype._init = function () {
         }
         $attach.parent().on('mousemove.zoomodoo touchmove.zoomodoo', $.proxy(this._onMove, this));
         $attach.parent().on('mouseleave.zoomodoo touchend.zoomodoo', $.proxy(this._onLeave, this));
+        core.bus.on('keydown', this, this._onKeydown);
         this.$target.on(this.opts.event + '.zoomodoo touchstart.zoomodoo', $.proxy(this._onEnter, this));
 
         if (this.opts.preventClicks) {
@@ -223,6 +225,16 @@ ZoomOdoo.prototype._onMove = function (e) {
 
     e.preventDefault();
     this._move(e);
+};
+
+/**
+ * On keydown
+ * @private
+ */
+ZoomOdoo.prototype._onKeydown = function () {
+    if (this.isOpen) {
+        this.hide();
+    }
 };
 
 /**
