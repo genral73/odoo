@@ -568,6 +568,8 @@ class SingleTransactionCase(BaseCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.registry = odoo.registry(get_db_name())
+        # test to see if we need below statement or not
+        # cls.addClassCleanup(cls.registry.reset_changes)
         cls.addClassCleanup(cls.registry.clear_caches)
 
         cls.cr = cls.registry.cursor()
@@ -579,6 +581,7 @@ class SingleTransactionCase(BaseCase):
     def setUp(self):
         super(SingleTransactionCase, self).setUp()
         self.env.user.flush()
+
 
 savepoint_seq = itertools.count()
 class SavepointCase(SingleTransactionCase):
