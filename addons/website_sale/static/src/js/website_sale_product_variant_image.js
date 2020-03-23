@@ -72,7 +72,7 @@ var productVariantImages = Widget.extend({
     _updateCarouselIndicatorAndInnerItem: function (ev, data) {
         // carousel indicator
         let src = data.image.attr('src');
-        let $newli = $(QWeb.render('carouselIndicator', {'index': this.currentIndex, 'src': src}));
+        const $newli = $(QWeb.render('carouselIndicator', {'index': this.currentIndex, 'src': src}));
         this.currentIndex = this.currentIndex + 1;
         this.$el.attr('data-slide-to', this.currentIndex);
         $newli.insertBefore(this.$el);
@@ -84,7 +84,37 @@ var productVariantImages = Widget.extend({
         this.productVariantImages.push(data);
     },
     _saveImageAndVideo: function () {
-        debugger;
+        const self = this;
+        const args = [];
+        _.each(this.productVariantImages, (data) => {
+            let canvas = document.createElement("CANVAS");
+            let ctx = canvas.getContext("2d");
+            const img = new Image();
+            img.onload = function () {
+                canvas.width = this.width;
+                canvas.height = this.height;
+                ctx.drawImage(this, 0, 0);
+                args.push({
+                    'name': 'test', // TODO
+                    'product_tmpl_id': self.productID,
+                    'image_1920': canvas.toDataURL("image/jpeg").replace(/^data:image\/[a-z]+;base64,/, ""),
+                });
+                canvas = null;
+            };
+            img.src = data.image.attr('src');
+        });
+        // TODO: raise warning with proper message if rpc fail
+        return new Promise (function (resolve, reject) {
+            self._rpc({
+                model: 'product.image',
+                method: 'create',
+                args: [args],
+            }).catch(function (data) {
+                reject();
+            }).then( function () {
+                resolve();
+            });
+        });
     }
 });
 return productVariantImages;
