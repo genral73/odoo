@@ -2309,6 +2309,7 @@ const actions = {
      * @param {integer} [param1.message_unread_counter]
      * @param {boolean} [param1.moderation]
      * @param {string} [param1.name]
+     * @param {Array} [param1.operator_pid] // TODO FIXME move this into im_livechat when we have entities
      * @param {string} [param1.public]
      * @param {integer} [param1.seen_message_id]
      * @param {Object[]} [param1.seen_partners_info]
@@ -2342,6 +2343,7 @@ const actions = {
             message_unread_counter,
             moderation,
             name,
+            operator_pid, // TODO FIXME move this into im_livechat when we have entities
             public: public2, // public is reserved keyword
             seen_message_id,
             seen_partners_info,
@@ -2383,6 +2385,7 @@ const actions = {
             message_unread_counter,
             moderation,
             name,
+            operator_pid, // TODO FIXME move this into im_livechat when we have entities
             public: public2,
             seen_message_id,
             seen_partners_info,
@@ -3245,7 +3248,6 @@ const actions = {
         { dispatch, getters },
         notifications
     ) {
-        console.log('store', notifications);
         const filteredNotifications = dispatch('_filterNotificationsOnUnsubscribe', notifications);
         const proms = filteredNotifications.map(notification => {
             const [channel, data] = notification;

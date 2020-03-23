@@ -5,12 +5,14 @@ const LivechatManager = require('im_livechat.component.LivechatManager');
 const { getMessagingEnv } = require('mail.messaging.env');
 
 const publicEnv = require('web.public_env');
+var time = require('web.time');
 
 const messagingEnv = getMessagingEnv('main', publicEnv);
 messagingEnv.rpc = publicEnv.services.rpc;
-messagingEnv.hasAttachments = false;
-messagingEnv.hasEmojis = false;
+messagingEnv.hasComposerAttachments = false;
+messagingEnv.hasComposerEmojis = false;
 messagingEnv.hasFontAwesome = false;
+messagingEnv.isMessagePartnerDisplayNamePreferred = true;
 
 Object.assign(messagingEnv.store.actions, {
     /**
@@ -39,6 +41,10 @@ Object.assign(messagingEnv.store.actions, {
             ? dispatch('_insertPartner', { id: operatorCookie })
             : undefined;
 
+        Object.assign(state.chatWindowManager, {
+            header_background_color,
+            title_color,
+        });
         state.publicLivechat = {
             autoPopupTimeout: undefined,
             button_background_color,
@@ -48,7 +54,6 @@ Object.assign(messagingEnv.store.actions, {
             channel_name,
             default_message,
             default_username: env._t("Visitor"),
-            header_background_color,
             history: {},
             input_placeholder,
             previousOperatorLocalId,
@@ -60,7 +65,6 @@ Object.assign(messagingEnv.store.actions, {
                     regex_url: '/im_livechat/',
                 },
             },
-            title_color,
         };
         var sessionCookie = env.services.getCookie('im_livechat_session');
         if (!sessionCookie) {
@@ -93,6 +97,15 @@ Object.assign(messagingEnv.store.actions, {
         }
         dispatch('_initBusNotifications');
     },
+    /**
+     * Opens the public livechat if there is an operator available, by fetching
+     * the chat history (if it exists) or the channel info otherwise.
+     *
+     * @param {Object} param0
+     * @param {function} param0.dispatch
+     * @param {Object} param0.env
+     * @param {Object} param0.state
+     */
     async openPublicLivechat({ dispatch, env, state }) {
         clearTimeout(state.publicLivechat.autoPopupTimeout);
         state.publicLivechat.autoPopupTimeout = undefined;
@@ -110,14 +123,40 @@ Object.assign(messagingEnv.store.actions, {
                 shadow: true,
             },
         });
+        if (!livechatData) {
+            env.displayNotification({
+                title: env._t("Collaborators offline"),
+                message: env._t("None of our collaborators seem to be available, please try again later."),
+                sticky: true
+            });
+            return;
+        }
+        // TODO SEB handle empty livechatData
         const threadLocalId = dispatch('insertThread', Object.assign({
             _model: 'mail.channel',
         }, livechatData));
         const thread = state.threads[threadLocalId];
         env.services.bus_service.addChannel(thread.uuid);
+        // TODO SEB: if not history
+        if (state.publicLivechat.default_message) {
+            const operatorLocalId = dispatch('_insertPartner', {
+                id: livechatData.operator_pid[0],
+                display_name: livechatData.operator_pid[1],
+            });
+            const operator = state.partners[operatorLocalId];
+            dispatch('_createMessage', {
+                id: '_welcome',
+                author_id: [operator.id, operator.display_name],
+                body: _.str.sprintf('<p>%s</p>', state.publicLivechat.default_message),
+                channel_ids: [thread.id],
+                date: time.datetime_to_str(new Date()),
+            });
+        }
         dispatch('openThread', threadLocalId);
     },
     /**
+     * There is a different "post" flow for livechat.
+     *
      * @override
      */
     async postMessage(

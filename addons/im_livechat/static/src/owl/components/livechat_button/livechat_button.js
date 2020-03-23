@@ -3,7 +3,7 @@ odoo.define('im_livechat.component.LivechatButton', function (require) {
 
 const useStore = require('mail.hooks.useStore');
 
-const { Component, utils } = owl;
+const { Component } = owl;
 const { useDispatch } = owl.hooks;
 
 class LivechatButton extends Component {
@@ -34,12 +34,7 @@ class LivechatButton extends Component {
         if (this.storeProps.publicLivechat.button_text_color) {
             styles['color'] = this.storeProps.publicLivechat.button_text_color;
         }
-        return Object.keys(styles).reduce((res, property) => {
-            return res + _.str.sprintf("%s: %s;",
-                property,
-                utils.escape(styles[property])
-            );
-        }, '');
+        return this.env.getStyleString(styles);
     }
     //--------------------------------------------------------------------------
     // Handlers

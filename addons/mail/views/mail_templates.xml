@@ -159,7 +159,6 @@
                 <script type="text/javascript" src="/mail/static/src/owl/widgets/discuss_invite_partner_dialog.js"></script>
                 <script type="text/javascript" src="/mail/static/src/owl/widgets/messaging_menu.js"></script>
 
-                <link rel="stylesheet" type="text/scss" href="/mail/static/src/owl/tribute_custom.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/owl/variables.scss"/>
                 <!-- notification_list_item.scss contains variables/mixins, it must be positioned before sub-components of NotificationList -->
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/owl/components/notification_list/notification_list_item.scss"/>

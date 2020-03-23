@@ -3,8 +3,8 @@ odoo.define('im_livechat.im_livechat', function (require) {
 
 require('bus.BusService');
 var concurrency = require('web.concurrency');
-var config = require('web.config');
 var core = require('web.core');
+require('web.NotificationService');
 var session = require('web.session');
 var time = require('web.time');
 var utils = require('web.utils');
@@ -288,9 +288,7 @@ var LivechatButton = Widget.extend({
         var self = this;
         var options = {
             displayStars: false,
-            headerBackgroundColor: this.options.header_background_color,
             placeholder: this.options.input_placeholder || "",
-            titleColor: this.options.title_color,
         };
         this._chatWindow = new WebsiteLivechatWindow(this, this._livechat, options);
         return this._chatWindow.appendTo($('body')).then(function () {

@@ -40,14 +40,31 @@ function getMessagingEnv(name, initialEnv = {}) {
         });
         Object.assign(env, {
             envName: name,
-            hasAttachments: true,
-            hasEmojis: true,
+            getStyleString,
+            hasComposerAttachments: true,
+            hasComposerEmojis: true,
             hasFontAwesome: true,
+            isMessagePartnerDisplayNamePreferred: false,
             store,
         });
         envs[name] = env;
     }
     return envs[name];
+}
+
+/**
+ * Returns inline style string from the given styles object.
+ *
+ * @param {Object} styles: each element is a CSS property and its value
+ * @returns {string}
+ */
+function getStyleString(styles) {
+    return Object.keys(styles).reduce((res, property) => {
+        return res + _.str.sprintf("%s: %s;",
+            property,
+            owl.utils.escape(styles[property])
+        );
+    }, '');
 }
 
 return { clearMessagingEnv, getMessagingEnv };

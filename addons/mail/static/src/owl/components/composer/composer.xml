@@ -76,7 +76,7 @@
                             <div class="o_Composer_toolButtonSeparator"/>
                         </t>
                         <div class="o_Composer_primaryToolButtons">
-                            <t t-if="env.hasEmojis">
+                            <t t-if="env.hasComposerEmojis">
                                 <EmojisButton
                                     class="o_Composer_button o_Composer_buttonEmojis o_Composer_toolButton btn-secondary"
                                     placement="'top'"
@@ -89,7 +89,7 @@
                                     </t>
                                 </EmojisButton>
                             </t>
-                            <t t-if="env.hasAttachments">
+                            <t t-if="env.hasComposerAttachments">
                                 <button class="o_Composer_button o_Composer_buttonAttachment o_Composer_toolButton btn btn-secondary fa fa-paperclip" t-att-class="{ 'o-mobile': storeProps.isMobile }" t-on-click="_onClickAddAttachment" title="Add attachment" type="button" aria-label="Add attachment"/>
                             </t>
                         </div>

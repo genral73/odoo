@@ -99,6 +99,7 @@ class MailChannel(models.Model):
         return values
 
     def _channel_get_livechat_partner_name(self):
+        # TODO SEB if there is no anonymous_name, the operator is talking to himself
         if self.livechat_operator_id in self.channel_partner_ids:
             partners = self.channel_partner_ids - self.livechat_operator_id
             if partners:
