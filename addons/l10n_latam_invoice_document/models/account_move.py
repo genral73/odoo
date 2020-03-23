@@ -19,7 +19,7 @@ class AccountMove(models.Model):
         states={'posted': [('readonly', True)]}, compute='_compute_l10n_latam_document_type', store=True)
     l10n_latam_use_documents = fields.Boolean(related='journal_id.l10n_latam_use_documents')
     l10n_latam_country_code = fields.Char(
-        related='company_id.country_id.code', help='Technical field used to hide/show fields regarding the localization')
+        related='company_id.country_id.code', string="Latam Country Code", help='Technical field used to hide/show fields regarding the localization')
 
     @api.model
     def _deduce_sequence_number_reset(self, name):
