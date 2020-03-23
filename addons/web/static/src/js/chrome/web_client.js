@@ -120,7 +120,7 @@ class WebClient extends Component {
             tt.parentNode.removeChild(tt);
         }
     }
-    _getHome() {
+    async _getHome() {
         const menuID = this.menus ? this.menus.root.children[0] : null;
         const actionID =  menuID ? this.menus[menuID].actionID : null;
         if (actionID) {
@@ -479,10 +479,13 @@ class WebClient extends Component {
     _onExecuteAction(ev) {
         this.actionManager.executeInFlowAction(ev.detail);
     }
-    _onHashchange() {
+    async _onHashchange() {
         if (!this.ignoreHashchange) {
             const state = this._getUrlState();
-            this._loadState(state);
+            const loaded = await this._loadState(state);
+            if (loaded === true) {
+                this.render();
+            }
         }
         this.ignoreHashchange = false;
         // TODO: reset oldURL in case of failure?
