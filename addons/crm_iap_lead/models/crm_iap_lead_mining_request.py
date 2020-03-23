@@ -42,7 +42,7 @@ class CRMLeadMiningRequest(models.Model):
     user_id = fields.Many2one('res.users', string='Salesperson')
     tag_ids = fields.Many2many('crm.tag', string='Tags')
     lead_ids = fields.One2many('crm.lead', 'lead_mining_request_id', string='Generated Lead / Opportunity')
-    leads_count = fields.Integer(compute='_compute_leads_count', string='Number of Generated Leads')
+    lead_count = fields.Integer(compute='_compute_lead_count', string='Number of Generated Leads')
 
     # Company Criteria Filter
     filter_on_size = fields.Boolean(string='Filter on Size', default=False)
