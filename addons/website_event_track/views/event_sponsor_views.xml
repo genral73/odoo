@@ -61,7 +61,7 @@
                         <group>
                             <field name="event_id"/>
                             <field name="partner_email" widget="email"/>
-                            <field name="url" widget="url"/>
+                            <field name="url" widget="url" attrs="{'invisible':[('url','=',False)]}"/>
                             <field name="sequence" groups="base.group_no_one"/>
                         </group>
                         <group>

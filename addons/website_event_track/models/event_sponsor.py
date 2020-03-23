@@ -27,7 +27,7 @@ class Sponsor(models.Model):
     partner_email = fields.Char('Email', related='partner_id.email')
     partner_phone = fields.Char('Phone', related='partner_id.phone')
     partner_mobile = fields.Char('Mobile', related='partner_id.mobile')
-    url = fields.Char('Sponsor Website')
+    url = fields.Char('Sponsor Website', related='partner_id.website')
     sequence = fields.Integer('Sequence')
     image_128 = fields.Image(
         string="Logo", related='partner_id.image_128', store=True, readonly=False)
