@@ -73,6 +73,7 @@ var PortalChatter = publicWidget.Widget.extend({
      */
     start: function () {
         // bind events
+        debugger;
         this.on("change:messages", this, this._renderMessages);
         this.on("change:message_count", this, function () {
             this._renderMessageCount();
