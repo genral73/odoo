@@ -15,7 +15,7 @@
     </t>
 
     <t t-name="carouselInnerItem">
-        <div t-attf-class="carousel-item h-100">
+        <div class="carousel-item h-100">
             <div class="d-flex align-items-center justify-content-center h-100">
                 <img t-att-src="src" itemprop="image" class="img img-fluid product_detail_img mh-100" t-att-alt="alt"/>
             </div>
