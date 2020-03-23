@@ -33,3 +33,5 @@ from . import test_portal_attachment
 from . import test_tax_report
 from . import test_reconciliation_heavy_load
 from . import test_transfer_wizard
+from . import test_1_cleanup
+from . import test_2_cleanup
