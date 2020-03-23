@@ -56,7 +56,7 @@ class SaleOrder(models.Model):
             pricelist_price = self.pricelist_id.with_context(uom=option.uom_id.id).get_product_price(option.product_id, 1, False)
 
             if self.pricelist_id.discount_policy == 'without_discount' and price:
-                discount = (price - pricelist_price) * 100 / price
+                discount = max(0, (price - pricelist_price) * 100 / price)
             else:
                 price = pricelist_price
 
@@ -99,7 +99,7 @@ class SaleOrder(models.Model):
                     pricelist_price = self.pricelist_id.with_context(uom=line.product_uom_id.id).get_product_price(line.product_id, 1, False)
 
                     if self.pricelist_id.discount_policy == 'without_discount' and price:
-                        discount = (price - pricelist_price) * 100 / price
+                        discount = max(0, (price - pricelist_price) * 100 / price)
                     else:
                         price = pricelist_price
 
