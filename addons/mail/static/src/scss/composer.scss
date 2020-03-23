@@ -69,6 +69,10 @@
             @include o-position-absolute(auto, 0);
         }
 
+        &:hover .o_chatter_composer_tools .btn {
+            background-color: transparent;
+        }
+
         .o_mail_emoji_container {
             padding: 0 $o-mail-chatter-gap $o-mail-chatter-gap 0;
             border: 1px solid gray('300');
