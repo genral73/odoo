@@ -568,7 +568,6 @@ class SingleTransactionCase(BaseCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.registry = odoo.registry(get_db_name())
-        cls.addClassCleanup(cls.registry.reset_changes)
         cls.addClassCleanup(cls.registry.clear_caches)
 
         cls.cr = cls.registry.cursor()
