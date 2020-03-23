@@ -69,6 +69,9 @@ class SaleOrder(models.Model):
         orders_not_to_invoice.write({'amount_to_invoice': 0.0})
         for order in orders_to_invoice:
             order.amount_to_invoice = amount_per_order.get(order.id) or order.amount_untaxed
+            invoices = order.order_line.invoice_lines.move_id.filtered(lambda r: r.state in 'draft')
+            for invoice in invoices:
+                order.amount_to_invoice = order.amount_to_invoice - invoice.amount_total
 
     @api.depends('order_line.invoice_lines')
     def _get_invoiced(self):
