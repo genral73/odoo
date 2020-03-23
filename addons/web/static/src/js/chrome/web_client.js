@@ -116,6 +116,13 @@ class WebClient extends Component {
             tt.parentNode.removeChild(tt);
         }
     }
+    _getHome() {
+        const menuID = this.menus ? this.menus.root.children[0] : null;
+        const actionID =  menuID ? this.menus[menuID].actionID : null;
+        if (actionID) {
+            return this.actionManager.doAction(actionID, {menuID, clear_breadcrumbs: true});
+        }
+    }
     /**
      * Returns the left and top scroll positions of the main scrolling area
      * (i.e. the '.o_content' div in desktop).
@@ -209,11 +216,7 @@ class WebClient extends Component {
                 const action = this.menus[state.menu_id].actionID;
                 return this.actionManager.doAction(action, state);
             } else if (('home' in state || Object.keys(state).filter(key => key !== 'cids').length === 0)) {
-                const menuID = this.menus ? this.menus.root.children[0] : null;
-                const actionID =  menuID ? this.menus[menuID].actionID : null;
-                if (actionID) {
-                    return this.actionManager.doAction(actionID, {menuID, clear_breadcrumbs: true});
-                }
+                return this._getHome();
             }
         }
         return stateLoaded;
@@ -335,7 +338,7 @@ class WebClient extends Component {
             if (this.renderingInfo.dialog) {
                 this.controllerComponentMap.set(this.renderingInfo.dialog.controller.jsID, this.currentDialogComponent.comp);
             }
-            const newStack = this.renderingInfo.controllerStack;
+            const newStack = this.renderingInfo.controllerStack || [];
             const newDialog = this.renderingInfo.dialog;
             this.actionManager.commit(newStack, newDialog, this.renderingInfo.onCommit);
 
