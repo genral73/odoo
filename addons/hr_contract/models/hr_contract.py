@@ -29,7 +29,7 @@ class Contract(models.Model):
     trial_date_end = fields.Date('End of Trial Period',
         help="End date of the trial period (if there is one).")
     resource_calendar_id = fields.Many2one(
-        'resource.calendar', 'Working Schedule', compute='_compute_employee_contract', store=True, readonly=False, copy=True,
+        'resource.calendar', 'Working Schedule', compute='_compute_employee_contract', store=True, readonly=False,
         default=lambda self: self.env.company.resource_calendar_id.id, copy=False,
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
     wage = fields.Monetary('Wage', required=True, tracking=True, help="Employee's monthly gross wage.")
