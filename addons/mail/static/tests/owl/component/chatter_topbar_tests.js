@@ -95,7 +95,6 @@ QUnit.test('base rendering', async function (assert) {
         1,
         "should have an attachments button in chatter menu"
     );
-    await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatterTopbar_buttonAttachmentsCountLoader`).length,
         0,
@@ -313,7 +312,6 @@ QUnit.test('attachment counter without attachments', async function (assert) {
         1,
         "should have an attachments button in chatter menu"
     );
-    await afterNextRender(); // wait the attachments to be fetched
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatterTopbar_buttonAttachmentsCount`).length,
         1,
@@ -363,7 +361,6 @@ QUnit.test('attachment counter with attachments', async function (assert) {
         1,
         "should have an attachments button in chatter menu"
     );
-    await afterNextRender(); // wait the attachments to be fetched
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatterTopbar_buttonAttachmentsCount`).length,
         1,

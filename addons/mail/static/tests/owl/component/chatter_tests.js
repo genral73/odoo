@@ -120,7 +120,7 @@ QUnit.test('base rendering when chatter has no attachment', async function (asse
 
 QUnit.test('base rendering when chatter has no record', async function (assert) {
     assert.expect(7);
-    await this.start({});
+    await this.start();
     const chatterLocalId = this.env.store.dispatch('createChatter', {
         initialThreadModel: 'res.partner'
     });

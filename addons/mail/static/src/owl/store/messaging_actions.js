@@ -1764,24 +1764,20 @@ const actions = {
      */
     async _computeChatter({ dispatch, getters, state }, chatterLocalId) {
         const chatter = state.chatters[chatterLocalId];
-        let threadLocalId;
         if (chatter.threadId === undefined) {
-            threadLocalId = dispatch('_createTemporaryThread', chatter.threadModel);
+            chatter.threadLocalId = dispatch('_createTemporaryThread', chatter.threadModel);
         } else {
-            const thread = getters.thread({
-                _model: chatter.threadModel,
-                id: chatter.threadId,
-            });
+            const _model = chatter.threadModel;
+            const id = chatter.threadId;
+            const thread = getters.thread({ _model, id });
             if (!thread) {
-                threadLocalId = dispatch('_createThread', {
-                    _model: chatter.threadModel,
-                    id: chatter.threadId,
-                });
+                chatter.threadLocalId = dispatch('_createThread', { _model, id });
             } else {
-                threadLocalId = thread.localId;
-                await dispatch('_loadNewMessagesOnThread', threadLocalId);
+                // Set threadlocalid here, so the loading effect is conserved
+                chatter.threadLocalId = thread.localId;
+                await dispatch('_loadNewMessagesOnThread', chatter.threadLocalId);
             }
-            await dispatch('_fetchThreadAttachments', threadLocalId);
+            await dispatch('_fetchThreadAttachments', chatter.threadLocalId);
             if (chatter.activityIds) {
                 if (chatter.activityIds.length > 0) {
                     chatter.activityLocalIds = await dispatch('_fetchActivities',
@@ -1792,7 +1788,6 @@ const actions = {
                 delete chatter.activityIds;
             }
         }
-        chatter.threadLocalId = threadLocalId;
     },
     /**
      * @private
@@ -3973,7 +3968,7 @@ const actions = {
             domain,
             threadLocalId,
         });
-        threadCache.isLoading = true;
+        dispatch('_setThreadCacheLoading', threadCacheLocalId);
         let messagesData = [];
         if (!thread.isTemporary) {
             messagesData = await env.rpc({
@@ -4020,7 +4015,7 @@ const actions = {
             const lastMessageId = Math.max(...messageIds);
             domain = [['id', '>', lastMessageId]].concat(domain);
         }
-        threadCache.isLoadingMore = true;
+        dispatch('_setThreadCacheLoading', threadCacheLocalId);
         const messageFetchKwargs = dispatch('_getThreadFetchMessagesKwargs', threadLocalId);
         messageFetchKwargs.limit = false;
         const messagesData = await env.rpc({
@@ -4342,6 +4337,22 @@ const actions = {
     async _startLoopFetchPartnerImStatus({ dispatch }) {
         await dispatch('_fetchPartnerImStatus');
         dispatch('_loopFetchPartnerImStatus');
+    },
+    /**
+     * @private
+     * @param {Object} param0
+     * @param {Object} param0.state
+     * @param {string} threadCacheLocalId
+     */
+    async _setThreadCacheLoading({ state }, threadCacheLocalId) {
+        const threadCache = state.threadCaches[threadCacheLocalId];
+        threadCache.isLoaded = false;
+        setTimeout(function(){
+            if (!threadCache.isLoaded)
+            {
+                threadCache.isLoading = true;
+            }
+        }, 400);
     },
     /**
      * @private
