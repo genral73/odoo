@@ -46,7 +46,7 @@ var productVariantImages = Widget.extend({
                         fields: this.$content.find('input'),
                         image: this.$content.find('img'),
                     };
-                    self._updateCarouselIndicator(ev, data);
+                    self._updateCarouselIndicatorAndInnerItem(ev, data);
                 }, close: true
             },{text: _t("Cancel"), close: true,}],
         });
@@ -69,12 +69,18 @@ var productVariantImages = Widget.extend({
         });
         mediaDialog.open();
     },
-    _updateCarouselIndicator: function (ev, data) {
-        let $newli = $("<li class='d-inline-block m-1 align-top o_wsale_product_new_img' data-target='#o-carousel-product'/>").attr('data-slide-to', this.currentIndex);
+    _updateCarouselIndicatorAndInnerItem: function (ev, data) {
+        // carousel indicator
+        let src = data.image.attr('src');
+        let $newli = $(QWeb.render('carouselIndicator', {'index': this.currentIndex, 'src': src}));
         this.currentIndex = this.currentIndex + 1;
         this.$el.attr('data-slide-to', this.currentIndex);
-        data.image.appendTo($newli);
         $newli.insertBefore(this.$el);
+
+        // carousel inner item
+        const $carousel = $('#product_detail #o-carousel-product .carousel-inner');
+        let $newInnerItem = $(QWeb.render('carouselInnerItem', {'src': src, 'alt': 'test'}));
+        $newInnerItem.appendTo($carousel);
         this.productVariantImages.push(data);
     },
     _saveImageAndVideo: function () {

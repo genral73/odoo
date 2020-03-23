@@ -63,7 +63,7 @@ editor.Class.include({
      */
     start: function () {
         const def = this._super.apply(this, arguments);
-        const $productAddImage = $('.o_wsale_product_add_image');
+        const $productAddImage = $('#product_detail .o_wsale_product_add_image');
         if ($productAddImage && $productAddImage.length) {
             this.productVariantImage = new productVariantImage(this);
             this.productVariantImage.attachTo($productAddImage);

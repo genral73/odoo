@@ -8,6 +8,20 @@
         </div>
     </t>
 
+    <t t-name="carouselIndicator">
+        <li class="d-inline-block m-1 align-top o_wsale_product_new_img" data-target='#o-carousel-product' t-att-data-slide-to="index">
+            <img class="img img-fluid" title="Dobule-click to edit" alt="Binary file" t-att-src="src" name="image_1920" border="1"/>
+        </li>
+    </t>
+
+    <t t-name="carouselInnerItem">
+        <div t-attf-class="carousel-item h-100">
+            <div class="d-flex align-items-center justify-content-center h-100">
+                <img t-att-src="src" itemprop="image" class="img img-fluid product_detail_img mh-100" t-att-alt="alt"/>
+            </div>
+        </div>
+    </t>
+
     <t t-name="productImageVideoUploder">
         <div class="container">
             <form class="clearfix">
