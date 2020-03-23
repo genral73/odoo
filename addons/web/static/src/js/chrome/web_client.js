@@ -74,6 +74,10 @@ class WebClient extends Component {
         return this._loadState(state);
     }
 
+    get bodyClass() {
+        return { o_fullscreen: this.renderingInfo && this.renderingInfo.fullscreen };
+    }
+
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
