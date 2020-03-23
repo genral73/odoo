@@ -1604,7 +1604,9 @@ class AccountMove(models.Model):
                     raise UserError(_('The Journal Entry sequence is not conform to the current format. Only the Advisor can change it.'))
                 move.journal_id.sequence_override_regex = False
 
-        if 'invoice_line_ids' in vals and not 'line_ids':
+        if 'invoice_line_ids' in vals:
+            vals.pop('invoice_line_ids')
+
             self_ctx = self.with_context(check_move_validity=False)
             res = super(AccountMove, self_ctx).write(vals)
             self._recompute_dynamic_lines(recompute_all_taxes=True)
@@ -2456,7 +2458,8 @@ class AccountMoveLine(models.Model):
         currency_field='always_set_currency_id')
     price_total = fields.Monetary(
         string='Total',
-        store=True, readonly=True,
+        store=True,
+        readonly=False, # Must be readonly=False because computed with price_subtotal that have an inverse method.
         compute='_compute_price_subtotal_price_total',
         currency_field='always_set_currency_id')
     reconciled = fields.Boolean(compute='_amount_residual', store=True)
