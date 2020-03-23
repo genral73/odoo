@@ -1,4 +1,5 @@
 import random
+from datetime import datetime, timedelta
 from odoo.tools import pycompat
 
 
@@ -103,7 +104,6 @@ def compute(function, seed=None):
             yield values
     return generate
 
-
 def randint(a, b, seed=None):
     """ Return a factory for an iterator of values dicts that sets the field
     to the random integer between a and b included in each input dict.
@@ -111,3 +111,13 @@ def randint(a, b, seed=None):
     def get_rand_int(random=None, **kwargs):
         random.randint(a, b)
     return compute(get_rand_int, seed=seed)
+
+def datetime_from_days_ago(max_days_ago=50, seed=False):
+    """ generate datetimes before 2020-01-01"""
+    def generate(iterator, field_name, model_name):
+        r = Random(seed or '%s+field+%s' % (model_name, field_name))
+        for counter, (values, complete) in enumerate(iterator):
+            days_ago = r.randint(0, max_days_ago)
+            values[field_name] = datetime(2020,1,1) - timedelta(days=days_ago)
+            yield values, complete
+    return generate
