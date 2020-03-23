@@ -580,13 +580,10 @@ class Survey(models.Model):
         if not self.question_ids or not self.env.user.has_group('survey.group_survey_user'):
             return
 
-        if not self.session_question_id:
-            next_question = self.question_ids[0]
-        else:
-            most_voted_answers = self._get_session_most_voted_answers()
-            next_question = self._get_next_page_or_question(most_voted_answers, self.session_question_id.id)
-
-        return next_question
+        most_voted_answers = self._get_session_most_voted_answers()
+        return self._get_next_page_or_question(
+            most_voted_answers,
+            self.session_question_id.id if self.session_question_id else 0)
 
     def _get_session_most_voted_answers(self):
         """ In sessions of survey that has conditional questions, as the survey is passed at the same time by
