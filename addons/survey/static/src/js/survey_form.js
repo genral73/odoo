@@ -51,7 +51,7 @@ publicWidget.registry.SurveyFormWidget = publicWidget.Widget.extend({
                 $(document).on('keypress', self._onKeyPress.bind(self));
             }
             if (self.options.sessionInProgress &&
-                (self.options.isStartScreen || self.options.hasAnswered)) {
+                (self.options.isStartScreen || self.options.hasAnswered || self.options.isPageDescription)) {
                 self.preventEnterSubmit = true;
             }
             self._initSessionManagement();
@@ -447,6 +447,21 @@ publicWidget.registry.SurveyFormWidget = publicWidget.Widget.extend({
             }
             self._initChoiceItems();
             self._initTextArea();
+
+            if (this.options.sessionInProgress && this.$('.o_survey_form_content_data').data('isPageDescription')) {
+                // prevent enter submit if we're on a page description (there is nothing to submit)
+                this.preventEnterSubmit = true;
+            }
+
+            // The survey navigation is not contained within the form, we need a global selector here.
+            var $previousPageButton = $('.o_survey_navigation_submit[value="previous"]');
+            if ($previousPageButton.length !== 0) {
+                // Need to manually update the button data as it's not contained within the form
+                $previousPageButton.data(
+                    'previousPageId',
+                    this.$('.o_survey_form_content_data').data('previousPageId'));
+            }
+
             this.$('.o_survey_form_content').fadeIn(this.fadeInOutDelay);
             $("html, body").animate({ scrollTop: 0 }, this.fadeInOutDelay);
             self._focusOnFirstInput();
