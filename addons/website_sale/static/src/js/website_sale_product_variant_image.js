@@ -33,7 +33,6 @@ var productVariantImages = Widget.extend({
      * @private
      */
     _onClick: function (ev) {
-        debugger;
         const self = this;
         const dialog = new weWidgets.Dialog(this, {
             size: 'large',
@@ -51,7 +50,24 @@ var productVariantImages = Widget.extend({
                 }, close: true
             },{text: _t("Cancel"), close: true,}],
         });
+        dialog.opened().then(function () {
+            dialog.$('.o_wsale_product_image > img').on('dblclick', function (ev) {
+                ev.preventDefault();
+                self._uploadImage($(ev.currentTarget));
+            });
+        });
         dialog.open();
+    },
+    _uploadImage: function ($currentTarget) {
+        //open media dialog for upload image
+        const $image = $("<img/>");
+        const mediaDialog = new weWidgets.MediaDialog(this, {
+            onlyImages: true,
+        }, $image[0]);
+        mediaDialog.on('save', this, function (image) {
+            $currentTarget.attr('src', image.src);
+        });
+        mediaDialog.open();
     },
     _updateCarouselIndicator: function (ev, data) {
         let $newli = $("<li class='d-inline-block m-1 align-top o_wsale_product_new_img' data-target='#o-carousel-product'/>").attr('data-slide-to', this.currentIndex);
@@ -61,6 +77,9 @@ var productVariantImages = Widget.extend({
         $newli.insertBefore(this.$el);
         this.productVariantImages.push(data);
     },
+    _saveImageAndVideo: function () {
+        debugger;
+    }
 });
 return productVariantImages;
 });

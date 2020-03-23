@@ -64,12 +64,30 @@ editor.Class.include({
     start: function () {
         const def = this._super.apply(this, arguments);
         const $productAddImage = $('.o_wsale_product_add_image');
-        if ($productAddImage.length) {
+        if ($productAddImage && $productAddImage.length) {
             this.productVariantImage = new productVariantImage(this);
             this.productVariantImage.attachTo($productAddImage);
         }
         return def;
     },
+
+    //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * @override
+     */
+    save: function (reload) {
+        const defs = [];
+        const $productAddImage = $('#wrapwrap').find('#product_detail .o_wsale_product_add_image');
+        if ($productAddImage && $productAddImage.length){
+            defs.push(this.productVariantImage._saveImageAndVideo());
+        }
+        defs.push(this._super.apply(this, arguments));
+        return Promise.all(defs);
+    },
+
 });
 
 publicWidget.registry.websiteSaleCurrency = publicWidget.Widget.extend({

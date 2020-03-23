@@ -21,9 +21,9 @@
                     <div class="col-md-6 col-xl-7 form-group o_wsale_preview_container">
                         <div class="row">
                             <div class="col-5">
-                                <div class="o_editable o_wsale_product_image_container">
+                                <div class="o_wsale_product_image_container">
                                     <div class="o_wsale_product_image p-1">
-                                        <img class="img img-fluid" alt="Binary file" src="/web/static/src/img/placeholder.png" name="image_1920" border="1"/>
+                                        <img class="img img-fluid" title="Dobule-click to edit" alt="Binary file" src="/web/static/src/img/placeholder.png" name="image_1920" border="1"/>
                                     </div>
                                 </div>
                             </div>
