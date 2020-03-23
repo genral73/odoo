@@ -8,7 +8,7 @@
                 <t t-if="message.getSnailmailError()">
                     <t t-set="thread_icon_class" t-value="thread_icon_class + ' o_thread_message_snailmail_error'"/>
                 </t>
-                <i t-att-class="thread_icon_class + ' fa fa-paper-plane'" t-att-data-message-id="message.getID()"/>
+                <i t-att-class="thread_icon_class + ' fas fa-paper-plane'" t-att-data-message-id="message.getID()"/>
             </span>
         </t>
     </t>
@@ -16,19 +16,19 @@
     <t t-name="snailmail.widget.Thread.Message.SnailmailTooltip">
         <span class="d-inline-block text-center o_thread_tooltip_snailmail">
             <t t-if="status === 'sent'">
-                <i class='fa fa-check o_thread_tooltip_snailmail_icon' title="Sent" role="img" aria-label="Sent"/>
+                <i class='fas fa-check o_thread_tooltip_snailmail_icon' title="Sent" role="img" aria-label="Sent"/>
                 Sent
             </t>
             <t t-elif="status === 'canceled'">
-                <i class='fa fa-trash-o o_thread_tooltip_snailmail_icon' title="Canceled" role="img" aria-label="Canceled"/>
+                <i class='far fa-trash-alt o_thread_tooltip_snailmail_icon' title="Canceled" role="img" aria-label="Canceled"/>
                 Canceled
             </t>
             <t t-elif="status === 'pending'">
-                <i class='fa fa-clock-o o_thread_tooltip_snailmail_icon' title="Awaiting Dispatch" role="img" aria-label="Awaiting Dispatch"/>
+                <i class='far fa-clock o_thread_tooltip_snailmail_icon' title="Awaiting Dispatch" role="img" aria-label="Awaiting Dispatch"/>
                 Awaiting Dispatch
             </t>
             <t t-else="">
-                <i class='fa fa-exclamation text-danger o_thread_tooltip_snailmail_icon' title="Error" role="img" aria-label="Error"/>
+                <i class='fas fa-exclamation text-danger o_thread_tooltip_snailmail_icon' title="Error" role="img" aria-label="Error"/>
                 Error
             </t>
         </span>

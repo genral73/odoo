@@ -9,7 +9,7 @@
                   <div class="row">
                         <div class="col-md-6">
                             <ol class="breadcrumb mt8">
-                                <li class="breadcrumb-item"><a href="/my/home"><i class="fa fa-home" role="img" aria-label="Home" title="Home"/></a></li>
+                                <li class="breadcrumb-item"><a href="/my/home"><i class="fas fa-home" role="img" aria-label="Home" title="Home"/></a></li>
                                 <li class="breadcrumb-item">Payment Methods</li>
                             </ol>
                         </div>
@@ -103,7 +103,7 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <a role="button" t-attf-class="btn btn-#{status} float-right" href="/my/home"><i class="fa fa-arrow-circle-right"/> Back to My Account</a>
+                                    <a role="button" t-attf-class="btn btn-#{status} float-right" href="/my/home"><i class="fas fa-arrow-circle-right"/> Back to My Account</a>
                                 </div>
                                 <div class="col-md-6 offset-md-6 text-muted mt16"><!-- FIXME should be in a row... -->
                                     <span t-field="tx.acquirer_id.image_128" t-att-title="tx.acquirer_id.name" role="img" t-att-aria-label="tx.acquirer_id.name" t-options='{"widget": "image", "style":"max-width: 60px; display: inline-block"}'/>

@@ -10,7 +10,7 @@
 <t t-name="web_unsplash.dialog.media.search_icon" t-extend="">
     <div class="dropdown">
         <button type="button" class="btn btn-primary dropdown-toggle o_we_search_icon" data-toggle="dropdown">
-            <i class="fa fa-search"/>
+            <i class="fas fa-search"/>
             <span/>
         </button>
         <div class="dropdown-menu dropdown-menu-right">
@@ -37,7 +37,7 @@
     </div>
     <div class="row mt16" t-if="records.length == 0">
         <div class="m-auto text-muted not-found">
-            <i class="fa fa-camera mr8"/> Photos not found
+            <i class="fas fa-camera mr8"/> Photos not found
         </div>
     </div>
 </t>
@@ -49,11 +49,11 @@
         <div class="form-group mt-4 access_key_box">
             <input type="text" class="form-control w-100" id="accessKeyInput" placeholder="Paste your access key here"/>
         </div>
-        <a href="https://www.odoo.com/documentation/user/general/unsplash/unsplash_access_key.html" target="_blank"><i class="fa fa-arrow-right"/> Generate an access key</a>
+        <a href="https://www.odoo.com/documentation/user/general/unsplash/unsplash_access_key.html" target="_blank"><i class="fas fa-arrow-right"/> Generate an access key</a>
         <div class="form-group mt-4 access_key_box">
             <input type="text" class="form-control w-100" id="appIdInput" placeholder="Paste your application ID here"/>
         </div>
-        <a href="https://www.odoo.com/documentation/user/general/unsplash/unsplash_application_id.html" target="_blank"><i class="fa fa-arrow-right"/> How to find my Unsplash Application ID?</a>
+        <a href="https://www.odoo.com/documentation/user/general/unsplash/unsplash_application_id.html" target="_blank"><i class="fas fa-arrow-right"/> How to find my Unsplash Application ID?</a>
         <button type="button" class="btn btn-primary btn-block mt-4 save_unsplash">Apply</button>
     </div>
 </t>

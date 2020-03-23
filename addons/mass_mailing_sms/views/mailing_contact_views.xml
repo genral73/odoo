@@ -45,7 +45,7 @@
             <xpath expr="//div[@name='email_details']" position="after">
                 <label for="mobile" class="oe_inline"/>
                 <div class="o_row o_row_readonly" name="phone_details">
-                    <i class="fa fa-ban" style="color: red;" role="img" title="This number is blacklisted for SMS Marketing"
+                    <i class="fas fa-ban" style="color: red;" role="img" title="This number is blacklisted for SMS Marketing"
                         aria-label="Phone Blacklisted" attrs="{'invisible': [('phone_blacklisted', '=', False)]}" groups="base.group_user"></i>
                     <field name="mobile" widget="phone" options="{'enable_sms': True}"/>
                     <field name="phone_sanitized" invisible="1"/>

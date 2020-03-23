@@ -50,7 +50,7 @@
                                         <strong><span><field name="name"/></span></strong>
                                     </div>
                                     <div class="col-6 text-right">
-                                        <strong><i class="fa fa-clock-o" role="img" aria-label="Date" title="Date"/> <t t-esc="record.payment_date.value"/></strong>
+                                        <strong><i class="far fa-clock" role="img" aria-label="Date" title="Date"/> <t t-esc="record.payment_date.value"/></strong>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -135,9 +135,9 @@
                             <button class="oe_stat_button" name="button_journal_entries"
                                     string="Journal Items" type="object"
                                     groups="account.group_account_readonly"
-                                    attrs="{'invisible':['|', ('move_line_ids','=',[]), ('state', '=', 'invoicing_legacy')]}" icon="fa-bars"/>
+                                    attrs="{'invisible':['|', ('move_line_ids','=',[]), ('state', '=', 'invoicing_legacy')]}" icon="fas fa-bars"/>
                             <field name="move_line_ids" invisible="1"/>
-                            <button class="oe_stat_button" name="button_invoices" type="object" icon="fa-bars" attrs="{'invisible':[('reconciled_invoices_count','=', 0)]}" >
+                            <button class="oe_stat_button" name="button_invoices" type="object" icon="fas fa-bars" attrs="{'invisible':[('reconciled_invoices_count','=', 0)]}" >
                                 <field name="reconciled_invoices_count"/>
                                 <span attrs="{'invisible':[('reconciled_invoices_count','&gt;',1)]}">Invoice</span>
                                 <span attrs="{'invisible':[('reconciled_invoices_count','&lt;=',1)]}">Invoices</span>

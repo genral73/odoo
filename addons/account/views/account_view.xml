@@ -9,7 +9,7 @@
                    <sheet>
                         <div class="oe_button_box" name="button_box">
                             <button class="oe_stat_button" name="account.action_move_line_select"
-                                string="Journal Items" type="action" icon="fa-bars"/>
+                                string="Journal Items" type="action" icon="fas fa-bars"/>
                         </div>
                        <div class="oe_title">
                            <h1 class= "oe_read_only">
@@ -62,7 +62,7 @@
                     <field name="allowed_journal_ids" optional="hide" widget="many2many_tags"/>
                     <field name="currency_id" options="{'no_create': True}" groups="base.group_multi_currency"/>
                     <field name="company_id" options="{'no_create': True}" groups="base.group_multi_company"/>
-                    <button name="action_read_account" type="object" icon="fa-expand" title="Open" aria-label="Open" class="float-right"/>
+                    <button name="action_read_account" type="object" icon="fas fa-expand" title="Open" aria-label="Open" class="float-right"/>
                 </tree>
             </field>
         </record>
@@ -118,7 +118,7 @@
                         <filter string="Account Type" name="accounttype" domain="" context="{'group_by':'user_type_id'}"/>
                     </group>
                     <searchpanel class="account_root">
-                        <field name="root_id" icon="fa-filter"/>
+                        <field name="root_id" icon="fas fa-filter"/>
                     </searchpanel>
                 </search>
             </field>
@@ -311,7 +311,7 @@
                                             </div>
                                         </div>
                                         <div class="content-group" attrs="{'invisible': [('alias_domain', '!=', False)]}">
-                                            <a type='action' name='%(action_open_settings)d' class="btn btn-link" role="button"><i class="fa fa-fw o_button_icon fa-arrow-right"/> Configure Email Servers</a>
+                                            <a type='action' name='%(action_open_settings)d' class="btn btn-link" role="button"><i class="fas fa-fw o_button_icon fa-arrow-right"/> Configure Email Servers</a>
                                         </div>
                                     </group>
                                     <group string="Posting" name="column_posting" groups="account.group_account_readonly" attrs="{'invisible': [('type', 'not in', ['bank', 'cash'])]}">
@@ -590,7 +590,7 @@ action = model.setting_init_bank_account_action()
                     <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" name="button_journal_entries"
                                 string="Journal Entries" type="object"
-                                attrs="{'invisible':[('move_line_count','=', 0)]}" icon="fa-bars" />
+                                attrs="{'invisible':[('move_line_count','=', 0)]}" icon="fas fa-bars" />
                         <field name="move_line_count" invisible="1"/>
 
                     </div>
@@ -644,7 +644,7 @@ action = model.setting_init_bank_account_action()
                                     <field name="amount_currency" optional="hidden"/>
                                     <field name="currency_id" optional="hidden"/>
                                     <field name="state" invisible="1"/>
-                                    <button name="button_cancel_reconciliation" attrs="{'invisible': ['|',('journal_entry_ids', '=', []), ('state', '=', 'confirm')]}" string="Revert reconciliation" type="object" icon="fa-undo"/>
+                                    <button name="button_cancel_reconciliation" attrs="{'invisible': ['|',('journal_entry_ids', '=', []), ('state', '=', 'confirm')]}" string="Revert reconciliation" type="object" icon="fas fa-undo"/>
                                 </tree>
                             </field>
                         </page>
@@ -790,7 +790,7 @@ action = model.setting_init_bank_account_action()
                     <sheet>
                         <div class="oe_button_box" name="button_box">
                             <button type="object" name="action_reconcile_stat"
-                              class="oe_stat_button" icon="fa-book">
+                              class="oe_stat_button" icon="fas fa-book">
                                 <field name="number_entries" string="Journal Entries" widget="statinfo"/>
                             </button>
                         </div>

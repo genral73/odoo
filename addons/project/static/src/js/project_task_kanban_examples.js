@@ -8,7 +8,7 @@ var _lt = core._lt;
 
 var greenBullet = '<span class="o_status o_status_green"></span>';
 var redBullet = '<span class="o_status o_status_red"></span>';
-var star = '<a style="color: gold;" class="fa fa-star"/>';
+var star = '<a style="color: gold;" class="fas fa-star"/>';
 
 
 /**

@@ -5746,10 +5746,10 @@ QUnit.module('basic_fields', {
             model: 'partner',
             data: this.data,
             arch: '<form string="Partners">' +
-                        '<button class="oe_stat_button" name="items" icon="fa-gear">' +
+                        '<button class="oe_stat_button" name="items" icon="fas fa-cog">' +
                             '<field name="qux" widget="statinfo"/>' +
                         '</button>' +
-                        '<button class="oe_stat_button" name="money" icon="fa-money">' +
+                        '<button class="oe_stat_button" name="money" icon="far fa-money-bill-alt">' +
                             '<field name="monetary" widget="statinfo"/>' +
                         '</button>' +
                   '</form>',
@@ -5775,7 +5775,7 @@ QUnit.module('basic_fields', {
             arch: '<form string="Partners">' +
                     '<sheet>' +
                         '<div class="oe_button_box" name="button_box">' +
-                            '<button class="oe_stat_button" name="items"  type="object" icon="fa-gear">' +
+                            '<button class="oe_stat_button" name="items"  type="object" icon="fas fa-cog">' +
                                 '<field name="int_field" widget="statinfo"/>' +
                             '</button>' +
                         '</div>' +
@@ -5825,7 +5825,7 @@ QUnit.module('basic_fields', {
             arch: '<form string="Partners">' +
                     '<sheet>' +
                         '<div class="oe_button_box" name="button_box">' +
-                            '<button class="oe_stat_button" name="items"  type="object" icon="fa-gear">' +
+                            '<button class="oe_stat_button" name="items"  type="object" icon="fas fa-cog">' +
                                 '<field string="Useful stat button" name="int_field" widget="statinfo" ' +
                                         'options="{\'label_field\': \'foo\'}"/>' +
                             '</button>' +
@@ -5877,7 +5877,7 @@ QUnit.module('basic_fields', {
             arch: '<form string="Partners">' +
                     '<sheet>' +
                         '<div class="oe_button_box" name="button_box">' +
-                            '<button class="oe_stat_button" name="items"  type="object" icon="fa-gear">' +
+                            '<button class="oe_stat_button" name="items"  type="object" icon="fas fa-cog">' +
                                 '<field string="Useful stat button" name="int_field" widget="statinfo" nolabel="1"/>' +
                             '</button>' +
                         '</div>' +
