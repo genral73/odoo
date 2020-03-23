@@ -694,8 +694,7 @@ msgstr "Opérations"
 
 #. module: l10n_be
 #: model:account.account.template,name:l10n_be.a4168
-msgid ""
-"Rabais, ristournes, remises à obtenir et autres avoirs non encore reçus"
+msgid "Rabais, ristournes, remises à obtenir et autres avoirs non encore reçus"
 msgstr "Kortingen, rabatten en andere nog te ontvangen tegoeden"
 
 #. module: l10n_be

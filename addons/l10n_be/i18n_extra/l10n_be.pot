@@ -692,6 +692,11 @@ msgid "Opérations"
 msgstr ""
 
 #. module: l10n_be
+#: model:account.account.template,name:l10n_be.a4168
+msgid "Rabais, ristournes, remises à obtenir et autres avoirs non encore reçus"
+msgstr ""
+
+#. module: l10n_be
 #: model:account.fiscal.position.template,name:l10n_be.fiscal_position_template_4
 msgid "Régime Cocontractant"
 msgstr ""
@@ -871,11 +876,6 @@ msgstr ""
 #. module: l10n_be
 #: model:account.tax.report.line,name:l10n_be.tax_report_title_taxes_soldes
 msgid "VI Soldes"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.account.template,name:l10n_be.a24100
-msgid "Voitures"
 msgstr ""
 
 #. module: l10n_be
@@ -1135,6 +1135,7 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.account.template,name:l10n_be.a212
+#: model:account.group.template,name:l10n_be.be_group_212
 msgid "Goodwill"
 msgstr ""
 
@@ -2855,6 +2856,7 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_160
+#: model:account.group.template,name:l10n_be.be_group_635
 msgid "Provisions pour pensions et obligations similaires"
 msgstr ""
 
@@ -2865,16 +2867,19 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_162
+#: model:account.group.template,name:l10n_be.be_group_636
 msgid "Provisions pour grosses réparations et gros entretien"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_163
+#: model:account.group.template,name:l10n_be.be_group_637
 msgid "Provisions pour obligations environnementales"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_164
+#: model:account.group.template,name:l10n_be.be_group_638
 msgid "Provisions pour autres risques et charges"
 msgstr ""
 
@@ -2905,31 +2910,37 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_173
+#: model:account.group.template,name:l10n_be.be_group_55
 msgid "Etablissements de crédit"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_174
+#: model:account.group.template,name:l10n_be.be_group_439
 msgid "Autres emprunts"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_175
+#: model:account.group.template,name:l10n_be.be_group_44
 msgid "Dettes commerciales"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_176
+#: model:account.group.template,name:l10n_be.be_group_46
 msgid "Acomptes reçus sur commandes"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_178
+#: model:account.group.template,name:l10n_be.be_group_488
 msgid "Cautionnements reçus en numéraire"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_179
+#: model:account.group.template,name:l10n_be.be_group_48
 msgid "Dettes diverses"
 msgstr ""
 
@@ -2984,12 +2995,9 @@ msgid "Concessions, brevets, licences, savoir-faire, marques et droits similaire
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_212
-msgid "Goodwill"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_213
+#: model:account.group.template,name:l10n_be.be_group_360
+#: model:account.group.template,name:l10n_be.be_group_406
 msgid "Acomptes versés"
 msgstr ""
 
@@ -3020,11 +3028,13 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_23
+#: model:account.group.template,name:l10n_be.be_group_251
 msgid "Installations, machines et outillage"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_24
+#: model:account.group.template,name:l10n_be.be_group_252
 msgid "Mobilier et matériel roulant"
 msgstr ""
 
@@ -3036,16 +3046,6 @@ msgstr ""
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_250
 msgid "Terrains et construction"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_251
-msgid "Installations, machines et outillage"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_252
-msgid "Mobilier et matériel roulant"
 msgstr ""
 
 #. module: l10n_be
@@ -3090,11 +3090,14 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_285
+#: model:account.group.template,name:l10n_be.be_group_291
+#: model:account.group.template,name:l10n_be.be_group_41
 msgid "Autres créances"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_288
+#: model:account.group.template,name:l10n_be.be_group_418
 msgid "Cautionnements versés en numéraire"
 msgstr ""
 
@@ -3105,12 +3108,8 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_290
+#: model:account.group.template,name:l10n_be.be_group_40
 msgid "Créances commerciales"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_291
-msgid "Autres créances"
 msgstr ""
 
 #. module: l10n_be
@@ -3125,11 +3124,29 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_300
+#: model:account.group.template,name:l10n_be.be_group_310
+#: model:account.group.template,name:l10n_be.be_group_320
+#: model:account.group.template,name:l10n_be.be_group_340
+#: model:account.group.template,name:l10n_be.be_group_350
+#: model:account.group.template,name:l10n_be.be_group_370
+#: model:account.group.template,name:l10n_be.be_group_510
+#: model:account.group.template,name:l10n_be.be_group_520
 msgid "Valeur d'acquisition"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_309
+#: model:account.group.template,name:l10n_be.be_group_319
+#: model:account.group.template,name:l10n_be.be_group_329
+#: model:account.group.template,name:l10n_be.be_group_339
+#: model:account.group.template,name:l10n_be.be_group_349
+#: model:account.group.template,name:l10n_be.be_group_359
+#: model:account.group.template,name:l10n_be.be_group_369
+#: model:account.group.template,name:l10n_be.be_group_379
+#: model:account.group.template,name:l10n_be.be_group_409
+#: model:account.group.template,name:l10n_be.be_group_419
+#: model:account.group.template,name:l10n_be.be_group_529
+#: model:account.group.template,name:l10n_be.be_group_539
 msgid "Réductions de valeur actées (–)"
 msgstr ""
 
@@ -3139,43 +3156,14 @@ msgid "Approvisionnements - Fournitures"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_310
-msgid "Valeur d'acquisition"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_319
-msgid "Réductions de valeur actées (–)"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_32
 msgid "En-cours de fabrication"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_320
-msgid "Valeur d'acquisition"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_329
-msgid "Réductions de valeur actées (–)"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_33
-msgid "Produits finis"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_330
 msgid "Produits finis"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_339
-msgid "Réductions de valeur actées (–)"
 msgstr ""
 
 #. module: l10n_be
@@ -3184,28 +3172,8 @@ msgid "Marchandises"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_340
-msgid "Valeur d'acquisition"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_349
-msgid "Réductions de valeur actées (–)"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_35
 msgid "Immeubles destinés à la vente"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_350
-msgid "Valeur d'acquisition"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_359
-msgid "Réductions de valeur actées (–)"
 msgstr ""
 
 #. module: l10n_be
@@ -3214,23 +3182,8 @@ msgid "Acomptes versés sur achats pour stocks"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_360
-msgid "Acomptes versés"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_369
-msgid "Réductions de valeur actées (–)"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_37
 msgid "Commandes en cours d'exécution"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_370
-msgid "Valeur d'acquisition"
 msgstr ""
 
 #. module: l10n_be
@@ -3239,18 +3192,8 @@ msgid "Bénéfice pris en compte"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_379
-msgid "Réductions de valeur actées (–)"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_4
 msgid "Créances et dettes à un an au plus"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_40
-msgid "Créances commerciales"
 msgstr ""
 
 #. module: l10n_be
@@ -3265,27 +3208,14 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_404
+#: model:account.group.template,name:l10n_be.be_group_414
 msgid "Produits à recevoir"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_406
-msgid "Acomptes versés"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_407
+#: model:account.group.template,name:l10n_be.be_group_417
 msgid "Créances douteuses"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_409
-msgid "Réductions de valeur actées (–)"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_41
-msgid "Autres créances"
 msgstr ""
 
 #. module: l10n_be
@@ -3304,28 +3234,8 @@ msgid "Impôts et précomptes à récupérer"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_414
-msgid "Produits à recevoir"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_416
 msgid "Créances diverses"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_417
-msgid "Créances douteuses"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_418
-msgid "Cautionnements versés en numéraire"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_419
-msgid "Réductions de valeur actées (–)"
 msgstr ""
 
 #. module: l10n_be
@@ -3356,16 +3266,6 @@ msgstr ""
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_433
 msgid "Etablissements de crédit - Dettes en compte courant"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_439
-msgid "Autres emprunts"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_44
-msgid "Dettes commerciales"
 msgstr ""
 
 #. module: l10n_be
@@ -3429,11 +3329,6 @@ msgid "Autres dettes sociales"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_46
-msgid "Acomptes reçus sur commandes"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_47
 msgid "Dettes découlant de l'affectation du résultat"
 msgstr ""
@@ -3459,18 +3354,8 @@ msgid "Autres allocataires"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_48
-msgid "Dettes diverses"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_480
 msgid "Obligations et coupons échus"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_488
-msgid "Cautionnements reçus en numéraire"
 msgstr ""
 
 #. module: l10n_be
@@ -3524,17 +3409,15 @@ msgid "Actions, parts et placements de trésorerie autres que placements à reve
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_510
-msgid "Valeur d'acquisition"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_5100
+#: model:account.group.template,name:l10n_be.be_group_5110
+#: model:account.group.template,name:l10n_be.be_group_5190
 msgid "Actions et parts"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_5101
+#: model:account.group.template,name:l10n_be.be_group_5191
 msgid "Placements de trésorerie autres que placements à revenu fixe"
 msgstr ""
 
@@ -3544,38 +3427,13 @@ msgid "Montants non appelés (-)"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_5110
-msgid "Actions et parts"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_519
 msgid "Réductions de valeur actées (-)"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_5190
-msgid "Actions et parts"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_5191
-msgid "Placements de trésorerie autres que placements à revenu fixe"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_52
 msgid "Titres à revenu fixe"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_520
-msgid "Valeur d'acquisition"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_529
-msgid "Réductions de valeur actées (–)"
 msgstr ""
 
 #. module: l10n_be
@@ -3599,18 +3457,8 @@ msgid "D'un mois au plus"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_539
-msgid "Réductions de valeur actées (–)"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_54
 msgid "Valeurs échues à l'encaissement"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_55
-msgid "Etablissements de crédit"
 msgstr ""
 
 #. module: l10n_be
@@ -3779,28 +3627,8 @@ msgid "Réductions de valeur sur créances commerciales à un an au plus"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_635
-msgid "Provisions pour pensions et obligations similaires"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_636
-msgid "Provisions pour grosses réparations et gros entretien"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_637
-msgid "Provisions pour obligations environnementales"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_638
-msgid "Provisions pour autres risques et charges"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_64
-msgid "Autres charges d'exploitation	 	II.G"
+msgid "Autres charges d'exploitation"
 msgstr ""
 
 #. module: l10n_be
@@ -3825,7 +3653,7 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_649
-msgid "Charges d'exploitation portées à l'actif au titre de frais de restructuration (–)	II.H"
+msgid "Charges d'exploitation portées à l'actif au titre de frais de restructuration (–)"
 msgstr ""
 
 #. module: l10n_be
@@ -3855,6 +3683,7 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_654
+#: model:account.group.template,name:l10n_be.be_group_754
 msgid "Différences de change"
 msgstr ""
 
@@ -3960,6 +3789,7 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_69
+#: model:account.group.template,name:l10n_be.be_group_79
 msgid "Affectations et prélèvements"
 msgstr ""
 
@@ -4104,11 +3934,6 @@ msgid "Subsides en capital et en intérêts"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_754
-msgid "Différences de change"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_755
 msgid "Écart de conversion des devises"
 msgstr ""
@@ -4181,11 +4006,6 @@ msgstr ""
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_789
 msgid "Prélèvements sur les réserves immunisées"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_79
-msgid "Affectations et prélèvements"
 msgstr ""
 
 #. module: l10n_be
@@ -4285,6 +4105,7 @@ msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_03
+#: model:account.group.template,name:l10n_be.be_group_032
 msgid "Garanties reçues"
 msgstr ""
 
@@ -4299,28 +4120,19 @@ msgid "Déposants statutaires"
 msgstr ""
 
 #. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_032
-msgid "Garanties reçues"
-msgstr ""
-
-#. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_033
 msgid "Constituants de garanties"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_04
+#: model:account.group.template,name:l10n_be.be_group_041
 msgid "Biens et valeurs détenus par des tiers en leur nom mais aux risques et profits de l'entreprise"
 msgstr ""
 
 #. module: l10n_be
 #: model:account.group.template,name:l10n_be.be_group_040
 msgid "Tiers, détenteurs en leur nom mais aux risques et profits de l'entreprise de biens et de valeurs"
-msgstr ""
-
-#. module: l10n_be
-#: model:account.group.template,name:l10n_be.be_group_041
-msgid "Biens et valeurs détenus par des tiers en leur nom mais aux risques et profits de l'entreprise"
 msgstr ""
 
 #. module: l10n_be
