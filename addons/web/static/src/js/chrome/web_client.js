@@ -68,7 +68,7 @@ class WebClient extends Component {
         this._storeScrollPosition(scrollPosition);
     }
     async willStart() {
-        this.menus = await this._loadMenus();
+        await this._loadMenus();
         const state = this._getUrlState();
         this._determineCompanyIds(state);
         return this._loadState(state);
@@ -185,28 +185,8 @@ class WebClient extends Component {
                     app.action = child.action;
                 }
             }
-            const menus = {};
-            function processMenu(menu, appID) {
-                appID = appID || menu.id;
-                for (let submenu of menu.children) {
-                    processMenu(submenu, appID);
-                }
-                const action = menu.action && menu.action.split(',');
-                const menuID = menu.id || 'root';
-                menus[menuID] = {
-                    id: menuID,
-                    appID: appID,
-                    name: menu.name,
-                    children: menu.children.map(submenu => submenu.id),
-                    actionModel: action ? action[0] : false,
-                    actionID: action ? parseInt(action[1], 10) : false,
-                    xmlid: menu.xmlid,
-                };
-            }
-            processMenu(menuData);
-
+            this._processMenu(menuData);
             odoo.loadMenusPromise = null;
-            return menus;
         });
     }
     async _loadState(state) {
@@ -220,6 +200,27 @@ class WebClient extends Component {
             }
         }
         return stateLoaded;
+    }
+    _processMenu(menu, appID) {
+        this.menus = this.menus || {};
+        appID = appID || menu.id;
+        const children = [];
+        for (let submenu of menu.children) {
+            children.push(this._processMenu(submenu, appID).id);
+        }
+        const action = menu.action && menu.action.split(',');
+        const menuID = menu.id || 'root';
+        const _menu = {
+            id: menuID,
+            appID: appID,
+            name: menu.name,
+            children: children,
+            actionModel: action ? action[0] : false,
+            actionID: action ? parseInt(action[1], 10) : false,
+            xmlid: menu.xmlid,
+        };
+        this.menus[menuID] = _menu;
+        return _menu;
     }
     _scrollTo(scrollPosition) {
         const scrollingEl = this.el.getElementsByClassName('o_content')[0];
