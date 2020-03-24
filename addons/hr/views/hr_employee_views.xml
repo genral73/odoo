@@ -28,7 +28,7 @@
                     </group>
                     <searchpanel>
                         <field name="company_id" groups="base.group_multi_company" icon="fa-building"/>
-                        <field name="department_id" icon="fa-users"/>
+                        <field name="department_id" expand="0" icon="fa-users"/>
                     </searchpanel>
                 </search>
              </field>

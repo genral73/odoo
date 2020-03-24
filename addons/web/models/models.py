@@ -215,12 +215,17 @@ class Base(models.AbstractModel):
     def search_panel_select_range(self, field_name, **kwargs):
         """
         Return possible values of the field field_name (case select="one"),
-        possibly with counters and the parent field (if any) used to hierarchize them.
+        possibly with counters, and the parent field (if any and required)
+        used to hierarchize them.
 
         :param field_name: the name of a field;
             of type many2one or selection.
-        :param search_domain: base domain of search
+        :param expand: boolean, if fasle, one only keep records in the image
+                                of the field 'field_name'
         :param disable_counters: whether to count records by value
+        :param hierarchize: boolean, true if one should read the field _parent_name
+        :param search_domain: base domain of search
+
         :return: {
             'parent_field': parent field on the comodel of field, or False
             'values': array of dictionaries containing some info on the records
@@ -235,8 +240,10 @@ class Base(models.AbstractModel):
             raise UserError(_('Only types %(supported_types)s are supported for category (found type %(field_type)s)') % ({
                             'supported_types': supported_types, 'field_type': field.type}))
 
-        search_domain = kwargs.get('search_domain', [])
+        expand = kwargs.get('expand', True)
         disable_counters = kwargs.get('disable_counters', False)
+        hierarchize = kwargs.get('hierarchize', expand)
+        search_domain = kwargs.get('search_domain', [])
 
         category_values = []
 
@@ -247,7 +254,7 @@ class Base(models.AbstractModel):
 
             # get counter
             counters = {}
-            if not disable_counters:
+            if not disable_counters or not expand:
                 groups = self.read_group(search_domain, [field_name], [field_name])
                 counters = {
                     group_id_name(group[field_name])[0]: group[field_name + '_count']
@@ -256,36 +263,46 @@ class Base(models.AbstractModel):
 
             Comodel = self.env[field.comodel_name]
             parent_name = Comodel._parent_name if Comodel._parent_name in Comodel._fields else False
-            field_names = ['display_name', parent_name] if parent_name else ['display_name']
+            field_names = ['display_name']
+            if parent_name and hierarchize:
+                field_names.append(parent_name)
 
             records = Comodel.with_context(hierarchical_naming=False).search_read([], field_names)
 
-            for record in records:
-                record_id = record['id']
-                values = {
-                    'id': record_id,
-                    'display_name': record['display_name'],
-                }
-                if parent_name:
+            parents = {}
+            if parent_name and hierarchize:
+                for record in records:
+                    record_id = record['id']
                     parent = record[parent_name]
                     if parent:
                         parent_id = parent[0]
-                        values['parent_id'] = parent_id
+                        parents[record_id] = parent_id
                         counters[parent_id] = counters.get(parent_id, 0) + counters.get(record_id, 0)
-                category_values.append(values)
 
-            for values in category_values:
-                values['count'] = counters.get(values['id'], 0)
+            for record in records:
+                record_id = record['id']
+                count = counters.get(record_id, 0)
+                if expand or count:
+                    values = {
+                        'id': record_id,
+                        'display_name': record['display_name'],
+                        'count': count if not disable_counters else 0,
+                    }
+                    if parent_name and hierarchize:
+                        parent = parents.get(record_id)
+                        if parent:
+                            values['parent_id'] = parent
+                    category_values.append(values)
 
             return {
-                'parent_field': parent_name,
+                'parent_field': hierarchize and parent_name,
                 'values': category_values,
             }
 
         elif field.type == 'selection':
             # get counter
             counters = {}
-            if not disable_counters:
+            if not disable_counters or not expand:
                 groups = self.read_group(search_domain, [field_name], [field_name])
                 counters = {
                     group[field_name]: group[field_name + '_count']
@@ -294,11 +311,13 @@ class Base(models.AbstractModel):
 
             selection = self.fields_get([field_name])[field_name]['selection']
             for value, label in selection:
-                category_values.append({
-                    'id': value,
-                    'display_name': label,
-                    'count': counters.get(value, 0),
-                })
+                count = counters.get(value, 0)
+                if expand or count:
+                    category_values.append({
+                        'id': value,
+                        'display_name': label,
+                        'count': count if not disable_counters else 0,
+                    })
 
             return {
                 'values': category_values,
@@ -367,26 +386,56 @@ class Base(models.AbstractModel):
         filter_values = []
 
         if field.type == 'many2one':
-            counters = {}
-            if not disable_counters:
+            expand = kwargs.get('expand', True)
+            if (expand):
+                counters = {}
+                if not disable_counters:
+                    groups = self.read_group(model_domain, [field_name], [field_name])
+                    counters = {
+                        group[field_name][0]: group[field_name + '_count']
+                        for group in groups
+                    }
+                # retrieve all possible values, and return them with their label and counter
+                field_names = ['display_name', group_by] if group_by else ['display_name']
+                records = Comodel.search_read(comodel_domain, field_names)
+                for record in records:
+                    record_id = record['id']
+                    values = {
+                        'id': record_id,
+                        'name': record['display_name'],
+                        'count': counters.get(record_id, 0),
+                    }
+                    if group_by:
+                        values['group_id'], values['group_name'] = group_id_name(record[group_by])
+                    filter_values.append(values)
+            else:
                 groups = self.read_group(model_domain, [field_name], [field_name])
-                counters = {
-                    group[field_name][0]: group[field_name + '_count']
-                    for group in groups
-                }
-            # retrieve all possible values, and return them with their label and counter
-            field_names = ['display_name', group_by] if group_by else ['display_name']
-            records = Comodel.search_read(comodel_domain, field_names)
-            for record in records:
-                record_id = record['id']
-                values = {
-                    'id': record_id,
-                    'name': record['display_name'],
-                    'count': counters.get(record_id, 0),
-                }
-                if group_by:
-                    values['group_id'], values['group_name'] = group_id_name(record[group_by])
-                filter_values.append(values)
+                if group_by or comodel_domain:
+                    filter_prevalues = {
+                        group[field_name][0]: {
+                            'id': group[field_name][0],
+                            'name': group[field_name][1],
+                            'count': 0 if disable_counters else group[field_name + '_count'],
+                        }
+                        for group in groups
+                    }
+                    field_names = [group_by] if group_by else []
+                    records = Comodel.search_read(comodel_domain, field_names)
+                    for record in records:
+                        record_id = record['id']
+                        prevalues = filter_prevalues.get(record_id, False)
+                        if prevalues:
+                            if group_by:
+                                prevalues['group_id'], prevalues['group_name'] = group_id_name(record[group_by])
+                            filter_values.append(values)
+                else:
+                    for group in groups:
+                        values = {
+                            'id': group[field_name][0],
+                            'name': group[field_name][1],
+                            'count': group[field_name + '_count'],
+                        }
+                        filter_values.append(values)
 
         elif field.type == 'many2many':
             # retrieve all possible values, and return them with their label and counter
