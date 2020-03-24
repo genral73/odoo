@@ -655,7 +655,9 @@ table.table_desc tr td {
     transition: margin-top 500ms ease 0s, transform 200ms;
 
     .navbar-collapse {
-        max-height: 70vh;
+        @if o-website-value('header-template') != 'logo_hamburger' {
+            max-height: 70vh;
+        }
         &.show {
             overflow-y: auto;
         }
@@ -796,6 +798,14 @@ header {
             }
             .container {
                 transition: padding 200ms;
+
+                #top_menu.navbar-nav {
+                    height: 90vh;
+                    padding-top : 10vh;
+                }
+                .dropdown-menu {
+                    text-align: center;
+                }
             }
         }
     } @else if index(('logo_menu_below', 'menu_logo_below'), o-website-value('header-template')) {

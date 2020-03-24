@@ -190,7 +190,7 @@
     </xpath>
 </template>
 
-<template id="website_name" inherit_id="website.layout" name="Website Name">
+<template id="website_name" inherit_id="website.layout" name="Website Name" active="False">
     <xpath expr="//header//a[hasclass('navbar-brand')]" position="replace">
         <a class="navbar-brand" href="/">My Website</a>
     </xpath>
@@ -498,7 +498,7 @@
                     <div class="m-4">
                         YourCompany, 250 Executive Park Blvd, Suite 3400,<br/>
                         San Francisco CA 94134, United States<br/>
-                        <a href="tel:+1 (650) 691-3277">+1 (650) 691-3277</a> <a href="mailto:info@yourcompany.example.com">info@yourcompany.example.com</a>
+                        <a href="tel:+1 (650) 691-3277">+1 (650) 691-3277</a> - <a href="mailto:info@yourcompany.example.com">info@yourcompany.example.com</a>
                     </div>
                     <div class="row">
                         <div class="offset-lg-3 col-lg-6 o_footer_logo my-4">

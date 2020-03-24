@@ -396,7 +396,7 @@
             <we-button data-customize-website-views="website.header_shadow">Regular Shadow</we-button>
         </we-select>
         <we-select string="Logo" data-reload="/">
-            <we-button data-customize-website-views="">Text</we-button>
+            <we-button data-customize-website-views="website.website_name">Text</we-button>
             <we-button data-customize-website-views="website.layout_logo_show">Image</we-button>
         </we-select>
         <we-input string="Logo Height"
@@ -409,7 +409,8 @@
                   data-customize-website-variable="null"
                   data-variable="fixed-logo-height"
                   data-unit="px"
-                  data-save-unit="rem"/>
+                  data-save-unit="rem"
+                  data-dependencies="!header_visibility_scroll_opt"/>
         <we-row string="Font">
             <we-fontfamilypicker data-variable="navbar-font-number"/>
             <we-input data-customize-website-variable="null" data-variable="header-font-size" data-unit="px" data-save-unit="rem"/>
@@ -439,7 +440,7 @@
                        data-name="header_logo_hamburger_opt"
                        data-customize-website-views="website.template_header_hamburger, website.template_header_navbar_text_center"
                        data-customize-website-variable="logo_hamburger"
-                       string="Logo - Hamburger"/>
+                       string="Logo - Hamburger (cover)"/>
         </we-select>
         <we-select id="header_visibilities_list" string="Header Visibility">
             <we-button id="option_header_visibility_standard"
@@ -515,7 +516,7 @@
             <we-button id="option_template_footer_name_logo_links_about_us"
                        data-customize-website-views="website.template_footer_name_logo_links_about_us"
                        data-customize-website-variable="name_logo_links_about_us"
-                       string="Website name - Logo - Links - About us"/>
+                       string="Name - Logo - Links - About us"/>
             <we-button id="option_template_footer_logo_only"
                        data-customize-website-views="website.template_footer_logo_only"
                        data-customize-website-variable="logo_only"
