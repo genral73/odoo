@@ -523,11 +523,33 @@ a.no-decoration {
         border-left: 1px solid gray('400');
         .o_wsale_product_image_container {
             .o_wsale_product_image {
+                position: relative;
                 > img {
                     border: 1px solid #ced4da;
                     height: 200px;
-                    width: auto;
+                    width: 100%;
                 }
+                .o_wsale_image_controls {
+                    @include o-position-absolute(0, 0);
+                    width: 100%;
+                    color: black;
+                    background-color: $o-brand-primary;
+                    opacity: 0;
+                    transition: opacity ease 400ms;
+
+                    > button.fa {
+                        border: none;
+                        background-color: transparent;
+                    }
+
+                    > .fa {
+                        margin: 5px;
+                        cursor: pointer;
+                    }
+                }
+            }
+            &:hover .o_wsale_image_controls {
+                opacity: 0.8;
             }
         }
         .o_wsale_product_video_container {

@@ -37,35 +37,41 @@ var productVariantImages = Widget.extend({
         const dialog = new weWidgets.Dialog(this, {
             size: 'large',
             title: _t(" Extra Product Media"),
-            $content: $(QWeb.render('productImageVideoUploder', {})),
+            $content: $(QWeb.render('productImageVideoUploder', {'name': this.$el.data('product-name')})),
             buttons: [{
                 text: _t("Add"),
                 classes: 'btn-primary',
                 click: function () {
                     let data = {
-                        fields: this.$content.find('input'),
+                        name: this.$content.find('input[name=name]').val(),
+                        video_url: this.$content.find('input[name=video_url]').val(),
                         image: this.$content.find('img'),
+                        embed_url: this.$content.find('iframe.o_wsale_product_video_dialog_iframe'),
                     };
                     self._updateCarouselIndicatorAndInnerItem(ev, data);
                 }, close: true
             },{text: _t("Cancel"), close: true,}],
         });
         dialog.opened().then(function () {
-            dialog.$('.o_wsale_product_image > img').on('dblclick', function (ev) {
+            const $img = $('.o_wsale_product_image > img');
+            dialog.$('.o_wsale_select_image_button').on('click', function (ev) {
                 ev.preventDefault();
-                self._uploadImage($(ev.currentTarget));
+                self._uploadImage($(ev.currentTarget), $img);
+            });
+            dialog.$('.o_wsale_clear_image_button').on('click', function (ev) {
+                ev.preventDefault();
+                $img.attr('src', '/web/static/src/img/placeholder.png');
             });
         });
         dialog.open();
     },
-    _uploadImage: function ($currentTarget) {
+    _uploadImage: function ($currentTarget, $img) {
         //open media dialog for upload image
-        const $image = $("<img/>");
         const mediaDialog = new weWidgets.MediaDialog(this, {
             onlyImages: true,
-        }, $image[0]);
+        }, $img[0]);
         mediaDialog.on('save', this, function (image) {
-            $currentTarget.attr('src', image.src);
+            $img.attr('src', image.src);
         });
         mediaDialog.open();
     },
@@ -85,7 +91,7 @@ var productVariantImages = Widget.extend({
     },
     _saveImageAndVideo: function () {
         const self = this;
-        const args = [];
+        let args = [];
         _.each(this.productVariantImages, (data) => {
             let canvas = document.createElement("CANVAS");
             let ctx = canvas.getContext("2d");
@@ -95,7 +101,8 @@ var productVariantImages = Widget.extend({
                 canvas.height = this.height;
                 ctx.drawImage(this, 0, 0);
                 args.push({
-                    'name': 'test', // TODO
+                    'name': data.name,
+                    'video_url': data.video_url,
                     'product_tmpl_id': self.productID,
                     'image_1920': canvas.toDataURL("image/jpeg").replace(/^data:image\/[a-z]+;base64,/, ""),
                 });
@@ -108,7 +115,7 @@ var productVariantImages = Widget.extend({
             self._rpc({
                 model: 'product.image',
                 method: 'create',
-                args: [args],
+                args: args,
             }).catch(function (data) {
                 reject();
             }).then( function () {

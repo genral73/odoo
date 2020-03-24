@@ -28,7 +28,7 @@
                 <div class="row o_wsale_product_image_modal">
                     <div class="col-md-6 col-xl-5 form-group">
                         <label>Image Name</label>
-                        <h3><input type="text" class="form-control" name="name" placeholder="Image Name" required="1"/></h3>
+                        <h3><input type="text" class="form-control" name="name" t-att-value="name" placeholder="Image Name" required="1"/></h3>
                         <label>Video URL</label><br/>
                         <h3><input type="text" class="form-control" name="video_url"/></h3>
                     </div>
@@ -36,13 +36,17 @@
                         <div class="row">
                             <div class="col-5">
                                 <div class="o_wsale_product_image_container">
-                                    <div class="o_wsale_product_image p-1">
+                                    <div class="o_wsale_product_image">
                                         <img class="img img-fluid" title="Dobule-click to edit" alt="Binary file" src="/web/static/src/img/placeholder.png" name="image_1920" border="1"/>
+                                        <div class="o_wsale_image_controls p-1">
+                                            <button class="fa fa-pencil fa-lg float-left o_wsale_select_image_button" title="Edit" aria-label="Edit"></button>
+                                            <button class="fa fa-trash-o fa-lg float-right o_wsale_clear_image_button" title="Clear" aria-label="Clear"></button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-7">
-                                <div class="text-center o_wsale_product_video_container p-1">
+                                <div class="text-center o_wsale_product_video_container">
                                     <div id="o_wsale_product_video_preview">
                                         <div class="o_wsale_product_video_preview_text">Video Preview</div>
                                         <iframe class="o_wsale_product_video_dialog_iframe" allowfullscreen="allowfullscreen" frameborder="0" src=""/>
