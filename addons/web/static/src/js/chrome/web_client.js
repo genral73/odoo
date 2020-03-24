@@ -85,6 +85,7 @@ class WebClient extends Component {
         if (this.renderingInfo) {
             this.__owl__.currentFiber.cancel();
         }
+        this.renderingInfo = null;
     }
     _computeTitle() {
         const parts = Object.keys(this._titleParts).sort();
