@@ -17,7 +17,7 @@ tour.register('rte_translator', {
     wait_for: ready,
 }, [{
     content: "click on Add a language",
-    trigger: '.js_language_selector a:has(i.fa)',
+    trigger: '.js_language_selector a:has(i.fas, i.far, i.fab)',
 }, {
     content: "select french",
     trigger: 'select[name="lang"]',

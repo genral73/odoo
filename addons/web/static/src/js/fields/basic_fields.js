@@ -2226,9 +2226,9 @@ var PriorityWidget = AbstractField.extend({
             .attr('title', tip)
             .attr('aria-label', tip)
             .attr('data-index', index)
-            .addClass('o_priority_star fa')
-            .toggleClass('fa-star', isFull)
-            .toggleClass('fa-star-o', !isFull);
+            .addClass('o_priority_star fa-star')
+            .toggleClass('fas', isFull)
+            .toggleClass('far', !isFull);
     },
 
     //--------------------------------------------------------------------------
@@ -2273,8 +2273,8 @@ var PriorityWidget = AbstractField.extend({
      */
     _onMouseOver: function (event) {
         clearTimeout(this.hoverTimer);
-        this.$('.o_priority_star').removeClass('fa-star-o').addClass('fa-star');
-        $(event.currentTarget).nextAll().removeClass('fa-star').addClass('fa-star-o');
+        this.$('.o_priority_star').removeClass('far fa-star').addClass('fas fa-star');
+        $(event.currentTarget).nextAll().removeClass('fas fa-star').addClass('far fa-star');
     },
 });
 
@@ -2430,8 +2430,8 @@ var FavoriteWidget = AbstractField.extend({
      */
     _render: function () {
         var tip = this.value ? _t('Remove from Favorites') : _t('Add to Favorites');
-        var template = this.attrs.nolabel ? '<a href="#"><i class="fa %s" title="%s" aria-label="%s" role="img"></i></a>' : '<a href="#"><i class="fa %s" role="img" aria-label="%s"></i> %s</a>';
-        this.$el.empty().append(_.str.sprintf(template, this.value ? 'fa-star' : 'fa-star-o', tip, tip));
+        var template = this.attrs.nolabel ? '<a href="#"><i class="%s" title="%s" aria-label="%s" role="img"></i></a>' : '<a href="#"><i class="%s" role="img" aria-label="%s"></i> %s</a>';
+        this.$el.empty().append(_.str.sprintf(template, this.value ? 'fas fa-star' : 'far fa-star', tip, tip));
     },
 
     //--------------------------------------------------------------------------

@@ -331,7 +331,7 @@ QUnit.module('web_editor', {}, function () {
             await defMediaDialog;
             $('.modal .tab-content .tab-pane').removeClass('fade'); // to be sync in test
             await testUtils.dom.click($('.modal a[aria-controls="editor-media-icon"]'));
-            await testUtils.dom.click($('.modal #editor-media-icon .font-icons-icon.fa-glass'));
+            await testUtils.dom.click($('.modal #editor-media-icon .font-icons-icon.fas.fa-glass-martini'));
             await testUtils.dom.click($('.modal .modal-footer button.btn-primary'));
 
             var $editable = form.$('.oe_form_field[name="body"] .note-editable');
