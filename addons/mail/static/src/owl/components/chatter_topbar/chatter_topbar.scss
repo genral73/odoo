@@ -5,7 +5,12 @@
 .o_ChatterTopbar {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.o_ChatterTopbar_autogrow {
+    display: flex;
+    flex: 1;
 }
 
 .o_ChatterTopbar_buttonAttachmentsCountLoader {
@@ -21,8 +26,10 @@
     border-left: none;
 }
 
-.o_ChatterTopbar_leftSection {
+.o_ChatterTopbar_followers {
     display: flex;
+    flex: 1;
+    justify-content: flex-end;
 }
 
 // ------------------------------------------------------------------
