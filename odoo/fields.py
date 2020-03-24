@@ -256,6 +256,7 @@ class Field(MetaField('DummyField', (object,), {})):
         'recursive': False,             # whether self depends on itself
         'compute': None,                # compute(recs) computes field on recs
         'pre_compute': True,            # whether field has to be computed before creation
+        'cache_compute': False,         # whether field value could be cached w.r.t its dependencies # TODO clearer explanation
         'compute_sudo': False,          # whether field should be recomputed as superuser
         'inverse': None,                # inverse(recs) inverses field on recs
         'search': None,                 # search(recs, operator, value) searches on self

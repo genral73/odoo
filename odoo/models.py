@@ -1935,7 +1935,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
     def _read_group_prepare(self, orderby, aggregated_fields, annotated_groupbys, query):
         """
         Prepares the GROUP BY and ORDER BY terms for the read_group method. Adds the missing JOIN clause
-        to the query if order should be computed against m2o field. 
+        to the query if order should be computed against m2o field.
         :param orderby: the orderby definition in the form "%(field)s %(order)s"
         :param aggregated_fields: list of aggregated fields in the query
         :param annotated_groupbys: list of dictionaries returned by _read_group_process_groupby
@@ -2032,9 +2032,9 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         return {
             'field': split[0],
             'groupby': gb,
-            'type': field_type, 
+            'type': field_type,
             'display_format': display_formats[gb_function or 'month'] if temporal else None,
-            'interval': time_intervals[gb_function or 'month'] if temporal else None,                
+            'interval': time_intervals[gb_function or 'month'] if temporal else None,
             'tz_convert': tz_convert,
             'qualified_field': qualified_field,
         }
@@ -2059,8 +2059,8 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
     @api.model
     def _read_group_format_result(self, data, annotated_groupbys, groupby, domain):
         """
-            Helper method to format the data contained in the dictionary data by 
-            adding the domain corresponding to its values, the groupbys in the 
+            Helper method to format the data contained in the dictionary data by
+            adding the domain corresponding to its values, the groupbys in the
             context and by properly formatting the date/datetime values.
 
         :param data: a single group
@@ -2137,10 +2137,10 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 The possible aggregation functions are the ones provided by PostgreSQL
                 (https://www.postgresql.org/docs/current/static/functions-aggregate.html)
                 and 'count_distinct', with the expected meaning.
-        :param list groupby: list of groupby descriptions by which the records will be grouped.  
+        :param list groupby: list of groupby descriptions by which the records will be grouped.
                 A groupby description is either a field (then it will be grouped by that field)
                 or a string 'field:groupby_function'.  Right now, the only functions supported
-                are 'day', 'week', 'month', 'quarter' or 'year', and they only make sense for 
+                are 'day', 'week', 'month', 'quarter' or 'year', and they only make sense for
                 date/datetime fields.
         :param int offset: optional number of records to skip
         :param int limit: optional max number of records to return
@@ -2148,7 +2148,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                              overriding the natural sort ordering of the
                              groups, see also :py:meth:`~osv.osv.osv.search`
                              (supported only for many2one fields currently)
-        :param bool lazy: if true, the results are only grouped by the first groupby and the 
+        :param bool lazy: if true, the results are only grouped by the first groupby and the
                 remaining groupbys are put in the __context key.  If false, all the groupbys are
                 done in one call.
         :return: list of dictionaries(one dictionary for each record) containing:
@@ -2305,7 +2305,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             # Right now, read_group only fill results in lazy mode (by default).
             # If you need to have the empty groups in 'eager' mode, then the
             # method _read_group_fill_results need to be completely reimplemented
-            # in a sane way 
+            # in a sane way
             result = self._read_group_fill_results(
                 domain, groupby_fields[0], groupby[len(annotated_groupbys):],
                 aggregated_fields, count_field, result, read_group_order=order,
@@ -2511,6 +2511,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 def mark_fields_to_compute():
                     recs = self.with_context(active_test=False).search([])
                     for field in fields_to_compute:
+                        # consider cache_compute here?
                         _logger.info("Storing computed values of %s", field)
                         self.env.add_to_compute(recs._fields[field], recs)
 
@@ -3709,6 +3710,7 @@ Record ids: %(records)s
             # at least while the feature is opt-in.
             return
 
+        compute_cache = collections.defaultdict(dict)
         for data in data_list:
 
             missing_fields = [
@@ -3729,7 +3731,21 @@ Record ids: %(records)s
                     # computed stored fields with a column
                     # have to be computed before create
                     # s.t. required and constraints can be applied on those fields.
-                    field_value = field.convert_to_write(new_obj[field.name], self)
+                    if field.cache_compute:
+                        # TODO add a context key to disable this feature ?
+                        # TODO enforce the depends for cache_computed fields are all on same model...
+                        # And all stored ?
+                        key = tuple([
+                            self._fields.get(fname).convert_to_write(new_obj[fname], self)
+                            for fname in field.depends
+                        ])
+                        if key in compute_cache[field]:
+                            field_value = compute_cache[field][key]
+                            new_obj[field.name] = field_value
+                        else:
+                            field_value = compute_cache[field][key] = field.convert_to_write(new_obj[field.name], self)
+                    else:
+                        field_value = field.convert_to_write(new_obj[field.name], self)
                     data['stored'][field.name] = field_value
                     if field.inverse:
                         data['inversed'][field.name] = field_value
