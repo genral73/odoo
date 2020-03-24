@@ -22,9 +22,9 @@ var LIVECHAT_COOKIE_HISTORY = 'im_livechat_history';
 var HISTORY_LIMIT = 15;
 
 var RATING_TO_EMOJI = {
-    "10":"😊",
-    "5":"😐",
-    "1":"😞"
+    "10": "😊",
+    "5": "😐",
+    "1": "😞",
 };
 
 // History tracking
@@ -39,11 +39,11 @@ if (!_.contains(urlHistory, page)) {
     while (urlHistory.length > HISTORY_LIMIT) {
         urlHistory.shift();
     }
-    utils.set_cookie(LIVECHAT_COOKIE_HISTORY, JSON.stringify(urlHistory), 60*60*24); // 1 day cookie
+    utils.set_cookie(LIVECHAT_COOKIE_HISTORY, JSON.stringify(urlHistory), 60 * 60 * 24); // 1 day cookie
 }
 
 var LivechatButton = Widget.extend({
-    className:'openerp o_livechat_button d-print-none',
+    className: 'openerp o_livechat_button d-print-none',
     custom_events: {
         'close_chat_window': '_onCloseChatWindow',
         'post_message_chat_window': '_onPostMessageChatWindow',
@@ -73,10 +73,10 @@ var LivechatButton = Widget.extend({
     },
     willStart: function () {
         var self = this;
-        var cookie = utils.get_cookie('im_livechat_session');
+        var cookie = utils.get_cookie('im_livechat_session_old');
         var ready;
         if (!cookie) {
-            ready = session.rpc('/im_livechat/init', {channel_id: this.options.channel_id})
+            ready = session.rpc('/im_livechat/init', { channel_id: this.options.channel_id })
                 .then(function (result) {
                     if (!result.available_for_me) {
                         self.destroy();
@@ -85,7 +85,7 @@ var LivechatButton = Widget.extend({
                 });
         } else {
             var channel = JSON.parse(cookie);
-            ready = session.rpc('/mail/chat_history', {uuid: channel.uuid, limit: 100})
+            ready = session.rpc('/mail/chat_history', { uuid: channel.uuid, limit: 100 })
                 .then(function (history) {
                     self._history = history;
                 });
@@ -152,7 +152,7 @@ var LivechatButton = Widget.extend({
      */
     _closeChat: function () {
         this._chatWindow.destroy();
-        utils.set_cookie('im_livechat_session', "", -1); // remove cookie
+        utils.set_cookie('im_livechat_session_old', "", -1); // remove cookie
     },
     /**
      * @private
@@ -211,7 +211,7 @@ var LivechatButton = Widget.extend({
             return;
         }
         var self = this;
-        var cookie = utils.get_cookie('im_livechat_session');
+        var cookie = utils.get_cookie('im_livechat_session_old');
         var def;
         this._openingChat = true;
         clearTimeout(this._autoPopupTimeout);
@@ -220,10 +220,10 @@ var LivechatButton = Widget.extend({
         } else {
             this._messages = []; // re-initialize messages cache
             def = session.rpc('/im_livechat/get_session', {
-                channel_id : this.options.channel_id,
-                anonymous_name : this.options.default_username,
+                channel_id: this.options.channel_id,
+                anonymous_name: this.options.default_username,
                 previous_operator_id: this._get_previous_operator_id(),
-            }, {shadow: true});
+            }, { shadow: true });
         }
         def.then(function (livechatData) {
             if (!livechatData || !livechatData.operator_pid) {
@@ -245,20 +245,20 @@ var LivechatButton = Widget.extend({
                     self.call('bus_service', 'addChannel', self._livechat.getUUID());
                     self.call('bus_service', 'startPolling');
 
-                    utils.set_cookie('im_livechat_session', JSON.stringify(self._livechat.toData()), 60*60);
-                    utils.set_cookie('im_livechat_auto_popup', JSON.stringify(false), 60*60);
+                    utils.set_cookie('im_livechat_session_old', JSON.stringify(self._livechat.toData()), 60 * 60);
+                    utils.set_cookie('im_livechat_auto_popup', JSON.stringify(false), 60 * 60);
                     if (livechatData.operator_pid[0]) {
                         // livechatData.operator_pid contains a tuple (id, name)
                         // we are only interested in the id
                         var operatorPidId = livechatData.operator_pid[0];
-                        var oneWeek = 7*24*60*60;
+                        var oneWeek = 7 * 24 * 60 * 60;
                         utils.set_cookie('im_livechat_previous_operator_pid', operatorPidId, oneWeek);
                     }
                 });
             }
         }).then(function () {
             self._openingChat = false;
-        }).guardedCatch(function() {
+        }).guardedCatch(function () {
             self._openingChat = false;
         });
     }, 200, true),
@@ -292,7 +292,7 @@ var LivechatButton = Widget.extend({
         };
         this._chatWindow = new WebsiteLivechatWindow(this, this._livechat, options);
         return this._chatWindow.appendTo($('body')).then(function () {
-            var cssProps = {bottom: 0};
+            var cssProps = { bottom: 0 };
             cssProps[_t.database.parameters.direction === 'rtl' ? 'left' : 'right'] = 0;
             self._chatWindow.$el.css(cssProps);
             self.$el.hide();
@@ -317,7 +317,7 @@ var LivechatButton = Widget.extend({
     _sendMessage: function (message) {
         var self = this;
         return session
-            .rpc('/mail/chat_post', {uuid: this._livechat.getUUID(), message_content: message.content})
+            .rpc('/mail/chat_post', { uuid: this._livechat.getUUID(), message_content: message.content })
             .then(function (messageId) {
                 if (!messageId) {
                     self.displayNotification({
@@ -342,7 +342,7 @@ var LivechatButton = Widget.extend({
                 body: this.options.default_message,
                 channel_ids: [this._livechat.getID()],
                 date: time.datetime_to_str(new Date()),
-            }, {prepend: true});
+            }, { prepend: true });
         }
     },
 
@@ -397,7 +397,7 @@ var LivechatButton = Widget.extend({
      */
     _onSaveChatWindow: function (ev) {
         ev.stopPropagation();
-        utils.set_cookie('im_livechat_session', JSON.stringify(this._livechat.toData()), 60*60);
+        utils.set_cookie('im_livechat_session_old', JSON.stringify(this._livechat.toData()), 60 * 60);
     },
     /**
      * @private
@@ -462,7 +462,7 @@ var Feedback = Widget.extend({
             reason: reason,
         };
         this.dp.add(session.rpc('/im_livechat/feedback', args)).then(function () {
-            var emoji = RATING_TO_EMOJI[self.rating] || "??" ;
+            var emoji = RATING_TO_EMOJI[self.rating] || "??";
             var content = _.str.sprintf(_t("Rating: %s"), emoji);
             if (reason) {
                 content += " \n" + reason;
@@ -507,7 +507,7 @@ var Feedback = Widget.extend({
     _onClickSmiley: function (ev) {
         this.rating = parseInt($(ev.currentTarget).data('value'));
         this.$('.o_livechat_rating_choices img').removeClass('selected');
-        this.$('.o_livechat_rating_choices img[data-value="'+this.rating+'"]').addClass('selected');
+        this.$('.o_livechat_rating_choices img[data-value="' + this.rating + '"]').addClass('selected');
 
         // only display textearea if bad smiley selected
         if (this.rating !== 10) {

@@ -187,8 +187,7 @@ const getters = {
      */
     chats({ state }) {
         return filterObject(state.threads, thread =>
-            thread.channel_type === 'chat' ||
-            (!state.isMobile && thread.channel_type === 'livechat') // TODO FIXME move this into im_livechat when we have entities
+            thread.channel_type === 'chat'
         );
     },
     /**

@@ -200,7 +200,7 @@
 
             <script type="text/javascript" src="/im_livechat/static/src/owl/components/livechat_button/livechat_button.js"/>
             <script type="text/javascript" src="/im_livechat/static/src/owl/components/livechat_manager/livechat_manager.js"/>
-            <script type="text/javascript" src="/im_livechat/static/src/owl/livechat_main.js"/>
+            <script type="text/javascript" src="/im_livechat/static/src/owl/livechat_public_main.js"/>
 
             <script type="text/javascript" src="/mail/static/src/js/emojis.js"/>
             <script type="text/javascript" src="/mail/static/src/owl/components/attachment/attachment.js"/>

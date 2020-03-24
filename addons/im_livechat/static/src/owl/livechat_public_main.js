@@ -16,6 +16,13 @@ messagingEnv.isMessagePartnerDisplayNamePreferred = true;
 
 Object.assign(messagingEnv.store.actions, {
     /**
+     * @override
+     */
+    closeChatWindow({ env }) {
+        messagingEnv.store.actions.closeChatWindow(...arguments);
+        env.services.setCookie('im_livechat_session', "", -1); // remove cookie
+    },
+    /**
      * Initiates the public livechat by fetching the chat history (if it exists)
      * or the channel info otherwise.
      *
@@ -93,7 +100,10 @@ Object.assign(messagingEnv.store.actions, {
                     limit: 100,
                 },
             });
-            Object.assign(state.publicLivechat, { history });
+            for (const data of history) {
+                dispatch('_insertMessage', data);
+            }
+            dispatch('openPublicLivechat');
         }
         dispatch('_initBusNotifications');
     },
@@ -112,37 +122,57 @@ Object.assign(messagingEnv.store.actions, {
         const previousOperator = state.publicLivechat.previousOperatorLocalId
             ? state.partners[state.publicLivechat.previousOperatorLocalId]
             : undefined;
-        const livechatData = await env.rpc({
-            route: '/im_livechat/get_session',
-            params: {
-                channel_id: state.publicLivechat.channel_id,
-                anonymous_name: state.publicLivechat.default_username,
-                previous_operator_id: previousOperator && previousOperator.id,
-            },
-            settings: {
-                shadow: true,
-            },
-        });
-        if (!livechatData) {
-            env.displayNotification({
-                title: env._t("Collaborators offline"),
-                message: env._t("None of our collaborators seem to be available, please try again later."),
-                sticky: true
+        var cookie = env.services.getCookie('im_livechat_session');
+        let livechatData;
+        if (cookie) {
+            livechatData = JSON.parse(cookie);
+        } else {
+            livechatData = await env.rpc({
+                route: '/im_livechat/get_session',
+                params: {
+                    channel_id: state.publicLivechat.channel_id,
+                    anonymous_name: state.publicLivechat.default_username,
+                    previous_operator_id: previousOperator && previousOperator.id,
+                },
+                settings: {
+                    shadow: true,
+                },
             });
-            return;
+            if (!livechatData) {
+                // TODO SEB test this
+                env.displayNotification({
+                    title: env._t("Collaborators offline"),
+                    message: env._t("None of our collaborators seem to be available, please try again later."),
+                    sticky: true
+                });
+                return;
+            }
         }
-        // TODO SEB handle empty livechatData
+
+        // fill store
+        const operatorLocalId = dispatch('_insertPartner', {
+            id: livechatData.operator_pid[0],
+            display_name: livechatData.operator_pid[1],
+        });
         const threadLocalId = dispatch('insertThread', Object.assign({
             _model: 'mail.channel',
         }, livechatData));
         const thread = state.threads[threadLocalId];
+
+        env.services.setCookie('im_livechat_session', JSON.stringify({
+            folded: thread.folded,
+            id: thread.id,
+            message_unread_counter: thread.message_unread_counter,
+            operator_pid: thread.operator_pid,
+            name: thread.name,
+            uuid: thread.uuid,
+        }), 60 * 60);
+
+        // subscribe to updates
         env.services.bus_service.addChannel(thread.uuid);
+
         // TODO SEB: if not history
         if (state.publicLivechat.default_message) {
-            const operatorLocalId = dispatch('_insertPartner', {
-                id: livechatData.operator_pid[0],
-                display_name: livechatData.operator_pid[1],
-            });
             const operator = state.partners[operatorLocalId];
             dispatch('_createMessage', {
                 id: '_welcome',
@@ -199,6 +229,15 @@ Object.assign(messagingEnv.store.actions, {
             messagesData: [],
         });
     },
+    /**
+     * TODO SEB most notifications should be ignored on the public part to
+     * avoid broken features such as partially working chat window opening on
+     * new message. Or make them work correctly instead. Condition should be on
+     * whether the user has backend access.
+     *
+     * @override
+     */
+    // async _handleNotifications(...args) {},
     /**
      * There is no server sync for livechat.
      *

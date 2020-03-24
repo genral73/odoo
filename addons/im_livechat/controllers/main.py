@@ -13,8 +13,35 @@ class LivechatController(http.Controller):
     # Note: the `cors` attribute on many routes is meant to allow the livechat
     # to be embedded in an external website.
 
+    """The technical flow of livechat is the following:
+
+    Statically include the necessary libs in HTML (when outside of Odoo):
+    - /im_livechat/external_lib.css
+    - /im_livechat/external_lib.js
+
+    Statically include the necessary loader in HTML:
+    - /im_livechat/loader/<int:channel_id>
+
+    Those first steps can either be done manually through copy/paste on a
+    website, or using the pre-built page /im_livechat/support/<int:channel_id>.
+
+    Then the load code will automatically and dynamically call:
+    - /im_livechat/load_templates
+
+    And then it will call, depending of if an existing session is found, either:
+    - /im_livechat/init
+    or
+    - /mail/chat_history
+
+    Finally when the visitor opens the chat, and only if it is a new session:
+    - /im_livechat/get_session
+    """
+
     @http.route('/im_livechat/external_lib.<any(css,js):ext>', type='http', auth='public')
     def livechat_lib(self, ext, **kwargs):
+        """Returns the standalone static JS file that is required for the
+        livechat to work.
+        """
         # _get_asset return the bundle html code (script and link list) but we want to use the attachment content
         xmlid = 'im_livechat.external_lib'
         files, remains = request.env["ir.qweb"]._get_asset_content(xmlid, options=request.context)
@@ -31,6 +58,9 @@ class LivechatController(http.Controller):
 
     @http.route('/im_livechat/load_templates', type='json', auth='none', cors="*")
     def load_templates(self, **kwargs):
+        """Returns the static templates that are dynamically loaded for the
+        livechat to work.
+        """
         templates = [
             'im_livechat/static/src/owl/components/livechat_button/livechat_button.xml',
             'im_livechat/static/src/owl/components/livechat_manager/livechat_manager.xml',
@@ -65,11 +95,16 @@ class LivechatController(http.Controller):
 
     @http.route('/im_livechat/support/<int:channel_id>', type='http', auth='public')
     def support_page(self, channel_id, **kwargs):
+        """Returns a generic support page with the livechat code included on it.
+        """
         channel = request.env['im_livechat.channel'].sudo().browse(channel_id)
         return request.render('im_livechat.support_page', {'channel': channel})
 
     @http.route('/im_livechat/loader/<int:channel_id>', type='http', auth='public')
     def loader(self, channel_id, **kwargs):
+        """Returns the dynamic JS code that is responsible of bootstrapping the
+        livechat if an operator is available at the time.
+        """
         username = kwargs.get("username", _("Visitor"))
         channel = request.env['im_livechat.channel'].sudo().browse(channel_id)
         info = channel.get_livechat_info(username=username)
@@ -77,6 +112,11 @@ class LivechatController(http.Controller):
 
     @http.route('/im_livechat/init', type='json', auth="public", cors="*")
     def livechat_init(self, channel_id):
+        """Returns updated information about whether an operator is available
+        and which configuration rule is matching (if any).
+
+        This is called once by RPC if the bootstrapping happened.
+        """
         available = len(request.env['im_livechat.channel'].sudo().browse(channel_id)._get_available_users())
         rule = {}
         if available:
@@ -104,6 +144,14 @@ class LivechatController(http.Controller):
 
     @http.route('/im_livechat/get_session', type="json", auth='public', cors="*")
     def get_session(self, channel_id, anonymous_name, previous_operator_id=None, **kwargs):
+        """Creates a new `mail.channel` based on the given `im_livechat.channel`
+        and returns its `channel_info`.
+
+        May return False if no operator is available.
+
+        This is called once by RPC when the visitor is opening the chat, either
+        by clicking on the button or after the automated rule delay (if any).
+        """
         user_id = None
         country_id = None
         # if the user is identifiy (eg: portal user on the frontend), don't use the anonymous name. The user will be added to session.

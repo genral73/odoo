@@ -18,7 +18,7 @@ var LivechatWindow = AbstractThreadWindow.extend({
      * @param {im_livechat.model.WebsiteLivechat} thread
      * @param {Object} [options={}]
      */
-    init(parent, thread, options={}) {
+    init(parent, thread, options = {}) {
         this._super.apply(this, arguments);
         this._thread = thread;
     },
