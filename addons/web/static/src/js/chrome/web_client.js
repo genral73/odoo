@@ -81,7 +81,11 @@ class WebClient extends Component {
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
-
+    _cancel() {
+        if (this.renderingInfo) {
+            this.__owl__.currentFiber.cancel();
+        }
+    }
     _computeTitle() {
         const parts = Object.keys(this._titleParts).sort();
         let tmp = "";
@@ -236,11 +240,7 @@ class WebClient extends Component {
     }
     _setActionManager() {
         this.actionManager = new ActionManager(this.env);
-        this.actionManager.on('cancel', this, () => {
-            if (this.renderingInfo) {
-                this.__owl__.currentFiber.cancel();
-            }
-        });
+        this.actionManager.on('cancel', this, this._cancel);
         this.actionManager.on('update', this, this._onActionManagerUpdated);
         this.actionManager.on('clear-uncommitted-changes', this, async (callBack) => {
             if (!this.currentDialogComponent.comp && this.currentMainComponent.comp) {
