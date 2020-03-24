@@ -38,7 +38,7 @@
             <form string="Contact List">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_view_contacts"
+                        <button name="action_view_valid_email_contacts"
                                 type="object" icon="fa-user" class="oe_stat_button">
                             <field name="contact_nbr" string="Recipients" widget="statinfo"/>
                         </button>
@@ -99,9 +99,11 @@
         <field name="arch" type="xml">
             <kanban js_class="mass_mailing_list_kanban" class="o_kanban_mobile" on_create="mass_mailing.open_create_mass_mailing_list">
                 <field name="name"/>
-                <field name="contact_nbr"/>
-                <field name="contact_total"/>
-                <field name="contact_ids_blackmailed"/>
+                <field name="contact_count"/>
+                <field name="contact_valid_count"/>
+                <field name="contact_bounce_sum"/>
+                <field name="contact_blacklist_percentage"/>
+                <field name="contact_opt_out_percentage"/>
                 <field name="active"/>
                 <templates>
                     <t t-name="kanban-box">
@@ -114,26 +116,23 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-auto">
-                                                <button name="action_view_contacts" type="object" class="btn btn-primary oe_kanban_global_click">
-                                                <t t-esc="record.contact_nbr.value"/> Contacts</button>
+                                                <button name="action_view_full_contacts" type="object" class="btn btn-primary oe_kanban_global_click">
+                                                <t t-esc="record.contact_count.value"/> Contacts</button>
                                             </div>
                                             <div class="col">
                                                 <div class="row">
                                                     <div class="col-12 my-0 text-info">
                                                         <div class="row">
-                                                            <small class="col-auto my-0">
-                                                                Valid Email recipients
+                                                            <small>
+                                                                <a class="col-auto my-0"
+                                                                   type="object"
+                                                                   name="action_view_valid_email_contacts">
+                                                                    Valid Email recipients
+                                                                </a>
                                                             </small>
+
                                                             <small class="col my-0">
-                                                                <div class="text-right">159</div>
-                                                            </small>
-                                                        </div>
-                                                        <div class="row">
-                                                            <small class="col-auto my-0">
-                                                                Valid Email recipients
-                                                            </small>
-                                                            <small class="col">
-                                                                <div class="text-right">159</div>
+                                                                <div class="text-right" t-esc="record.contact_valid_count.value"></div>
                                                             </small>
                                                         </div>
                                                     </div>
@@ -159,22 +158,26 @@
                                 </div>
                             </div>
                             <div class="o_mailing_list_kanban_boxes">
+                                <t t-set="opt_out_status"
+                                   t-value="record.contact_opt_out_percentage.value > 5 ? 'text-danger' :record.contact_opt_out_percentage.value > 2 ? 'text-warning' : ''" />
+                                <t t-set="blacklist_status"
+                                   t-value="record.contact_blacklist_percentage.value > 0.5 ? 'text-danger' :record.contact_opt_out_percentage.value > 1 ? 'text-warning' : ''" />
+
                                 <div>
                                     <span class="mr-3">
                                         <i class="fa fa-envelope-o" role="img" aria-label="Mail" title="mail"/>
-                                        <t t-esc="record.contact_nbr.value"/>
                                     </span>
-                                    <span class="mr-3">
+                                    <span t-attf-class="mr-3" >
                                         <i class="fa fa-exchange" role="img" aria-label="Bounce" title="bounce"/>
-                                        <t t-esc="record.contact_nbr.value"/>
+                                        <t t-esc="record.contact_bounce_sum.value"/>
                                     </span>
-                                    <span class="mr-3">
+                                    <span t-attf-class="mr-3 {{opt_out_status}}">
                                         <i class="fa fa-bell-slash" role="img" aria-label="Opt-out" title="Opt out"/>
-                                        <t t-esc="record.contact_nbr.value"/>
+                                        <t t-esc="record.contact_opt_out_percentage.value"/>%
                                     </span>
-                                    <span>
+                                    <span t-attf-class="{{blacklist_status}}">
                                         <i class="fa fa-ban" role="img" aria-label="Black list" title="Black List"/>
-                                        <t t-esc="record.contact_ids_blackmailed"/>
+                                        <t t-esc="record.contact_blacklist_percentage.value"/>%
                                     </span>
                                 </div>
                             </div>

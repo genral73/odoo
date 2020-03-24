@@ -65,11 +65,13 @@
         <record id="mass_mail_1_contact_10" model="mailing.contact">
             <field name="name">Stephanie Schmidt</field>
             <field name="email">uclark@yahoo.com</field>
+            <field name="message_bounce">1</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
         </record>
         <record id="mass_mail_1_contact_11" model="mailing.contact">
             <field name="name">Charles Davis</field>
             <field name="email">brookejenkins@hotmail.com</field>
+            <field name="message_bounce">3</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
         </record>
         <record id="mass_mail_1_contact_12" model="mailing.contact">
