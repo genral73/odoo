@@ -283,7 +283,7 @@ class WebClient extends Component {
      */
     _updateState(state) {
         // the action and menu_id may not have changed
-        state.action = state.action || this.state.action || '';
+        state.action = state.action || this.state.action || null;
         const menuID = state.menu_id || this.state.menu_id || '';
         if (menuID) {
             state.menu_id = menuID;
