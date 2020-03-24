@@ -28,6 +28,7 @@
                 <p>You must be <a t-attf-href="/web/login?redirect=#{discussion_url}">logged in</a> to post a comment.</p>
             </t>
             <t t-if="widget.options['display_composer']">
+                <p id="input-required" class="text-danger text-center d-none">Please write Message and/or add Attachment</p>
                 <div class="media">
                     <img alt="Avatar" class="o_portal_chatter_avatar" t-attf-src="/web/image/res.partner/#{widget.options['partner_id']}/image_128/50x50"/>
                     <div class="media-body">

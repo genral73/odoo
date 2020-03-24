@@ -155,13 +155,16 @@ var PortalComposer = publicWidget.Widget.extend({
     _onSubmitButtonClick: async function (ev) {
         ev.preventDefault();
         if (!this.$inputTextarea.val().trim() && !this.attachments.length) {
-            return;
+            this.$inputTextarea.addClass('border-danger');
+            this.$("#input-required").removeClass('d-none');
         }
-        const result = await this._rpc({
-            route: ev.currentTarget.getAttribute('data-action'),
-            params: this._prepareMessageData(),
-        });
-        this.trigger_up('reload_composer_widget', result);
+        else {
+            const result = await this._rpc({
+                route: ev.currentTarget.getAttribute('data-action'),
+                params: this._prepareMessageData(),
+            });
+            this.trigger_up('reload_composer_widget', result);
+        }
     },
 
     //--------------------------------------------------------------------------
