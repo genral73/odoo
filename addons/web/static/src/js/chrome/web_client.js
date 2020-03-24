@@ -158,10 +158,12 @@ class WebClient extends Component {
             let decodedVal;
             if (val === undefined) {
                 decodedVal = '1';
-            } else {
+            } else if (val) {
                 decodedVal = decodeURI(val);
             }
-            state[key] = isNaN(decodedVal) ? decodedVal : parseInt(decodedVal, 10);
+            if (decodedVal) {
+                state[key] = isNaN(decodedVal) ? decodedVal : parseInt(decodedVal, 10);
+            }
         }
 
         return state;
