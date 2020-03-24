@@ -52,6 +52,12 @@ PortalChatter.include({
         this.on("change:rating_value", this, this._onChangeRatingDomain);
     },
 
+    start: function () {
+        this._super.apply(this, arguments);
+        // bind events
+        this.on("change:rating_card_values", this, this._renderRatingCard);
+    },
+
     //--------------------------------------------------------------------------
     // Public
     //--------------------------------------------------------------------------
@@ -114,6 +120,16 @@ PortalChatter.include({
         });
     },
     /**
+     * @override
+     */
+    messageFetch: function () {
+        var self = this;
+        return this._super.apply(this, arguments).then(function (result) {
+            self._updateRatingCardValues(result);
+        });
+    },
+
+    /**
      * reload rating stats card after posting message
      * @override
      * @private
@@ -162,18 +178,7 @@ PortalChatter.include({
      * @private
      */
     _renderRatingCard: function () {
-        var self = this;
-        this._rpc({
-            route: '/portal/rating_stats',
-            params: {
-                'res_model': this.options.res_model,
-                'res_id': this.options.res_id,
-                'rating_include': true
-                }
-        }).then((result) => {
-            self._updateRatingCardValues(result);
-            self.$el.find('.o_website_rating_card_container').replaceWith(qweb.render("portal_rating.rating_card", {widget: self}));
-        });
+        this.$el.find('.o_website_rating_card_container').replaceWith(qweb.render("portal_rating.rating_card", {widget: this}));
     },
     /**
      * Default rating data for publisher comment qweb template
