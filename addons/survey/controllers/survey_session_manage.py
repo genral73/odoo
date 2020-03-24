@@ -79,6 +79,25 @@ class UserInputSession(http.Controller):
         else:
             return False
 
+    @http.route('/survey/session/survey_get_next_section_id/<string:survey_token>/<int:current_question_id>', type='json', auth="public", website=True, sitemap=False)
+    def survey_get_next_section_id(self, survey_token, current_question_id=0):
+        survey = self._fetch_from_token(survey_token)
+
+        if not survey or not survey.session_state:
+            # no open session
+            return -1
+
+        current_question = survey.question_and_page_ids.filtered(lambda question: question.id == current_question_id)
+        current_section = survey.page_ids.filtered(lambda section: current_question in section.question_ids)
+
+        next_question = survey._get_session_next_question()
+        next_section = survey.page_ids.filtered(lambda section: next_question in section.question_ids)
+
+        if not next_section or current_section == next_section:
+            return 0
+        else:
+            return next_section.id
+
     @http.route('/survey/session/results/<string:survey_token>', type='json', auth='user', website=True)
     def survey_session_results(self, survey_token, **kwargs):
         """ This route is called when the host shows the current question's results.

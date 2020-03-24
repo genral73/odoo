@@ -20,6 +20,7 @@
                         <field name="title" colspan="4"/>
                         <separator />
                         <field name="questions_selection" invisible="1"/>
+                        <field name="background_image" widget="image" class="oe_avatar" attrs="{'invisible': [('is_page', '=', False)]}"/>
                     </div>
                     <group class="o_label_nowrap" attrs="{'invisible': ['|', ('is_page', '=', False), ('questions_selection', '=', 'all')]}">
                         <field name="random_questions_count"/>

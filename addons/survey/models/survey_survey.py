@@ -569,6 +569,36 @@ class Survey(models.Model):
         return triggering_answer_by_question, triggered_questions_by_answer
 
     # ------------------------------------------------------------
+    # BACKGROUND MANAGEMENT
+    # ------------------------------------------------------------
+    def _get_section_info_by_question(self):
+        """
+        :return: dict (key = question or page id, value = section_id if section has background, else False)
+        """
+        section_info_by_question = dict.fromkeys([0] + self.question_and_page_ids.ids)
+        current_section = self.env['survey.question']
+        is_first_question = True
+        for question in self.question_and_page_ids:
+            if question.is_page:
+                current_section = question
+                if is_first_question:
+                    section_info_by_question[0] = {
+                        'section_id': 0,
+                        'has_background': False,
+                        'next_question_id': current_section.id
+                    }
+                    is_first_question = False
+
+            current_question_index = self.question_and_page_ids.ids.index(question.id)
+            next_question_id = self.question_and_page_ids.ids[current_question_index + 1] if current_question_index+1 < len(self.question_and_page_ids) else 0
+            section_info_by_question[question.id] = {
+                'section_id': current_section.id,
+                'has_background': bool(current_section.background_image),
+                'next_question_id': next_question_id
+            }
+        return section_info_by_question
+
+    # ------------------------------------------------------------
     # SESSIONS MANAGEMENT
     # ------------------------------------------------------------
 
