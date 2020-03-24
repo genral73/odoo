@@ -20,7 +20,7 @@ odoo.define('web.test_utils_create', function (require) {
     const testUtilsAsync = require('web.test_utils_async');
     const testUtilsMock = require('web.test_utils_mock');
     const Widget = require('web.Widget');
-    const WebClient = require('web.WebClient');
+    const WebClient = require('web.WebClientClass');
 
     const { Component } = owl;
     const { useRef, useState } = owl.hooks;
