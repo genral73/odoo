@@ -104,6 +104,7 @@
                 <field name="contact_bounce_sum"/>
                 <field name="contact_blacklist_percentage"/>
                 <field name="contact_opt_out_percentage"/>
+                <field name="mailing_list_count"/>
                 <field name="active"/>
                 <templates>
                     <t t-name="kanban-box">
@@ -162,23 +163,23 @@
                                    t-value="record.contact_opt_out_percentage.value > 5 ? 'text-danger' :record.contact_opt_out_percentage.value > 2 ? 'text-warning' : ''" />
                                 <t t-set="blacklist_status"
                                    t-value="record.contact_blacklist_percentage.value > 0.5 ? 'text-danger' :record.contact_opt_out_percentage.value > 1 ? 'text-warning' : ''" />
-
                                 <div>
-                                    <span class="mr-3">
+                                    <a role="button" class="mr-3 text-black" type="object" name="action_view_mailing">
                                         <i class="fa fa-envelope-o" role="img" aria-label="Mail" title="mail"/>
-                                    </span>
-                                    <span t-attf-class="mr-3" >
+                                        <t t-esc="record.mailing_list_count.value"/>
+                                    </a>
+                                    <span t-attf-class="mr-3 text-black" >
                                         <i class="fa fa-exchange" role="img" aria-label="Bounce" title="bounce"/>
                                         <t t-esc="record.contact_bounce_sum.value"/>
                                     </span>
-                                    <span t-attf-class="mr-3 {{opt_out_status}}">
+                                    <a t-attf-class="mr-3 {{opt_out_status}}" role="button" type="object" name="action_view_opt_out_contacts">
                                         <i class="fa fa-bell-slash" role="img" aria-label="Opt-out" title="Opt out"/>
                                         <t t-esc="record.contact_opt_out_percentage.value"/>%
-                                    </span>
-                                    <span t-attf-class="{{blacklist_status}}">
+                                    </a>
+                                    <a t-attf-class="mr-3 {{blacklist_status}}" role="button" type="object" name="action_view_blacklisted_contacts" >
                                         <i class="fa fa-ban" role="img" aria-label="Black list" title="Black List"/>
                                         <t t-esc="record.contact_blacklist_percentage.value"/>%
-                                    </span>
+                                    </a>
                                 </div>
                             </div>
                         </div>
