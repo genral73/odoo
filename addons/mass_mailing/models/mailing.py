@@ -318,6 +318,9 @@ class MassMailing(models.Model):
     def action_view_traces_failed(self):
         return self._action_view_traces_filtered('failed')
 
+    def action_view_traces_sent(self):
+        return self._action_view_traces_filtered('sent')
+
     def _action_view_traces_filtered(self, view_filter):
         action = self.env.ref('mass_mailing.mailing_trace_action').read()[0]
         action['name'] = _('%s Traces') % (self.name)

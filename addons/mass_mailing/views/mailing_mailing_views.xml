@@ -78,6 +78,16 @@
                                 </strong>
                             </button>
                         </div>
+                        <div attrs="{'invisible': ['&amp;', ('sent', '=', 0), ('state', 'in', ('draft', 'test'))]}">
+                            <button class="btn-link py-0"
+                                    name="action_view_traces_sent"
+                                    type="object">
+                                <strong>
+                                    <field name="sent" class="oe_inline mr-2"/>
+                                    <span name="sent">emails have been sent.</span>
+                                </strong>
+                            </button>
+                        </div>
                         <div attrs="{'invisible': ['|', ('state', '!=', 'done'), ('failed', '=', 0)]}">
                             <button class="btn-link py-0"
                                     name="action_view_traces_failed"
@@ -97,15 +107,8 @@
                     </div>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
-                            <button name="action_view_sent"
-                                id="button_view_sent"
-                                type="object"
-                                context="{'search_default_filter_sent': True}"
-                                icon="fa-envelope-o" class="oe_stat_button"
-                                attrs="{'invisible': ['&amp;', ('sent', '=', 0), ('state', 'in', ('draft', 'test'))]}" >
-                                <field name="sent" string="Sent" widget="statinfo"/>
-                            </button>
                             <button name="action_view_delivered"
+                                id="button_view_delivered"
                                 type="object"
                                 context="{'search_default_filter_delivered': True}"
                                 attrs="{'invisible': [('state', 'in', ('draft','test'))]}"
@@ -118,6 +121,13 @@
                                 attrs="{'invisible': [('state', 'in', ('draft','test'))]}"
                                 class="oe_stat_button">
                                 <field name="opened_ratio" string="Opened" widget="percentpie"/>
+                            </button>
+                            <button name="action_view_clicked"
+                                type="object"
+                                context="{'search_default_filter_clicked': True}"
+                                attrs="{'invisible': [('state', 'in', ('draft','test'))]}"
+                                class="oe_stat_button">
+                                <field name="clicks_ratio" string="Clicked" widget="percentpie"/>
                             </button>
                             <button name="action_view_replied"
                                 type="object"
@@ -201,7 +211,8 @@
                                         <field name="email_from" attrs="{'readonly': [('state', 'in', ('sending', 'done'))]}"/>
                                         <label for="reply_to"/>
                                         <div name="reply_to_details">
-                                            <field name="reply_to_mode" widget="radio"
+                                            <field name="reply_to_mode" widget="radio_info"
+                                                options="{'info_labels':[['email','To track replies, this Email Address needs to belong to this database.']]}"
                                                 attrs="{
                                                     'invisible': [('mailing_model_name', 'in', ['mailing.contact', 'res.partner', 'mailing.list'])],
                                                     'readonly': [('state', 'in', ('sending', 'done'))]
