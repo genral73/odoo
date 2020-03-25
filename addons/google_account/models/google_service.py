@@ -8,10 +8,7 @@ import logging
 import requests
 from werkzeug import urls
 
-from odoo import api, fields, models, registry, _
-from odoo.exceptions import UserError
-from odoo.http import request
-
+from odoo import api, fields, models, _
 
 _logger = logging.getLogger(__name__)
 
@@ -122,32 +119,36 @@ class GoogleService(models.AbstractModel):
             error_msg = _("Something went wrong during your token generation. Maybe your Authorization Code is invalid")
             raise self.env['res.config.settings'].get_config_warning(error_msg)
 
-    # TODO JEM : remove preuri param, and rename type into method
     @api.model
-    def _do_request(self, uri, params={}, headers={}, type='POST', preuri="https://www.googleapis.com", timeout=TIMEOUT):
+    def _do_request(self, uri, params=None, headers=None, method='POST', preuri="https://www.googleapis.com", timeout=TIMEOUT):
         """ Execute the request to Google API. Return a tuple ('HTTP_CODE', 'HTTP_RESPONSE')
             :param uri : the url to contact
             :param params : dict or already encoded parameters for the request to make
             :param headers : headers of request
-            :param type : the method to use to make the request
+            :param method : the method to use to make the request
             :param preuri : pre url to prepend to param uri.
         """
-        _logger.debug("Uri: %s - Type : %s - Headers: %s - Params : %s !", (uri, type, headers, params))
+        if params is None:
+            params = {}
+        if headers is None:
+            headers = {}
+
+        _logger.debug("Uri: %s - Method : %s - Headers: %s - Params : %s !", uri, method, headers, params)
 
         ask_time = fields.Datetime.now()
         try:
-            if type.upper() in ('GET', 'DELETE'):
-                res = requests.request(type.lower(), preuri + uri, params=params, timeout=timeout)
-            elif type.upper() in ('POST', 'PATCH', 'PUT'):
-                print("__Request__")
-                print(preuri + uri)
-                print(params)
-                print(headers)
-                res = requests.request(type.lower(), preuri + uri, data=params, headers=headers, timeout=timeout)
-                print(res)
-                print('__________')
+            if method.upper() in ('GET', 'DELETE'):
+                res = requests.request(method.lower(), preuri + uri, params=params, timeout=timeout)
+            elif method.upper() in ('POST', 'PATCH', 'PUT'):
+                # print("__Request__")
+                # print(preuri + uri)
+                # print(params)
+                # print(headers)
+                res = requests.request(method.lower(), preuri + uri, data=params, headers=headers, timeout=timeout)
+                # print(res)
+                # print('__________')
             else:
-                raise Exception(_('Method not supported [%s] not in [GET, POST, PUT, PATCH or DELETE]!') % (type))
+                raise Exception(_('Method not supported [%s] not in [GET, POST, PUT, PATCH or DELETE]!') % (method))
             res.raise_for_status()
             status = res.status_code
 
@@ -161,8 +162,6 @@ class GoogleService(models.AbstractModel):
             except:
                 pass
         except requests.HTTPError as error:
-            # if error.response.status_code == 401:
-            #     raise InvalidToken
             if error.response.status_code in (204, 404):
                 status = error.response.status_code
                 response = ""

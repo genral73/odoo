@@ -43,9 +43,6 @@ class GoogleCalendarService():
                 raise InvalidSyncToken("Invalid sync token. Full sync required")
             raise e
 
-        import pprint
-        pprint.pprint(data)
-
         events = data.get('items', [])
         next_page_token = data.get('nextPageToken')
         while next_page_token:
@@ -54,8 +51,6 @@ class GoogleCalendarService():
             next_page_token = data.get('nextPageToken')
             events += data.get('items', [])
 
-            pprint.pprint(data)
-
         next_sync_token = data.get('nextSyncToken')
         default_reminders = data.get('defaultReminders')
 
@@ -63,26 +58,21 @@ class GoogleCalendarService():
 
     @requires_auth_token
     def insert(self, values, token=None, timeout=TIMEOUT):
-        print("INSERT")
         url = "/calendar/v3/calendars/primary/events"
         headers = {'Content-type': 'application/json', 'Authorization': 'Bearer %s' % token}
         if not values.get('id'):
             values['id'] = uuid4().hex
-        import pprint
-        pprint.pprint(values)
         self.google_service._do_request(url, json.dumps(values), headers, type='POST', timeout=timeout)
         return values['id']
 
     @requires_auth_token
     def patch(self, event_id, values, token=None, timeout=TIMEOUT):
-        print("PATCH")
         url = "/calendar/v3/calendars/primary/events/%s" % event_id
         headers = {'Content-type': 'application/json', 'Authorization': 'Bearer %s' % token}
         self.google_service._do_request(url, json.dumps(values), headers, type='PUT', timeout=timeout)
 
     @requires_auth_token
     def delete(self, event_id, token=None, timeout=TIMEOUT):
-        print("DELETE")
         url = "/calendar/v3/calendars/primary/events/%s" % event_id
         headers = {'Content-type': 'application/json'}
         params = {'access_token': token}
