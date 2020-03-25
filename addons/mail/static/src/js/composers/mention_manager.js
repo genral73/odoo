@@ -181,7 +181,13 @@ var MentionManager = Widget.extend({
      */
     propositionNavigation: function (keycode) {
         var $active = this.$('.o_mention_proposition.active');
-        if (keycode === $.ui.keyCode.ENTER) {
+        if (this._activeListener.delimiter === ':' && !$active.length) {
+            if (_.contains([$.ui.keyCode.DOWN, $.ui.keyCode.TAB], keycode)) {
+                this.$el.find('.o_mention_proposition').first().addClass('active');
+            } else if (keycode === $.ui.keyCode.UP) {
+                this.$el.find('.o_mention_proposition').last().addClass('active');
+            }
+        } else if (keycode === $.ui.keyCode.ENTER) {
             // selecting proposition
             $active.click();
         } else {
@@ -322,9 +328,9 @@ var MentionManager = Widget.extend({
                 .find('.dropdown-menu')
                 .addClass('show')
                 .css('max-width', this._composer.$input.width())
-                .find('.o_mention_proposition')
-                .first()
-                .addClass('active');
+            if (this._activeListener.delimiter != ':') {
+              this.$el.find('.o_mention_proposition').first().addClass('active');
+            }
             this._open = true;
         } else {
             this.$el.removeClass('show')
