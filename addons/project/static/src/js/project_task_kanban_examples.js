@@ -33,6 +33,7 @@ function escFormat() {
 
 kanbanExamplesRegistry.add('project', {
     ghostColumns: [_lt('New'), _lt('Assigned'), _lt('In Progress'), _lt('Done')],
+    apply_example_text: _lt("Use This For My Project"),
     examples:[{
         name: _lt('Software Development'),
         columns: [_lt('Backlog'), _lt('Specifications'), _lt('Development'), _lt('Tests'), _lt('Delivered')],

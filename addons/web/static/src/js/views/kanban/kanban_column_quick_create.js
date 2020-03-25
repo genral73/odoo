@@ -32,6 +32,7 @@ var ColumnQuickCreate = Widget.extend({
      */
     init: function (parent, options) {
         this._super.apply(this, arguments);
+        this.applyExampleText = options.apply_example_text;
         this.examples = options.examples;
         this.folded = true;
         this.isMobile = false;
@@ -180,6 +181,10 @@ var ColumnQuickCreate = Widget.extend({
      */
     _onShowExamples: function () {
         var self = this;
+        if (!this.applyExampleText) {
+            // If it was not set, use a generic text
+            this.applyExampleText = _t("Use This For My Kanban");
+        }
         var dialog = new Dialog(this, {
             $content: $(QWeb.render('KanbanView.ExamplesDialog', {
                 examples: this.examples,
@@ -190,7 +195,7 @@ var ColumnQuickCreate = Widget.extend({
                 text: _t('Got it'),
             }, {
                 classes: 'btn-secondary float-right',
-                text: _t('Use This For My Project'),
+                text: this.applyExampleText,
                 close: true,
                 click: function () {
                     const activeExample = self.examples[this.$('.nav-link.active').data("exampleIndex")];

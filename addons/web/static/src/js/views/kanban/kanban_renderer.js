@@ -373,6 +373,7 @@ var KanbanRenderer = BasicRenderer.extend({
 
             if (this.createColumnEnabled) {
                 this.quickCreate = new ColumnQuickCreate(this, {
+                    apply_example_text: this.examples && this.examples.apply_example_text,
                     examples: this.examples && this.examples.examples,
                 });
                 this.defs.push(this.quickCreate.appendTo(fragment).then(function () {
