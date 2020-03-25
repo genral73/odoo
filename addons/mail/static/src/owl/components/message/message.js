@@ -408,7 +408,7 @@ class Message extends Component {
      * @param {string} param0.model
      */
     _redirect({ id, model }) {
-        this.trigger('o-redirect', { id, model });
+        this.storeDispatch('redirect', { id, model });
     }
 
     //--------------------------------------------------------------------------
