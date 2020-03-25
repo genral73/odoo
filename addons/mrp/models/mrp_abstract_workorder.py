@@ -2,6 +2,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
+from re import findall as regex_findall
+from re import split as regex_split
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -17,6 +19,8 @@ class MrpAbstractWorkorder(models.AbstractModel):
     product_id = fields.Many2one(related='production_id.product_id', readonly=True, store=True, check_company=True)
     qty_producing = fields.Float(string='Currently Produced Quantity', digits='Product Unit of Measure')
     product_uom_id = fields.Many2one('uom.uom', 'Unit of Measure', required=True, readonly=True)
+    next_serial = fields.Char('First SN')
+    next_serial_count = fields.Integer('Number of SN', default=1.0)
     finished_lot_id = fields.Many2one(
         'stock.production.lot', string='Lot/Serial Number',
         domain="[('product_id', '=', product_id), ('company_id', '=', company_id)]", check_company=True)
@@ -28,6 +32,19 @@ class MrpAbstractWorkorder(models.AbstractModel):
     )
     use_create_components_lots = fields.Boolean(related="production_id.picking_type_id.use_create_components_lots")
     company_id = fields.Many2one(related='production_id.company_id')
+
+    serial_batch_creation = fields.Boolean(compute='_compute_serial_batch_creation')
+
+    @api.depends('consumption', 'product_tracking', 'production_id.routing_id', 'raw_workorder_line_ids')
+    def _compute_serial_batch_creation(self):
+        # not sure about consumption
+        self.ensure_one()
+        components = self.raw_workorder_line_ids.mapped('product_id')
+        has_tracked_components = any(comp.tracking != 'none' for comp in components)
+        if self.consumption == 'strict' and self.product_tracking == 'serial' and not self.production_id.routing_id and not has_tracked_components:
+            self.serial_batch_creation = True
+        else:
+            self.serial_batch_creation = False
 
     @api.model
     def _prepare_component_quantity(self, move, qty_producing):
@@ -45,15 +62,15 @@ class MrpAbstractWorkorder(models.AbstractModel):
 
     def _workorder_line_ids(self):
         self.ensure_one()
-        return self.raw_workorder_line_ids | self.finished_workorder_line_ids
+        return self.raw_workorder_line_ids | self.finished_workorder_line_ids | self.produced_workorder_line_ids
 
-    @api.onchange('qty_producing')
+    @api.onchange('qty_producing', 'next_serial_count')
     def _onchange_qty_producing(self):
         """ Modify the qty currently producing will modify the existing
         workorder line in order to match the new quantity to consume for each
         component and their reserved quantity.
         """
-        if self.qty_producing <= 0:
+        if self.qty_producing <= 0 or self.next_serial_count <= 0:
             raise UserError(_('You have to produce at least one %s.') % self.product_uom_id.name)
         line_values = self._update_workorder_lines()
         for values in line_values['to_create']:
@@ -61,8 +78,10 @@ class MrpAbstractWorkorder(models.AbstractModel):
         for line in line_values['to_delete']:
             if line in self.raw_workorder_line_ids:
                 self.raw_workorder_line_ids -= line
-            else:
+            elif line in self.finished_workorder_line_ids:
                 self.finished_workorder_line_ids -= line
+            else:
+                self.produced_workorder_line_ids -= line
         for line, vals in line_values['to_update'].items():
             line.update(vals)
 
@@ -75,6 +94,7 @@ class MrpAbstractWorkorder(models.AbstractModel):
         line_values = {'to_create': [], 'to_delete': [], 'to_update': {}}
         # moves are actual records
         move_finished_ids = self.move_finished_ids._origin.filtered(lambda move: move.product_id != self.product_id and move.state not in ('done', 'cancel'))
+        move_produced_ids = self.move_finished_ids._origin.filtered(lambda move: move.product_id == self.product_id and move.state not in ('done', 'cancel'))
         move_raw_ids = self.move_raw_ids._origin.filtered(lambda move: move.state not in ('done', 'cancel'))
         for move in move_raw_ids | move_finished_ids:
             move_workorder_lines = self._workorder_line_ids().filtered(lambda w: w.move_id == move)
@@ -82,6 +102,8 @@ class MrpAbstractWorkorder(models.AbstractModel):
             # Compute the new quantity for the current component
             rounding = move.product_uom.rounding
             new_qty = self._prepare_component_quantity(move, self.qty_producing)
+            if self.serial_batch_creation:
+                new_qty = self._prepare_component_quantity(move, self.next_serial_count)
 
             # In case the production uom is different than the workorder uom
             # it means the product is serial and production uom is not the reference
@@ -178,9 +200,11 @@ class MrpAbstractWorkorder(models.AbstractModel):
         if move in self.move_raw_ids._origin:
             # Get the inverse_name (many2one on line) of raw_workorder_line_ids
             initial_line_values = {self.raw_workorder_line_ids._get_raw_workorder_inverse_name(): self.id}
-        else:
+        elif move in self.move_finished_ids._origin.filtered(lambda move: move.product_id != self.product_id):
             # Get the inverse_name (many2one on line) of finished_workorder_line_ids
             initial_line_values = {self.finished_workorder_line_ids._get_finished_workoder_inverse_name(): self.id}
+        else:
+            initial_line_values = {self.produced_workorder_line_ids._get_produced_workoder_inverse_name(): self.id}
         for move_line in move.move_line_ids:
             line = dict(initial_line_values)
             if float_compare(qty_to_consume, 0.0, precision_rounding=move.product_uom.rounding) <= 0:
@@ -245,28 +269,42 @@ class MrpAbstractWorkorder(models.AbstractModel):
             move.state not in ('done', 'cancel')
         )
         if production_move and production_move.product_id.tracking != 'none':
-            if not self.finished_lot_id:
-                raise UserError(_('You need to provide a lot for the finished product.'))
-            move_line = production_move.move_line_ids.filtered(
-                lambda line: line.lot_id.id == self.finished_lot_id.id
-            )
-            if move_line:
-                if self.product_id.tracking == 'serial':
-                    raise UserError(_('You cannot produce the same serial number twice.'))
-                move_line.product_uom_qty += self.qty_producing
-                move_line.qty_done += self.qty_producing
+            if not self.serial_batch_creation:
+                if not self.finished_lot_id:
+                    raise UserError(_('You need to provide a lot for the finished product.'))
+                move_line = production_move.move_line_ids.filtered(
+                    lambda line: line.lot_id.id == self.finished_lot_id.id
+                )
+                if move_line:
+                    if self.product_id.tracking == 'serial':
+                        raise UserError(_('You cannot produce the same serial number twice.'))
+                    move_line.product_uom_qty += self.qty_producing
+                    move_line.qty_done += self.qty_producing
+                else:
+                    location_dest_id = production_move.location_dest_id._get_putaway_strategy(self.product_id).id or production_move.location_dest_id.id
+                    move_line.create({
+                        'move_id': production_move.id,
+                        'product_id': production_move.product_id.id,
+                        'lot_id': self.finished_lot_id.id,
+                        'product_uom_qty': self.qty_producing,
+                        'product_uom_id': self.product_uom_id.id,
+                        'qty_done': self.qty_producing,
+                        'location_id': production_move.location_id.id,
+                        'location_dest_id': location_dest_id,
+                    })
             else:
                 location_dest_id = production_move.location_dest_id._get_putaway_strategy(self.product_id).id or production_move.location_dest_id.id
-                move_line.create({
-                    'move_id': production_move.id,
-                    'product_id': production_move.product_id.id,
-                    'lot_id': self.finished_lot_id.id,
-                    'product_uom_qty': self.qty_producing,
-                    'product_uom_id': self.product_uom_id.id,
-                    'qty_done': self.qty_producing,
-                    'location_id': production_move.location_id.id,
-                    'location_dest_id': location_dest_id,
-                })
+                for work_line in self.produced_workorder_line_ids:
+                    self.env['stock.move.line'].create({
+                        'move_id': production_move.id,
+                        'product_id': production_move.product_id.id,
+                        'lot_id': work_line.lot_id.id,
+                        'product_uom_qty': 1.0,
+                        'product_uom_id': self.product_uom_id.id,
+                        'qty_done': 1.0,
+                        'location_id': production_move.location_id.id,
+                        'location_dest_id': location_dest_id,
+                    })
         else:
             rounding = production_move.product_uom.rounding
             production_move._set_quantity_done(
@@ -317,6 +355,64 @@ class MrpAbstractWorkorder(models.AbstractModel):
             ])
             if sml:
                 raise UserError(_('This serial number for product %s has already been produced') % self.product_id.name)
+
+    def _generate_serial_numbers(self):
+        """ This method will generate `lot_name` from a string (field
+        `next_serial`) and create a move line for each generated `lot_name`.
+        """
+        self.ensure_one()
+        if not self.next_serial:
+            raise UserError(_("You need to set a Serial Number before generating more."))
+        if not self.next_serial_count or self.next_serial_count <= 0:
+            raise UserError(_('You have to produce at least one %s.') % self.product_uom_id.name)
+
+        # We look if the serial number contains at least one digit.
+        caught_initial_number = regex_findall("\d+", self.next_serial)
+        if not caught_initial_number:
+            raise UserError(_('The serial number must contain at least one digit.'))
+        # We base the serie on the last number find in the base serial number.
+        initial_number = caught_initial_number[-1]
+        padding = len(initial_number)
+        # We split the serial number to get the prefix and suffix.
+        splitted = regex_split(initial_number, self.next_serial)
+        prefix = splitted[0]
+        suffix = splitted[1]
+        initial_number = int(initial_number)
+
+        lot_vals = []
+        for i in range(0, self.next_serial_count):
+            lot_name = '%s%s%s' % (
+                prefix,
+                str(initial_number + i).zfill(padding),
+                suffix
+            )
+            lot_vals.append({
+                'product_id': self.product_id.id,
+                'company_id': self.production_id.company_id.id,
+                'name': lot_name,
+            })
+        return self.env['stock.production.lot'].create(lot_vals)
+
+    def _create_produced_workorder_lines(self, lots):
+        move_produced = self.move_finished_ids._origin.filtered(lambda move: move.product_id == self.product_id and move.state not in ('done', 'cancel'))
+        # confused about the number and uom...
+        lines = self._generate_lines_values(move_produced, self.next_serial_count)
+        for values, lot in zip(lines, lots):
+            values.update({'lot_id': lot.id})
+            self.produced_workorder_line_ids |= self.env[self._workorder_line_ids()._name].new(values)
+
+    def action_assign_serial_show_details(self):
+        lots = self._generate_serial_numbers()
+        self._create_produced_workorder_lines(lots)
+        return {
+            'name': _('Produce'),
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'mrp.product.produce',
+            'res_id': self.id,
+            'view_id': self.env.ref('mrp.view_mrp_product_produce_wizard', False).id,
+            'target': 'new',
+        }
 
 
 class MrpAbstractWorkorderLine(models.AbstractModel):
@@ -550,6 +646,10 @@ class MrpAbstractWorkorderLine(models.AbstractModel):
     @api.model
     def _get_finished_workoder_inverse_name(self):
         raise NotImplementedError('Method _get_finished_workoder_inverse_name() undefined on %s' % self)
+
+    @api.model
+    def _get_produced_workoder_inverse_name(self):
+        raise NotImplementedError('Method _get_produced_workoder_inverse_name() undefined on %s' % self)
 
     # To be implemented in specific model
     def _get_final_lots(self):

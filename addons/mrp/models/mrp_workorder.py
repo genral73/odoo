@@ -138,10 +138,15 @@ class MrpWorkorder(models.Model):
         'raw_workorder_id', string='Components')
     finished_workorder_line_ids = fields.One2many('mrp.workorder.line',
         'finished_workorder_id', string='By-products')
+    produced_workorder_line_ids = fields.One2many('mrp.workorder.line',
+        'produced_workorder_id', string='Products')
     allowed_lots_domain = fields.One2many(comodel_name='stock.production.lot', compute="_compute_allowed_lots_domain")
     is_finished_lines_editable = fields.Boolean(compute='_compute_is_finished_lines_editable')
     json_popover = fields.Char('Popover Data JSON', compute='_compute_json_popover')
     show_json_popover = fields.Boolean('Show Popover?', compute='_compute_json_popover')
+
+    def _compute_serial_batch_creation(self):
+        self.serial_batch_creation = False
 
     def _compute_json_popover(self):
         previous_wo_data = self.env['mrp.workorder'].read_group(
@@ -791,6 +796,8 @@ class MrpWorkorderLine(models.Model):
         ondelete='cascade')
     finished_workorder_id = fields.Many2one('mrp.workorder', 'Finished Product for Workorder',
         ondelete='cascade')
+    produced_workorder_id = fields.Many2one('mrp.workorder', 'Produced Product for Workorder',
+        ondelete='cascade')
 
     @api.onchange('qty_to_consume')
     def _onchange_qty_to_consume(self):
@@ -818,6 +825,10 @@ class MrpWorkorderLine(models.Model):
     @api.model
     def _get_finished_workoder_inverse_name(self):
         return 'finished_workorder_id'
+
+    @api.model
+    def _get_produced_workoder_inverse_name(self):
+        return 'produced_workorder_id'
 
     def _get_final_lots(self):
         return (self.raw_workorder_id or self.finished_workorder_id).finished_lot_id

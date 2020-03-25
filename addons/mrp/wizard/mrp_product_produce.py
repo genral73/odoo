@@ -48,11 +48,14 @@ class MrpProductProduce(models.TransientModel):
 
     move_raw_ids = fields.One2many(related='production_id.move_raw_ids', string="PO Components")
     move_finished_ids = fields.One2many(related='production_id.move_finished_ids')
+    finished_move_line_ids = fields.One2many(related='production_id.finished_move_line_ids')
 
     raw_workorder_line_ids = fields.One2many('mrp.product.produce.line',
         'raw_product_produce_id', string='Components')
     finished_workorder_line_ids = fields.One2many('mrp.product.produce.line',
         'finished_product_produce_id', string='By-products')
+    produced_workorder_line_ids = fields.One2many('mrp.product.produce.line',
+        'produced_product_produce_id', string='Products')
     production_id = fields.Many2one('mrp.production', 'Manufacturing Order',
         required=True, ondelete='cascade')
 
@@ -116,7 +119,7 @@ class MrpProductProduce(models.TransientModel):
         self.invalidate_cache(['move_raw_ids', 'move_finished_ids'])
 
         # Save product produce lines data into stock moves/move lines
-        quantity = self.qty_producing
+        quantity = self.qty_producing if self.serial_batch_creation else self.next_serial_count
         if float_compare(quantity, 0, precision_rounding=self.product_uom_id.rounding) <= 0:
             raise UserError(_("The production order for '%s' has no quantity specified.") % self.product_id.display_name)
 
@@ -136,6 +139,7 @@ class MrpProductProduceLine(models.TransientModel):
 
     raw_product_produce_id = fields.Many2one('mrp.product.produce', 'Component in Produce wizard')
     finished_product_produce_id = fields.Many2one('mrp.product.produce', 'Finished Product in Produce wizard')
+    produced_product_produce_id = fields.Many2one('mrp.product.produce', 'Produced Product in Produce wizard')
 
     @api.model
     def _get_raw_workorder_inverse_name(self):
@@ -145,10 +149,14 @@ class MrpProductProduceLine(models.TransientModel):
     def _get_finished_workoder_inverse_name(self):
         return 'finished_product_produce_id'
 
+    @api.model
+    def _get_produced_workoder_inverse_name(self):
+        return 'produced_product_produce_id'
+
     def _get_final_lots(self):
-        product_produce_id = self.raw_product_produce_id or self.finished_product_produce_id
-        return product_produce_id.finished_lot_id | product_produce_id.finished_workorder_line_ids.mapped('lot_id')
+        product_produce_id = self.raw_product_produce_id or self.finished_product_produce_id or self.produced_product_produce_id
+        return product_produce_id.finished_lot_id | product_produce_id.finished_workorder_line_ids.mapped('lot_id') | product_produce_id.produced_workorder_line_ids.mapped('lot_id')
 
     def _get_production(self):
-        product_produce_id = self.raw_product_produce_id or self.finished_product_produce_id
+        product_produce_id = self.raw_product_produce_id or self.finished_product_produce_id or self.produced_product_produce_id
         return product_produce_id.production_id

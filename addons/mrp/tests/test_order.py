@@ -1054,8 +1054,9 @@ class TestMrpOrder(TestMrpCommon):
             'active_ids': [mo1.id],
         }))
         product_produce = produce_form.save()
-        product_produce.action_generate_serial()
-        sn = product_produce.finished_lot_id
+        product_produce.next_serial = "sn2020"
+        product_produce.action_assign_serial_show_details()
+        sn = self.env['stock.production.lot'].search([('name', '=', 'sn2020')])
         product_produce.do_produce()
         mo1.button_mark_done()
 
@@ -1070,7 +1071,8 @@ class TestMrpOrder(TestMrpCommon):
             'active_id': mo2.id,
             'active_ids': [mo2.id],
         }))
-        produce_form.finished_lot_id = sn
+        with produce_form.produced_workorder_line_ids.new() as new_line:
+            new_line.lot_id = sn
         product_produce = produce_form.save()
         with self.assertRaises(UserError):
             product_produce.do_produce()
@@ -1211,7 +1213,7 @@ class TestMrpOrder(TestMrpCommon):
             line.lot_id = sn
         product_produce = produce_form.save()
         product_produce.do_produce()
-        
+
     def test_product_produce_uom(self):
         """ Produce a finished product tracked by serial number. Set another
         UoM on the bom. The produce wizard should keep the UoM of the product (unit)
@@ -1264,16 +1266,16 @@ class TestMrpOrder(TestMrpCommon):
         mo.action_assign()
         self.assertEqual(mo.move_raw_ids.product_qty, 12, '12 units should be reserved.')
 
-        # produce product
         produce_form = Form(self.env['mrp.product.produce'].with_context({
             'active_id': mo.id,
             'active_ids': [mo.id],
         }))
-        produce_form.finished_lot_id = final_product_lot
+        with produce_form.produced_workorder_line_ids.new() as new_line:
+            new_line.lot_id = final_product_lot
+
         product_produce = produce_form.save()
         self.assertEqual(product_produce.qty_producing, 1)
         self.assertEqual(product_produce.product_uom_id, unit, 'Should be 1 unit since the tracking is serial.')
-        product_produce.finished_lot_id = final_product_lot.id
 
         product_produce.do_produce()
         move_line_raw = mo.move_raw_ids.mapped('move_line_ids').filtered(lambda m: m.qty_done)
