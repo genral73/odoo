@@ -6,6 +6,8 @@ import random
 import uuid
 import werkzeug
 
+from dateutil.relativedelta import relativedelta
+
 from odoo import api, exceptions, fields, models, _
 from odoo.exceptions import AccessError
 from odoo.osv import expression
