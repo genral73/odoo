@@ -75,7 +75,10 @@ class WebClient extends Component {
     }
 
     get bodyClass() {
-        return { o_fullscreen: this.renderingInfo && this.renderingInfo.fullscreen };
+        return {
+            o_fullscreen: this.renderingInfo && this.renderingInfo.fullscreen,
+            o_rtl: this.env._t.database.parameters.direction === 'rtl',
+        };
     }
 
     //--------------------------------------------------------------------------
