@@ -46,4 +46,5 @@ Main Features
 
     'installable': True,
     'application': True,
+    'exclude_from_loc_count': ['__all__'],
 }

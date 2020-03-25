@@ -18,4 +18,5 @@
         'security/ir.model.access.csv',
     ],
     'auto_install': False,
+    'exclude_from_loc_count': ['__all__'],
 }

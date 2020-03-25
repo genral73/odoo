@@ -32,4 +32,5 @@ invoices from picking, the system is able to add and compute the shipping line.
     ],
     'demo': ['data/delivery_demo.xml'],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

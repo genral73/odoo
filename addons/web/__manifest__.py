@@ -31,4 +31,5 @@ This module provides the core of the Odoo Web Client.
         "static/src/xml/web_calendar.xml",
     ],
     'bootstrap': True,  # load translations for login screen
+    'exclude_from_loc_count': ['__all__'],
 }

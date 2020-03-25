@@ -16,4 +16,5 @@ Partners Geolocation
         'data/data.xml',
     ],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

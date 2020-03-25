@@ -17,4 +17,5 @@ not use it in production environment.
     ],
     'installable': True,
     'post_init_hook': 'create_missing_journal_for_acquirers',
+    'exclude_from_loc_count': ['__all__'],
 }

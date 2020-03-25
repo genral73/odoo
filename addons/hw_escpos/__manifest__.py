@@ -21,4 +21,5 @@ that would need such functionality.
         'python' : ['pyusb','pyserial','qrcode'],
     },
     'installable': False,
+    'exclude_from_loc_count': ['__all__'],
 }

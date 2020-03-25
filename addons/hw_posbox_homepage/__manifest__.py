@@ -21,4 +21,5 @@ regular Odoo interface anymore.
 """,
     'depends': ['hw_proxy'],
     'installable': False,
+    'exclude_from_loc_count': ['__all__'],
 }

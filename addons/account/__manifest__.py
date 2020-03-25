@@ -79,4 +79,5 @@ You could use this simplified accounting in case you work with an (external) acc
     'application': True,
     'auto_install': False,
     'post_init_hook': '_auto_install_l10n',
+    'exclude_from_loc_count': ['__all__'],
 }

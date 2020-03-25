@@ -20,4 +20,5 @@
     'qweb': [
         "static/src/xml/work_entry_templates.xml",
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

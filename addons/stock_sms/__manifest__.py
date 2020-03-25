@@ -18,4 +18,5 @@
     'application': False,
     'auto_install': True,
     'post_init_hook': '_assign_default_sms_template_picking_id',
+    'exclude_from_loc_count': ['__all__'],
 }

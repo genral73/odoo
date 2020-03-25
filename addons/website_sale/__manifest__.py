@@ -32,4 +32,5 @@
     'installable': True,
     'application': True,
     'uninstall_hook': 'uninstall_hook',
+    'exclude_from_loc_count': ['__all__'],
 }

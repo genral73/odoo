@@ -17,4 +17,5 @@
         'views/sale_order_views.xml',
     ],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

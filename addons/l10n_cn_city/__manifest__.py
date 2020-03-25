@@ -18,4 +18,5 @@ City Data/城市数据
     'data': [
         'data/res_city_data.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

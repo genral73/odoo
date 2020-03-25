@@ -22,4 +22,5 @@
     'demo': [
         'data/sale_coupon_demo.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

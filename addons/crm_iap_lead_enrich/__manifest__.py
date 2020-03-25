@@ -17,4 +17,5 @@
         'views/res_config_settings_view.xml',
     ],
     'post_init_hook': '_synchronize_cron',
+    'exclude_from_loc_count': ['__all__'],
 }

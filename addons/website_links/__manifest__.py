@@ -16,4 +16,5 @@ Those trackers can be used in Google Analytics to track clicks and visitors, or 
     ],
     'qweb': ['static/src/xml/*.xml'],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

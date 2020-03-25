@@ -23,4 +23,5 @@
         'static/src/xml/partner_autocomplete.xml',
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

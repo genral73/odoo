@@ -24,4 +24,5 @@ Use for update your text memo in real time with the following user that you invi
     'installable': True,
     'application': False,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

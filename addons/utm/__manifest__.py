@@ -18,4 +18,5 @@ Enable management of UTM trackers: campaign, medium, source.
     ],
     'demo': [],
     'auto_install': False,
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -18,4 +18,5 @@ This module allows to enforce users to choose the city of a partner inside a giv
         'views/res_country_view.xml',
     ],
     'depends': ['base'],
+    'exclude_from_loc_count': ['__all__'],
 }

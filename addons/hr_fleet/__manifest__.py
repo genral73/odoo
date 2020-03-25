@@ -12,4 +12,5 @@
         'views/fleet_vehicle_views.xml',
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

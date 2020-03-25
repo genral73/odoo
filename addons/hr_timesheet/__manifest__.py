@@ -41,4 +41,5 @@ up a management by affair.
     'installable': True,
     'application': False,
     'auto_install': False,
+    'exclude_from_loc_count': ['__all__'],
 }

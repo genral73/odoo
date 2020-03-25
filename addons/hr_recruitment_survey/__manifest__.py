@@ -22,4 +22,5 @@
         'data/hr_job_demo.xml',
     ],
     'auto_install': False,
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -28,4 +28,5 @@ If the automated inventory valuation is active, the necessary accounting entries
     ],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

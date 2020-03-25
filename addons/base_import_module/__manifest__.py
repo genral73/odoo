@@ -14,4 +14,5 @@ for customization purpose.
     'installable': True,
     'auto_install': False,
     'data': ['views/base_import_module_view.xml'],
+    'exclude_from_loc_count': ['__all__'],
 }

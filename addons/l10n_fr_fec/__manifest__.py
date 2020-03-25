@@ -13,4 +13,5 @@
         'wizard/account_fr_fec_view.xml',
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

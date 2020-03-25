@@ -22,4 +22,5 @@ This module adds certification to resumé for employees.
         'static/src/xml/resume_templates.xml',
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

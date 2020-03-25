@@ -15,4 +15,5 @@
         'report/hr_timesheet_attendance_report_view.xml',
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -49,4 +49,5 @@ sent mails with personal token for the invitation of the survey.
     'auto_install': False,
     'application': True,
     'sequence': 105,
+    'exclude_from_loc_count': ['__all__'],
 }

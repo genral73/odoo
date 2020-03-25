@@ -18,5 +18,6 @@
     ],
     'demo': [
         'data/product_matrix_demo.xml'
-    ]
+    ],
+    'exclude_from_loc_count': ['__all__'],
 }

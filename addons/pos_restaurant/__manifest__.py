@@ -37,4 +37,5 @@ This module adds several features to the Point of Sale that are specific to rest
     ],
     'installable': True,
     'auto_install': False,
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -26,4 +26,5 @@
         "data/account.fiscal.position.tax.template.csv",
         "data/account_chart_template_data.xml",
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

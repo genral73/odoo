@@ -20,4 +20,5 @@ Badge received are displayed on the user profile.
         'views/gamification_templates.xml',
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

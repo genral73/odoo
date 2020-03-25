@@ -19,4 +19,5 @@ Use Epson Printers as Order Printers in the Point of Sale without the IoT Box
     ],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -24,4 +24,5 @@ German accounting chart and localization.
         'report/din5008_report.xml',
         'data/report_layout.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

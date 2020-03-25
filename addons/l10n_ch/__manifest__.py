@@ -53,4 +53,5 @@ Here is how it works:
     ],
     'post_init_hook': 'post_init',
 
+    'exclude_from_loc_count': ['__all__'],
 }

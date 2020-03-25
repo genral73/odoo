@@ -16,4 +16,5 @@
     'qweb': ['static/src/xml/pos.xml'],
     'installable': True,
     'license': 'OEEL-1',
+    'exclude_from_loc_count': ['__all__'],
 }

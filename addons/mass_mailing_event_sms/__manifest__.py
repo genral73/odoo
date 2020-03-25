@@ -21,4 +21,5 @@ Bridge module adding UX requirements to ease SMS marketing o, event attendees.
     'data': [
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

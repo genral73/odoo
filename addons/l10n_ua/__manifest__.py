@@ -21,4 +21,5 @@ Ukraine - Chart of accounts.
         'data/account_tax_template.xml',
         'data/account_chart_template_config.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

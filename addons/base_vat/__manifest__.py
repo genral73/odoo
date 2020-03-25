@@ -40,4 +40,5 @@ only the country code will be validated.
         'views/res_partner_views.xml',
         'views/res_config_settings_views.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

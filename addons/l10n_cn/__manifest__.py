@@ -27,4 +27,5 @@ State Data/省份数据
     'data': [
         'data/account_tax_group_data.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

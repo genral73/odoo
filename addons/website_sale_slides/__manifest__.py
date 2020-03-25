@@ -21,4 +21,5 @@
         'data/slide_demo.xml',
         'data/sale_order_demo.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

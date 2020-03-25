@@ -18,4 +18,5 @@
         'report/purchase_quotation_templates.xml',
         'report/purchase_order_templates.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

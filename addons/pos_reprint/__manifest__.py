@@ -21,4 +21,5 @@ Allow cashier to reprint receipts
         'static/src/xml/reprint.xml',
     ],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

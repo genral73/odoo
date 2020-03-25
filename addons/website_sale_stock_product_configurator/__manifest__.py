@@ -13,4 +13,5 @@
     'data': [
         'views/product_configurator_templates.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -21,4 +21,5 @@ The check settings are located in the accounting journals configuration page.
     ],
     'installable': True,
     'auto_install': False,
+    'exclude_from_loc_count': ['__all__'],
 }

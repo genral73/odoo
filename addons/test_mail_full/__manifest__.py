@@ -27,4 +27,5 @@ real applications. """,
     ],
     'installable': True,
     'application': False,
+    'exclude_from_loc_count': ['__all__'],
 }

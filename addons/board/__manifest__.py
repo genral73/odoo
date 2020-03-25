@@ -20,4 +20,5 @@ Allows users to create custom dashboard.
     ],
     'qweb': ['static/src/xml/board.xml'],
     'application': True,
+    'exclude_from_loc_count': ['__all__'],
 }

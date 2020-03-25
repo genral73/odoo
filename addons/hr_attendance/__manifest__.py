@@ -35,4 +35,5 @@ actions(Check in/Check out) performed by them.
         "static/src/xml/attendance.xml",
     ],
     'application': True,
+    'exclude_from_loc_count': ['__all__'],
 }

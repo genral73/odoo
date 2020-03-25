@@ -16,4 +16,5 @@ Allow shoppers of your eCommerce store to create personalized collections of pro
         'views/website_sale_wishlist_template.xml',
     ],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

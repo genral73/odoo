@@ -23,4 +23,5 @@ associated to every resource. It also manages the leaves of every resource.
     ],
     'demo': [
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

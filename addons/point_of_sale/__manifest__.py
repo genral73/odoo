@@ -48,4 +48,5 @@
     'application': True,
     'qweb': ['static/src/xml/pos.xml'],
     'website': 'https://www.odoo.com/page/point-of-sale-shop',
+    'exclude_from_loc_count': ['__all__'],
 }

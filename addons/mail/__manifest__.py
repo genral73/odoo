@@ -61,4 +61,5 @@
         'static/src/xml/user_menu.xml',
         'static/src/xml/web_kanban_activity.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

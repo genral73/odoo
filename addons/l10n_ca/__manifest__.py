@@ -51,4 +51,5 @@ position.
         'views/report_invoice.xml',
     ],
     'post_init_hook': 'load_translations',
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -23,4 +23,5 @@ certification flow including purchase, certification, failure and success.
         'views/assets.xml',
     ],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

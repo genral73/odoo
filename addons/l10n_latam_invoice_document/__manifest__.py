@@ -39,4 +39,5 @@ If your localization needs this logic will then need to add this module as depen
         'security/ir.model.access.csv',
     ],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

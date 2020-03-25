@@ -16,4 +16,5 @@ Generate tasks in Project app from a form published on your website. This module
     ],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -22,4 +22,5 @@
         'data/mrp_subcontracting_demo.xml',
     ],
     'uninstall_hook': 'uninstall_hook',
+    'exclude_from_loc_count': ['__all__'],
 }

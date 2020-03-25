@@ -38,4 +38,5 @@ Preferences
     'qweb': ['static/src/xml/qty_at_date.xml'],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

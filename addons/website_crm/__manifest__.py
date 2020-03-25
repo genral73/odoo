@@ -23,4 +23,5 @@ This module includes contact phone and mobile numbers validation.""",
     'qweb': ['static/src/xml/*.xml'],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

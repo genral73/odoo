@@ -15,4 +15,5 @@ base modules simple.
         'views/res_lang_views.xml',
     ],
     'depends': ['web'],
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -38,4 +38,5 @@ The module adds following features:
     ],
     'qweb': ['static/src/xml/pos.xml'],
     'post_init_hook': '_setup_inalterability',
+    'exclude_from_loc_count': ['__all__'],
 }

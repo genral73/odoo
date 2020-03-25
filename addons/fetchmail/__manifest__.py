@@ -44,4 +44,5 @@ For more specific needs, you may also assign custom-defined actions
     'demo': [],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -13,4 +13,5 @@
           templates to target objects.
     """,
     'depends': ['account'],
+    'exclude_from_loc_count': ['__all__'],
 }

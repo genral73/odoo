@@ -11,4 +11,5 @@
     'depends': ['mrp_subcontracting', 'mrp_account'],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

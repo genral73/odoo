@@ -23,4 +23,5 @@ discount to a customer.
         'static/src/xml/discount_templates.xml',
     ],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

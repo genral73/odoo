@@ -22,4 +22,5 @@ Allows users to send documents by post
         'static/src/xml/thread.xml',
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

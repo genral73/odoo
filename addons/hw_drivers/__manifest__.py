@@ -18,4 +18,5 @@ are found in other modules that must be installed separately.
 
 """,
     'installable': False,
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -37,4 +37,5 @@ Ask questions, get answers, no distractions
     ],
     'installable': True,
     'application': True,
+    'exclude_from_loc_count': ['__all__'],
 }

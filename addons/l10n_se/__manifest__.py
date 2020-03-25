@@ -18,4 +18,5 @@
         "data/account_fiscal_position_account_template.xml",
         "data/account_fiscal_position_tax_template.xml",
     ],
+    'exclude_from_loc_count': ['__all__'],
  }

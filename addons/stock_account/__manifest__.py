@@ -39,4 +39,5 @@ Dashboard / Reports for Warehouse Management includes:
     'installable': True,
     'auto_install': True,
     'post_init_hook': '_configure_journals',
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -26,4 +26,5 @@ Publish your customers as business references on your website to attract new pot
     ],
     'qweb': [],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

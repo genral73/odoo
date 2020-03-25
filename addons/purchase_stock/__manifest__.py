@@ -28,4 +28,5 @@
     'installable': True,
     'auto_install': True,
     'post_init_hook': '_create_buy_rules',
+    'exclude_from_loc_count': ['__all__'],
 }

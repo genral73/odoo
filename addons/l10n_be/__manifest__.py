@@ -59,4 +59,5 @@ Wizards provided by this module:
         'demo/l10n_be_demo.xml',
     ],
     'post_init_hook': 'load_translations',
+    'exclude_from_loc_count': ['__all__'],
 }

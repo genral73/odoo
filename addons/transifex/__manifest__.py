@@ -25,4 +25,5 @@ project.
         'data/ir_translation_view.xml',
     ],
     'depends': ['base'],
+    'exclude_from_loc_count': ['__all__'],
 }

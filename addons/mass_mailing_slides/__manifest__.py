@@ -17,4 +17,5 @@ Bridge module adding UX requirements to ease mass mailing of course members.
         'views/slide_channel_views.xml'
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

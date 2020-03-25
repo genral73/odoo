@@ -12,5 +12,6 @@
     ],
     'external_dependencies': {
         'python': ['ldap'],
-    }
+    },
+    'exclude_from_loc_count': ['__all__'],
 }

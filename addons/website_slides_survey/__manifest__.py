@@ -29,4 +29,5 @@
         'data/slide_slide_demo.xml',
         'data/survey.user_input_line.csv',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

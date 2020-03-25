@@ -17,4 +17,5 @@ test_mail. """,
     ],
     'installable': True,
     'application': False,
+    'exclude_from_loc_count': ['__all__'],
 }

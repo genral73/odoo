@@ -16,4 +16,5 @@ Bridge module for rating on website stuff.
         'views/rating_templates.xml',
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

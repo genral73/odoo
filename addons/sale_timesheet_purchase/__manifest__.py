@@ -13,4 +13,5 @@ Allows to access purchase orders from Project Overview
     'data': [],
     'demo': [],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

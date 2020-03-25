@@ -17,4 +17,5 @@ The wizard to launch the report has several options to help you get the data you
         'wizard/product_margin_view.xml',
         'views/product_product_views.xml'
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -32,4 +32,5 @@
     'demo': [],
     'auto_install': False,
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

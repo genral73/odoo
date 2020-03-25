@@ -18,4 +18,5 @@ It is responsible of comments moderation for published documents (forum, slides,
     ],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

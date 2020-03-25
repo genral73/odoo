@@ -33,4 +33,5 @@
         'data/mailing_demo.xml',
     ],
     'application': True,
+    'exclude_from_loc_count': ['__all__'],
 }

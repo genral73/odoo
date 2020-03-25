@@ -30,4 +30,5 @@ This module add, for accounting:
         'views/res_partner_view.xml',
     ],
     'post_init_hook': '_preserve_tag_on_taxes',
+    'exclude_from_loc_count': ['__all__'],
 }

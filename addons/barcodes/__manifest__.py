@@ -13,4 +13,5 @@
     'installable': True,
     'auto_install': False,
     'post_init_hook': '_assign_default_nomeclature_id',
+    'exclude_from_loc_count': ['__all__'],
 }

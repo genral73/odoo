@@ -48,4 +48,5 @@
     'application': True,
     'auto_install': False,
     'qweb': ['static/src/xml/hr_templates.xml'],
+    'exclude_from_loc_count': ['__all__'],
 }

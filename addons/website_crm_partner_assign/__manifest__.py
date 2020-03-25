@@ -40,4 +40,5 @@ The automatic assignation is figured from the weight of partner levels and the g
     ],
     'qweb': ['static/src/xml/*.xml'],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

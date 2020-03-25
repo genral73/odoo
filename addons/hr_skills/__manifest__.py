@@ -32,4 +32,5 @@ This module introduces skills and resumé management for employees.
     ],
     'installable': True,
     'application': True,
+    'exclude_from_loc_count': ['__all__'],
 }

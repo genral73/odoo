@@ -33,4 +33,5 @@ invoice and send propositions for membership renewal.
     'test': [
         '../account/test/account_minimal_test.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

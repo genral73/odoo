@@ -20,4 +20,5 @@ OFX and QIF imports are available in Enterprise version.""",
     ],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

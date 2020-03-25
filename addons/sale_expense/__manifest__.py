@@ -25,4 +25,5 @@ This module allow to reinvoice employee expense, by setting the SO directly on t
     'test': [],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

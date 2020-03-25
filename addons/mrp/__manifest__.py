@@ -48,4 +48,5 @@
     'application': True,
     'post_init_hook': '_create_warehouse_data',
     'uninstall_hook': 'uninstall_hook',
+    'exclude_from_loc_count': ['__all__'],
 }

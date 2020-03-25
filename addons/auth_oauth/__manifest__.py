@@ -18,4 +18,5 @@ Allow users to login through OAuth2 Provider.
         'views/auth_oauth_templates.xml',
         'security/ir.model.access.csv',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -19,4 +19,5 @@ E-invoice implementation
     'demo': [
         'data/account_invoice_demo.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

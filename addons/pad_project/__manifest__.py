@@ -17,4 +17,5 @@ This module adds a PAD in all project form views.
         'views/project_views.xml'
     ],
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

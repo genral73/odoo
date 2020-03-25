@@ -16,4 +16,5 @@ with a single statement.
         'views/partner_view.xml'
     ],
     'demo': ['data/res_partner_bank_demo.xml'],
+    'exclude_from_loc_count': ['__all__'],
 }

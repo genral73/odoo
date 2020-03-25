@@ -25,4 +25,5 @@ that have no counterpart in the general financial accounts.
     ],
     'installable': True,
     'auto_install': False,
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -33,5 +33,6 @@ this event.
     ],
     'demo': ['data/event_demo.xml'],
     'installable': True,
-    'auto_install': True
+    'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

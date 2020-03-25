@@ -24,4 +24,5 @@ Send KPI Digests periodically
         'views/res_config_settings_views.xml',
     ],
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

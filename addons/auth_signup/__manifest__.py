@@ -24,4 +24,5 @@ Allow users to sign up and reset their password
         'views/auth_signup_assets.xml',
     ],
     'bootstrap': True,
+    'exclude_from_loc_count': ['__all__'],
 }

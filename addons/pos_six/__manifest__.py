@@ -14,4 +14,5 @@
     'depends': ['point_of_sale'],
     'installable': True,
     'license': 'OEEL-1',
+    'exclude_from_loc_count': ['__all__'],
 }

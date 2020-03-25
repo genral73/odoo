@@ -15,4 +15,5 @@
         'static/description/theme_default_screenshot.jpg',
     ],
     'application': False,
+    'exclude_from_loc_count': ['__all__'],
 }

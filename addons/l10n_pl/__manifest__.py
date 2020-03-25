@@ -36,4 +36,5 @@ Wewnętrzny numer wersji OpenGLOBE 1.02
               'data/account_chart_template_data.xml'
     ],
     'post_init_hook': '_preserve_tag_on_taxes',
+    'exclude_from_loc_count': ['__all__'],
 }

@@ -20,4 +20,5 @@ from sales order. It adds sales name and sales Reference on production order.
     'demo': [],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }

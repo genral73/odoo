@@ -17,4 +17,5 @@ This is a bridge module which integrates payment acquirers with Website app.
         'views/payment_acquirer.xml',
     ],
     'auto_install': False,
+    'exclude_from_loc_count': ['__all__'],
 }

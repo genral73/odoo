@@ -38,4 +38,5 @@ taxes and the Quetzal currency.""",
         'data/account_data.xml',
         'data/account_chart_template_data.xml',
     ],
+    'exclude_from_loc_count': ['__all__'],
 }

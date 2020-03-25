@@ -38,4 +38,5 @@
     ],
     'post_init_hook': 'load_translations',
     'installable': True,
+    'exclude_from_loc_count': ['__all__'],
 }

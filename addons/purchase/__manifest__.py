@@ -34,4 +34,5 @@
     'installable': True,
     'auto_install': False,
     'application': True,
+    'exclude_from_loc_count': ['__all__'],
 }

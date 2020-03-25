@@ -19,4 +19,5 @@ Use Epson ePOS Printers without the IoT Box in the Point of Sale
     ],
     'installable': True,
     'auto_install': True,
+    'exclude_from_loc_count': ['__all__'],
 }
