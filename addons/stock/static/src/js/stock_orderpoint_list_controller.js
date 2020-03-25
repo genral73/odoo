@@ -21,14 +21,15 @@ var StockOrderpointListController = ListController.extend({
     /**
      * @override
      */
-    renderButtons: function ($node) {
+    renderButtons: function () {
         this._super.apply(this, arguments);
+        this.$buttons.find('.o_button_import').addClass('d-none');
+        this.$buttons.find('.o_list_export_xlsx').addClass('d-none');
+        this.$buttons.find('.o_list_button_add').removeClass('btn-primary').addClass('btn-secondary');
         var $buttons = $(qweb.render('StockOrderpoint.Buttons'));
-        var $buttonRunScheduler = $buttons.find('.o_button_run_scheduler');
         var $buttonOrder = $buttons.find('.o_button_order');
-        $buttonRunScheduler.on('click', this._onRunScheduler.bind(this));
         $buttonOrder.on('click', this._onReplenish.bind(this));
-        $buttons.appendTo($node.find('.o_list_buttons'));
+        $buttonOrder.prependTo(this.$buttons);
     },
 
     // -------------------------------------------------------------------------
@@ -36,11 +37,10 @@ var StockOrderpointListController = ListController.extend({
     // -------------------------------------------------------------------------
 
     _onReplenish: function () {
-        this.model.replenish(this.getSelectedRecords());
-    },
-
-    _onRunScheduler: function () {
-        this.do_action('stock.action_procurement_compute');
+        var records = this.getSelectedRecords();
+        if (records.length > 0) {
+            this.model.replenish(records);
+        }
     },
 
     _onSelectionChanged: function (ev) {

@@ -25,7 +25,7 @@ var StockOrderpointListModel = ListModel.extend({
           args: [recordResIds],
           context: context,
       }).then(function () {
-          return self.do_action('stock.action_orderpoint');
+          return self.do_action('stock.action_replenishment');
       });
     },
 });

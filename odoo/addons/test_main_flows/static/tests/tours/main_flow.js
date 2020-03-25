@@ -699,7 +699,7 @@ tour.stepUtils.openBuggerMenu("li.breadcrumb-item.active:contains('Inventory Ove
     position: "right",
     run: 'text 10',
 }, {
-    trigger: ".o_form_button_save",
+    trigger: ".o_list_button_save",
     content: _t("<p>Save this reordering rule</p>"),
     position: "bottom"
 },

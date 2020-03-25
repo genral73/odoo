@@ -6,7 +6,7 @@ from collections import defaultdict, namedtuple
 
 from dateutil.relativedelta import relativedelta
 
-from odoo import _, api, fields, models, registry
+from odoo import SUPERUSER_ID, _, api, fields, models, registry
 from odoo.exceptions import UserError
 from odoo.osv import expression
 from odoo.tools import float_compare, float_is_zero, html_escape
@@ -336,7 +336,7 @@ class StockRule(models.Model):
         :rtype: tuple
         """
         delay = sum(self.filtered(lambda r: r.action in ['pull', 'pull_push']).mapped('delay'))
-        delay_description = ''.join(['<tr><td>%s %s</td><td>+ %d %s</td></tr>' % (_('Delay on'), html_escape(rule.name), rule.delay, _('day(s)')) for rule in self if rule.action in ['pull', 'pull_push'] and rule.delay])
+        delay_description = ''.join(['<tr><td>%s %s</td><td class="float-right">+ %d %s</td></tr>' % (_('Delay on'), html_escape(rule.name), rule.delay, _('day(s)')) for rule in self if rule.action in ['pull', 'pull_push'] and rule.delay])
         return delay, delay_description
 
 
@@ -519,6 +519,13 @@ class ProcurementGroup(models.Model):
 
         # Merge duplicated quants
         self.env['stock.quant']._quant_tasks()
+
+        # Activate snoozed orderpoints
+        self.env['stock.warehouse.orderpoint'].search([
+            ('trigger', '=', 'manual'),
+            ('active', '=', False)
+        ]).toggle_active()
+
         if use_new_cursor:
             self._cr.commit()
 

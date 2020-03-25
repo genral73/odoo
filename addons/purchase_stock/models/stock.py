@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models, _
+from odoo.osv import expression
 
 
 class StockPicking(models.Model):
@@ -188,34 +189,55 @@ class Orderpoint(models.Model):
         for orderpoint in self:
             orderpoint.show_supplier = any(ru.action == 'buy' for ru in orderpoint.route_id.rule_ids)
 
-    def _get_quantity_in_progress(self, product_ids, location_ids):
+    def _get_quantity_in_progress(self, product_ids, location_ids=False, warehouse_ids=False):
+        if not location_ids:
+            location_ids = []
+        if not warehouse_ids:
+            warehouse_ids = []
         # TODO maybe it should be an extension of product _compute_quantities
-        qty_by_product_location = super()._get_quantity_in_progress(product_ids, location_ids)
-        groups = self.env['purchase.order.line'].read_group([
+        # TODO allow to check at date. (for manual records)
+        qty_by_product_location, qty_by_product_wh = super()._get_quantity_in_progress(product_ids, location_ids, warehouse_ids)
+        domain = []
+        rfq_domain = [
             ('state', 'in', ('draft', 'sent', 'to approve')),
-            ('move_dest_ids', '=', False),
-            ('product_id', 'in', product_ids),
-            '|',
-            ('order_id.picking_type_id.default_location_dest_id', 'in', location_ids),
-            ('orderpoint_id', 'in', self.ids),
-        ],
+            ('product_id', 'in', product_ids)
+        ]
+        if location_ids:
+            domain = expression.AND([rfq_domain, [
+                '|',
+                    ('order_id.picking_type_id.default_location_dest_id', 'in', location_ids),
+                    '&',
+                        ('move_dest_ids', '=', False),
+                        ('orderpoint_id.location_id', 'in', location_ids)
+            ]])
+        if warehouse_ids:
+            wh_domain = expression.AND([rfq_domain, [
+                '|',
+                    ('order_id.picking_type_id.warehouse_id', 'in', warehouse_ids),
+                    '&',
+                        ('move_dest_ids', '=', False),
+                        ('orderpoint_id.warehouse_id', 'in', warehouse_ids)
+            ]])
+            domain = expression.OR([domain, wh_domain])
+        groups = self.env['purchase.order.line'].read_group(domain,
             ['product_id', 'product_qty', 'order_id', 'product_uom', 'orderpoint_id'],
             ['order_id', 'product_id', 'product_uom', 'orderpoint_id'], lazy=False)
         for group in groups:
             if group.get('orderpoint_id'):
-                location_id = self.env['stock.warehouse.orderpoint'].browse(group['orderpoint_id'][:1]).location_id.id
+                location = self.env['stock.warehouse.orderpoint'].browse(group['orderpoint_id'][:1]).location_id
             else:
                 order = self.env['purchase.order'].browse(group['order_id'][0])
-                location_id = order.picking_type_id.default_location_dest_id.id
+                location = order.picking_type_id.default_location_dest_id
             product = self.env['product.product'].browse(group['product_id'][0])
             uom = self.env['uom.uom'].browse(group['product_uom'][0])
             product_qty = uom._compute_quantity(group['product_qty'], product.uom_id, round=False)
-            qty_by_product_location[(product.id, location_id)] += product_qty
-        return qty_by_product_location
+            qty_by_product_location[(product.id, location.id)] += product_qty
+            qty_by_product_wh[(product.id, location.get_warehouse().id)] += product_qty
+        return qty_by_product_location, qty_by_product_wh
 
     def _quantity_in_progress(self):
-        res = super(Orderpoint, self)._quantity_in_progress()
-        qty_by_product_location = self._get_quantity_in_progress(self.product_id.ids, self.location_id.ids)
+        res = super()._quantity_in_progress()
+        qty_by_product_location, dummy = self._get_quantity_in_progress(self.product_id.ids, self.location_id.ids)
         for orderpoint in self:
             product_qty = qty_by_product_location.get((orderpoint.product_id.id, orderpoint.location_id.id), 0.0)
             product_uom_qty = orderpoint.product_id.uom_id._compute_quantity(product_qty, orderpoint.product_uom, round=False)
