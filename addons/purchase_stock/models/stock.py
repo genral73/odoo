@@ -164,7 +164,9 @@ class Orderpoint(models.Model):
     _inherit = "stock.warehouse.orderpoint"
 
     show_supplier = fields.Boolean('Show supplier column', compute='_compute_show_suppplier')
-    supplier_id = fields.Many2one('product.supplierinfo', string='Vendor')
+    supplier_id = fields.Many2one(
+        'product.supplierinfo', string='Vendor',
+        domain="['|', ('product_id', '=', product_id), '&', ('product_id', '=', False), ('product_tmpl_id', '=', product_tmpl_id)]")
 
     def _get_default_route_id(self):
         if self.product_id._prepare_sellers():

@@ -30,7 +30,7 @@
             <field name="model">stock.warehouse.orderpoint</field>
             <field name="inherit_id" ref="stock.view_warehouse_orderpoint_tree_editable"/>
             <field name="arch" type="xml">
-                <field name="product_max_qty" position="after">
+                <field name="route_id" position="after">
                     <field name="show_supplier" invisible="1"/>
                     <field name="supplier_id" optional="hide" attrs="{'invisible': [('show_supplier', '=', False)]}"/>
                 </field>
