@@ -8,5 +8,6 @@
     'depends': ['base'],
     'installable': True,
     'auto_install': False,
-    'pre_init_hook': 'uninstall_test_pylint'
+    'pre_init_hook': 'uninstall_test_pylint',
+    'exclude_from_loc_count': ['__all__'],
 }

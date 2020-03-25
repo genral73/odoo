@@ -9,4 +9,5 @@
     'data': ['view.xml', 'ir.model.access.csv'],
     'installable': True,
     'auto_install': False,
+    'exclude_from_loc_count': ['__all__'],
 }

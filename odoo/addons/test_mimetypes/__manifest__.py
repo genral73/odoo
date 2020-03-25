@@ -4,4 +4,5 @@
     'version': '0.1',
     'category': 'Tests',
     'description': """A module to generate exceptions.""",
+    'exclude_from_loc_count': ['__all__'],
 }

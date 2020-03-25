@@ -8,4 +8,5 @@
     'data': ['view.xml'],
     'installable': True,
     'auto_install': False,
+    'exclude_from_loc_count': ['__all__'],
 }

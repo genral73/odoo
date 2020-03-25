@@ -8,4 +8,5 @@
     "installable": True,
     "auto_install": False,
     "data": ["ir.model.access.csv"],
+    'exclude_from_loc_count': ['__all__'],
 }

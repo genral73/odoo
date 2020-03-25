@@ -11,5 +11,6 @@ supposed to do
     'data': [
         'ir.model.access.csv',
         'menu.xml',
-    ]
+    ],
+    'exclude_from_loc_count': ['__all__'],
 }
