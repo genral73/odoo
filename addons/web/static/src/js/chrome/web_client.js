@@ -128,12 +128,14 @@ class WebClient extends Component {
             tt.parentNode.removeChild(tt);
         }
     }
-    async _getHome() {
-        const menuID = this.menus ? this.menus.root.children[0] : null;
-        const actionID =  menuID ? this.menus[menuID].actionID : null;
-        if (actionID) {
-            return this.actionManager.doAction(actionID, {menuID, clear_breadcrumbs: true});
+    _getHomeAction() {
+        let menuID = this.menus ? this.menus.root.children[0] : null;
+        let actionID =  menuID ? this.menus[menuID].actionID : null;
+        if (this.env.session.home_action_id) {
+            actionID = this.env.session.home_action_id;
+            menuID = null;
         }
+        return { actionID , menuID };
     }
     /**
      * Returns the left and top scroll positions of the main scrolling area
@@ -210,7 +212,12 @@ class WebClient extends Component {
                 const action = this.menus[state.menu_id].actionID;
                 return this.actionManager.doAction(action, state);
             } else if (('home' in state || Object.keys(state).filter(key => key !== 'cids').length === 0)) {
-                return this._getHome();
+                const {actionID , menuID} = this._getHomeAction();
+                if (actionID) {
+                    return this.actionManager.doAction(actionID, {menuID, clear_breadcrumbs: true});
+                } else {
+                    return true;
+                }
             }
         }
         return stateLoaded;

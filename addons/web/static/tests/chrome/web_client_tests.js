@@ -152,6 +152,35 @@ QUnit.module('WebClient', {
         webClient.destroy();
     });
 
+    QUnit.test('initial rendering (should open custom action on user)', async function (assert) {
+        assert.expect(10);
+
+        const webClient = await createWebClient({
+            data: this.data,
+            actions: this.actions,
+            archs: this.archs,
+            menus: this.menus,
+            session: {
+                home_action_id: 30,
+            }
+        });
+
+        assert.containsOnce(webClient, 'header .o_main_navbar');
+        assert.containsOnce(webClient, 'header .o_main_navbar .o_menu_brand');
+        assert.containsOnce(webClient, 'header .o_main_navbar .o_menu_sections');
+        assert.containsOnce(webClient, 'header .o_main_navbar .o_menu_systray');
+        assert.containsOnce(webClient, '.o_action_manager');
+
+        assert.strictEqual(webClient.el.querySelector('.o_menu_brand').innerText, 'Tasks');
+        assert.containsNone(webClient, 'header .o_main_navbar .o_menu_sections li a');
+        assert.containsNone(webClient, '.o_menu_sections li');
+
+        assert.strictEqual(webClient.el.querySelector('.breadcrumb').innerText, 'Tasks');
+        assert.containsOnce(webClient, '.o_kanban_view');
+
+        webClient.destroy();
+    });
+
     QUnit.test('can click on a menuitem', async function (assert) {
         assert.expect(6);
 
