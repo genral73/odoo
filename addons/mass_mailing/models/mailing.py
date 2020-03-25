@@ -236,6 +236,8 @@ class MassMailing(models.Model):
             values['name'] = "%s %s" % (values['subject'], datetime.strftime(fields.datetime.now(), tools.DEFAULT_SERVER_DATETIME_FORMAT))
         if values.get('body_html'):
             values['body_html'] = self._convert_inline_images_to_urls(values['body_html'])
+        if values.get('schedule_date'):
+            values['state'] = 'in_queue'
         return super(MassMailing, self).create(values)
 
     def write(self, values):
