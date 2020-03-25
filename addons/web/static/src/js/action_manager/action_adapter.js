@@ -124,6 +124,12 @@ odoo.define('web.ActionAdapter', function (require) {
             }
             return {}; // TODO
         }
+        exportState() {
+            if (this.widget && this.widget.exportState) {
+                return this.widget.exportState();
+            }
+            return this.getState();
+        }
         async updateWidget(nextProps) {
             if (this.widgetReloadProm || ('reload' in nextProps && !nextProps.reload)) {
                 return this.widgetReloadProm;
