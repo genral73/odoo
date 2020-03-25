@@ -234,7 +234,6 @@ var PublicWidget = Widget.extend({
         }
 
         this._super.apply(this, arguments);
-
         if (this.selector) {
             // Reassign the variables afterwards to allow extensions to use them
             // after calling the _super method
