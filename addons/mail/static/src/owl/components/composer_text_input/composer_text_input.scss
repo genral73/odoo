@@ -15,7 +15,14 @@
     overflow: auto
 }
 
+.o_ComposerTextInput_mention_dropdown_low_position {
+    top: 100%;
 
+    > .dropdown-menu {
+        top: 100%;
+        bottom: auto;
+    }
+}
 
 .o_ComposerTextInput_mention_dropdown .o_mention_proposition_list {
     max-width: 1398.48px;

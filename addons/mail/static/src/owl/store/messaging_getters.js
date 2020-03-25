@@ -435,6 +435,17 @@ const getters = {
     /**
      * @param {Object} param0
      * @param {Object} param0.state
+     * @param searchWord
+     * @return {*}
+     */
+    mentionSuggestions({state, getters}, searchWord) {
+        return filterObject(state.partners, partner =>
+            getters.partnerName(partner.localId).includes(searchWord)
+        );
+    },
+    /**
+     * @param {Object} param0
+     * @param {Object} param0.state
      * @param {string} messageLocalId
      * @return {string}
      */

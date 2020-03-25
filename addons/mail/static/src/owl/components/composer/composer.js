@@ -350,6 +350,7 @@ Composer.components = { AttachmentList, DropZone, EmojisButton, FileUploader, Te
 
 Composer.defaultProps = {
     attachmentLocalIds: [],
+    composerTextInputMentionsLowPosition: false,
     focusCounter: 0,
     hasCurrentPartnerAvatar: true,
     hasDiscardButton: false,
@@ -375,6 +376,9 @@ Composer.props = {
         optional: true,
     },
     composerLocalId: String,
+    composerTextInputMentionsLowPosition: {
+        type: Boolean,
+    },
     focusCounter: {
         type: Number,
     },

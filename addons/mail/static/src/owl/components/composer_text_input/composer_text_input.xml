@@ -3,7 +3,7 @@
 
     <t t-name="mail.component.ComposerTextInput" owl="1">
         <div class="o_ComposerTextInput">
-            <div class="dropup o_ComposerTextInput_mention_dropdown">
+            <div class="dropup o_ComposerTextInput_mention_dropdown" t-att-class="{ 'o_ComposerTextInput_mention_dropdown_low_position': props.mentionsLowPosition }">
                 <div class="dropdown-menu o_mention_proposition_list" t-att-class="{ 'show': state.isMentionsOpen }" t-ref="mention_dropdown">
                     <t t-if="state.mentionSuggestions[0]" >
                         <t t-foreach="state.mentionSuggestions[0]" t-as="mention" t-key="mention.id">

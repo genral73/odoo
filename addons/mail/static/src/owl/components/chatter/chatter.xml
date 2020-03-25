@@ -11,6 +11,7 @@
                 <Composer
                     class="o_Chatter_composer"
                     composerLocalId="storeProps.thread.composerLocalId"
+                    composerTextInputMentionsLowPosition="true"
                     hasTextInputSendOnEnterEnabled="false"
                     isCompact="false"
                     isExpandable="true"

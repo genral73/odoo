@@ -60,6 +60,7 @@
                     }"
                     composerLocalId="props.composerLocalId"
                     hasSendOnEnterEnabled="props.hasTextInputSendOnEnterEnabled"
+                    mentionsLowPosition="props.composerTextInputMentionsLowPosition"
                     t-on-o-discard.stop="_onDiscardInput"
                     t-on-o-input-composer-text-input="_onInputTextInput"
                     t-on-o-keydown-enter.stop="_onTextInputKeydownEnter"

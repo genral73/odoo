@@ -23,6 +23,7 @@ class ComposerTextInput extends Component {
             return {
                 isMobile: state.isMobile,
                 composer: state.composers[props.composerLocalId],
+                thread: state.threads[state.composers[props.composerLocalId].threadLocalId],
             };
         });
         /**
@@ -213,6 +214,15 @@ class ComposerTextInput extends Component {
      * @param kwargs
      */
     async _mentionFetchThrottled(model, method, kwargs) {
+        const suggestions = this.storeGetters.mentionSuggestions(this._mentionWord);
+        const prefetchedPartners = await this.env.rpc({
+            model: 'mail.channel',
+            method: 'channel_fetch_listeners',
+            args: [this.storeProps.thread.uuid],
+            }, {
+                shadow: true
+        });
+
         this.state.mentionSuggestions = await this.env.rpc({
             model: model,
             method: method,
@@ -499,12 +509,14 @@ class ComposerTextInput extends Component {
 }
 
 ComposerTextInput.defaultProps = {
-    hasSendOnEnterEnabled: true
+    hasSendOnEnterEnabled: true,
+    mentionsLowPosition: false,
 };
 
 ComposerTextInput.props = {
-    hasSendOnEnterEnabled: Boolean,
     composerLocalId: String,
+    hasSendOnEnterEnabled: Boolean,
+    mentionsLowPosition: Boolean,
 };
 
 ComposerTextInput.template = 'mail.component.ComposerTextInput';
