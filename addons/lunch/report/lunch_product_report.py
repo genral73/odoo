@@ -106,6 +106,6 @@ class LunchProductReport(models.Model):
                 INNER JOIN res_groups_users_rel groups ON groups.uid = users.id -- only generate for internal users
                 LEFT JOIN LATERAL (select max(date) AS last_order_date FROM lunch_order where user_id=users.id and product_id=product.id) AS orders ON TRUE
                 LEFT JOIN LATERAL (select user_id FROM lunch_product_favorite_user_rel where user_id=users.id and product_id=product.id) AS fav ON TRUE
-                WHERE users.active AND product.active AND groups.gid = %%s --only take into account active products and users
+                WHERE users.active AND product.active AND groups.gid = %%s AND (product.company_id IS NULL OR product.company_id IN %%s) --only take into account active products and users
             );
-        """ % self._table, (self.env.ref('base.group_user').id,))
+        """ % self._table, (self.env.ref('base.group_user').id, tuple(self.env.companies.ids)))

@@ -81,18 +81,22 @@
 
         <record model="lunch.product.category" id="categ_pasta">
             <field name="name">Pasta</field>
+            <field name="company_id" eval="False"/>
         </record>
 
         <record model="lunch.product.category" id="categ_sushi">
             <field name="name">Sushi</field>
+            <field name="company_id" eval="False"/>
         </record>
 
         <record model="lunch.product.category" id="categ_temaki">
             <field name="name">Temaki</field>
+            <field name="company_id" eval="False"/>
         </record>
 
         <record model="lunch.product.category" id="categ_chirashi">
             <field name="name">Chirashi</field>
+            <field name="company_id" eval="False"/>
         </record>
 
         <record id="partner_coin_gourmand" model="res.partner">

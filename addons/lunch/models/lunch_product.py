@@ -103,16 +103,17 @@ class LunchProduct(models.Model):
     _description = 'Lunch Product'
     _inherit = 'image.mixin'
     _order = 'name'
+    _check_company_auto = True
 
     name = fields.Char('Product Name', required=True, translate=True)
-    category_id = fields.Many2one('lunch.product.category', 'Product Category', required=True)
+    category_id = fields.Many2one('lunch.product.category', 'Product Category', check_company=True, required=True)
     description = fields.Text('Description', translate=True)
     price = fields.Float('Price', digits='Account', required=True)
-    supplier_id = fields.Many2one('lunch.supplier', 'Vendor', required=True)
+    supplier_id = fields.Many2one('lunch.supplier', 'Vendor', check_company=True, required=True)
     active = fields.Boolean(default=True)
 
-    company_id = fields.Many2one('res.company', related='supplier_id.company_id', store=True)
+    company_id = fields.Many2one('res.company', related='supplier_id.company_id', readonly=False, store=True)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id')
 
     new_until = fields.Date('New Until')
-    favorite_user_ids = fields.Many2many('res.users', 'lunch_product_favorite_user_rel', 'product_id', 'user_id')
+    favorite_user_ids = fields.Many2many('res.users', 'lunch_product_favorite_user_rel', 'product_id', 'user_id', check_company=True)
