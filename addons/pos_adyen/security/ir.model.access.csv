@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_adyen_store_group_erp_manager,adyen.store,model_adyen_store,base.group_erp_manager,1,0,1,1
+access_adyen_store_group_all,adyen.store,model_adyen_store,,1,0,0,0
+access_adyen_terminal_group_all,adyen.terminal,model_adyen_terminal,,1,0,0,0

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="AdyenKYCStatusTag">
+        <t t-if="value === 'awaiting_data'">
+            <span class="badge badge-pill badge-warning">Data to provide</span>
+        </t>
+        <t t-if="value === 'pending'">
+            <span class="badge badge-pill badge-info">Waiting for validation</span>
+        </t>
+        <t t-if="value === 'passed'">
+            <span class="badge badge-pill badge-success">Confirmed</span>
+        </t>
+        <t t-if="value === 'failed'">
+            <span class="badge badge-pill badge-danger">Failed</span>
+        </t>
+    </t>
+</templates>

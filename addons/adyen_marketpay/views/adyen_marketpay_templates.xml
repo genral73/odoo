@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="kyc_error_message">
+        Payouts are currently blocked on this account due to one or more error(s):
+        <ul>
+            <li t-if="account_holder_errors">
+                Adyen Account:
+                <ul>
+                    <li t-foreach="account_holder_errors" t-as="error">
+                        <t t-esc="error"/>
+                    </li>
+                </ul>
+            </li>
+            <li t-if="shareholder_errors">
+                Shareholders:
+                <ul>
+                    <li t-foreach="shareholder_errors" t-as="error">
+                        <t t-esc="error"/>
+                    </li>
+                </ul>
+            </li>
+            <li t-if="bank_account_errors">
+                Bank Accounts:
+                <ul>
+                    <li t-foreach="bank_account_errors" t-as="error">
+                        <t t-esc="error"/>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </template>
+</odoo>

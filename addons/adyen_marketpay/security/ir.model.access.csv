@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_adyen_account_group_erp_manager,adyen.account,model_adyen_account,base.group_erp_manager,1,1,1,1
+access_adyen_account_group_all,adyen.account,model_adyen_account,,1,0,0,0
+access_adyen_shareholder_group_erp_manager,adyen.shareholder,model_adyen_shareholder,base.group_erp_manager,1,1,1,1
+access_adyen_shareholder_group_all,adyen.shareholder,model_adyen_shareholder,,1,0,0,0
+access_adyen_bank_account_group_erp_manager,adyen.bank.account,model_adyen_bank_account,base.group_erp_manager,1,1,1,1
+access_adyen_bank_account_group_all,adyen.bank.account,model_adyen_bank_account,,1,0,0,0
+access_adyen_payout_group_erp_manager,adyen.payout,model_adyen_payout,base.group_erp_manager,1,1,1,1
+access_adyen_payout_group_all,adyen.payout,model_adyen_payout,,1,0,0,0
+access_adyen_transaction_group_all,adyen.transaction,model_adyen_transaction,,1,0,0,0
