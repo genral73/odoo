@@ -63,8 +63,8 @@
                                                     <a type="action" data-model="account.analytic.line" t-att-data-domain="json.dumps(timesheet_domain)"
                                                        data-context='{"pivot_row_groupby": ["date:month"],"pivot_column_groupby": ["timesheet_invoice_type"], "pivot_measures": ["unit_amount"]}'
                                                        data-views='[[0, "pivot"], [0, "list"]]' tabindex="-1">
-                                                        <span t-if="is_uom_day">Days</span>
-                                                        <span t-else="">Hours</span>
+                                                        <span t-if="is_uom_day">Days recorded</span>
+                                                        <span t-else="">Hours recorded</span>
                                                     </a>
                                                 </th>
                                                 <tr>
@@ -250,6 +250,13 @@
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th/>
+                                                <th t-if="is_uom_day" class="text-right pr-5">Days Spent</th>
+                                                <th t-else="" class="text-right pr-5">Hours Spent</th>
+                                            </tr>
+                                        </thead>
                                         <tbody>
                                             <t t-foreach="repartition_employee" t-as="employee_id">
                                                 <t t-set="employee" t-value="repartition_employee[employee_id]"/>
