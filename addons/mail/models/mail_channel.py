@@ -105,6 +105,7 @@ class Channel(models.Model):
     image_128 = fields.Image("Image", max_width=128, max_height=128, default=_get_default_image)
     is_subscribed = fields.Boolean(
         'Is Subscribed', compute='_compute_is_subscribed')
+    anonymous_name = fields.Char('Anonymous Name')
     # moderation
     moderation = fields.Boolean(string='Moderate this channel')
     moderator_ids = fields.Many2many('res.users', 'mail_channel_moderator_rel', string='Moderators')
@@ -430,7 +431,7 @@ class Channel(models.Model):
         return True
 
     def _update_moderation_email(self, emails, status):
-        """ This method adds emails into either white or black of the channel list of emails 
+        """ This method adds emails into either white or black of the channel list of emails
             according to status. If an email in emails is already moderated, the method updates the email status.
             :param emails: list of email addresses to put in white or black list of channel.
             :param status: value is 'allow' or 'ban'. Emails are put in white list if 'allow', in black list if 'ban'.
