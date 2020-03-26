@@ -26,7 +26,7 @@
                 <field name="name"/>
                 <field name="create_date"/>
                 <field name="is_public"/>
-                <field name="contact_valid_count"/>
+                <field name="contact_valid_email_count"/>
             </tree>
         </field>
     </record>
@@ -38,9 +38,24 @@
             <form string="Contact List">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_view_mailing"
+                                type="object" icon="fa-envelope-o" class="oe_stat_button">
+                            <field name="mailing_list_count" string="bouncing" widget="statinfo"/>
+                        </button>
                         <button name="action_view_valid_email_contacts"
                                 type="object" icon="fa-user" class="oe_stat_button">
-                            <field name="contact_valid_count" string="Recipients" widget="statinfo"/>
+                            <field name="contact_valid_email_count" string="Recipients" widget="statinfo"/>
+                        </button>
+                        <button icon="fa-exchange" class="oe_stat_button">
+                            <field name="contact_bounce_sum" string="bouncing" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_opt_out_contacts"
+                                type="object" icon="fa-bell-slash" class="oe_stat_button">
+                            <field name="contact_opt_out_percentage_str" string="Recipients" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_blacklisted_contacts"
+                                type="object" icon="fa-ban" class="oe_stat_button">
+                            <field name="contact_blacklist_percentage_str" string="Recipients" widget="statinfo"/>
                         </button>
                     </div>
                     <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
@@ -100,7 +115,7 @@
             <kanban js_class="mass_mailing_list_kanban" class="o_kanban_mobile" on_create="mass_mailing.open_create_mass_mailing_list">
                 <field name="name"/>
                 <field name="contact_count"/>
-                <field name="contact_valid_count"/>
+                <field name="contact_valid_email_count"/>
                 <field name="contact_bounce_sum"/>
                 <field name="contact_blacklist_percentage"/>
                 <field name="contact_opt_out_percentage"/>
@@ -133,7 +148,7 @@
                                                             </small>
 
                                                             <small class="col my-0">
-                                                                <div class="text-right" t-esc="record.contact_valid_count.value"></div>
+                                                                <div class="text-right" t-esc="record.contact_valid_email_count.value"></div>
                                                             </small>
                                                         </div>
                                                     </div>
