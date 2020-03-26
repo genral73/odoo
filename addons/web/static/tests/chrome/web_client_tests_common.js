@@ -1,9 +1,11 @@
 odoo.define('web.web_client_tests_common', function (require) {
 "use strict";
 
+const { createWebClientFromClass } = require('web.test_utils_create');
 const testUtils = require('web.test_utils');
+const WebClient = require('web.WebClientClass');
 
-const { createWebClient } = testUtils;
+const createWebClient = createWebClientFromClass.bind(null, WebClient);
 
 QUnit.module('WebClient Common', {
     beforeEach: function () {
