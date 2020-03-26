@@ -3,6 +3,7 @@ odoo.define('web.WebClient', function (require) {
 
 const ActionManager = require('web.ActionManager');
 const ActionAdapter = require('web.ActionAdapter');
+const { useListener } = require('web.custom_hooks');
 const { ComponentAdapter } = require('web.OwlCompatibility');
 const DialogAction = require('web.DialogAction');
 const LoadingWidget = require('web.Loading');
@@ -12,13 +13,15 @@ const LegacyDialog = require('web.Dialog');
 const WarningDialog = require('web.CrashManager').WarningDialog;
 
 const { Component, hooks } = owl;
-const {useRef, useExternalListener } = hooks;
+const { useRef, useExternalListener } = hooks;
 
 class WebClient extends Component {
     constructor() {
         super();
         this.LoadingWidget = LoadingWidget;
         useExternalListener(window, 'hashchange', this._onHashchange);
+        useListener('click', this._domCleaning);
+        useListener('click', 'a', this._onLinkClicked);
 
         this.currentMainComponent = useRef('currentMainComponent');
         this.currentDialogComponent = useRef('currentDialogComponent');
@@ -78,6 +81,7 @@ class WebClient extends Component {
         return {
             o_fullscreen: this.renderingInfo && this.renderingInfo.fullscreen,
             o_rtl: this.env._t.database.parameters.direction === 'rtl',
+            o_touch_device: this.env.device.touch,
         };
     }
 
@@ -503,6 +507,27 @@ class WebClient extends Component {
         this.ignoreHashchange = false;
         // TODO: reset oldURL in case of failure?
      }
+    _onLinkClicked(ev) {
+        // TODO: test this
+        var disable_anchor = ev.target.attributes.disable_anchor;
+        if (disable_anchor && disable_anchor.value === "true") {
+            return;
+        }
+
+        var href = ev.target.attributes.href;
+        if (href) {
+            if (href.value[0] === '#' && href.value.length > 1) {
+                const matchingEl = document.getElementById(href.value.substr(1));
+                if (matchingEl) {
+                    ev.preventDefault();
+                    this._scrollTo({
+                        top: matchingEl.scrollTop,
+                        left: matchingEl.scrollLeft,
+                    });
+                }
+            }
+        }
+    }
     /**
      * @private
      */
