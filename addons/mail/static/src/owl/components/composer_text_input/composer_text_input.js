@@ -214,14 +214,15 @@ class ComposerTextInput extends Component {
      * @param kwargs
      */
     async _mentionFetchThrottled(model, method, kwargs) {
-        const suggestions = this.storeGetters.mentionSuggestions(this._mentionWord);
-        const prefetchedPartners = await this.env.rpc({
-            model: 'mail.channel',
-            method: 'channel_fetch_listeners',
-            args: [this.storeProps.thread.uuid],
-            }, {
-                shadow: true
-        });
+        // Prequel of mentions of relevant partners
+        // const suggestions = this.storeGetters.mentionSuggestions(this._mentionWord);
+        // const prefetchedPartners = await this.env.rpc({
+        //     model: 'mail.channel',
+        //     method: 'channel_fetch_listeners',
+        //     args: [this.storeProps.thread.uuid],
+        //     }, {
+        //         shadow: true
+        // });
 
         this.state.mentionSuggestions = await this.env.rpc({
             model: model,
