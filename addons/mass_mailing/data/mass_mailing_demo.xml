@@ -32,13 +32,11 @@
         <record id="mass_mail_1_contact_4" model="mailing.contact">
             <field name="name">Christian Moore DDS</field>
             <field name="email">jorge67@gmail.com</field>
-            <field name="phone">(603)-996-3829</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
         </record>
         <record id="mass_mail_1_contact_5" model="mailing.contact">
             <field name="name">Elizabeth Harris</field>
             <field name="email">jason31@martinez.com</field>
-            <field name="phone">(604)-996-3829</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
         </record>
         <record id="mass_mail_1_contact_6" model="mailing.contact">
@@ -48,18 +46,15 @@
         </record>
         <record id="mass_mail_1_contact_7" model="mailing.contact">
             <field name="name">John Taylor</field>
-            <field name="phone">(941)-282-4175</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
         </record>
         <record id="mass_mail_1_contact_8" model="mailing.contact">
             <field name="name">Eric Stewart</field>
-            <field name="phone">(823)-873-6136</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
         </record>
         <record id="mass_mail_1_contact_9" model="mailing.contact">
             <field name="name">Michael Walker</field>
             <field name="email">jeanne42@yahoo.com</field>
-            <field name="phone">(123)-273-6136</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
         </record>
         <record id="mass_mail_1_contact_10" model="mailing.contact">
@@ -143,7 +138,6 @@
         <record id="blacklist_phone_1_2" model="phone.blacklist">
             <field name="number">(603)-996-3829</field>
         </record>
-
 
 
         <!-- Create mailing lists 2 -->

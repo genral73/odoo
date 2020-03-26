@@ -109,7 +109,7 @@
     </record>
 
     <record id="mailing_list_view_kanban" model="ir.ui.view">
-        <field name="name">mailing.list.view.kanban</field>
+        <field name="name">Mailing list kanban view</field>
         <field name="model">mailing.list</field>
         <field name="arch" type="xml">
             <kanban js_class="mass_mailing_list_kanban" class="o_kanban_mobile" on_create="mass_mailing.open_create_mass_mailing_list">
@@ -135,7 +135,7 @@
                                                 <button name="action_view_full_contacts" type="object" class="btn btn-primary oe_kanban_global_click">
                                                 <t t-esc="record.contact_count.value"/> Contacts</button>
                                             </div>
-                                            <div class="col">
+                                            <div class="kanban-right-content col">
                                                 <div class="row">
                                                     <div class="col-12 my-0 text-info">
                                                         <div class="row">
@@ -143,10 +143,9 @@
                                                                 <a class="col-auto my-0"
                                                                    type="object"
                                                                    name="action_view_valid_email_contacts">
-                                                                    Valid Email recipients
+                                                                    Valid email recipients
                                                                 </a>
                                                             </small>
-
                                                             <small class="col my-0">
                                                                 <div class="text-right" t-esc="record.contact_valid_email_count.value"></div>
                                                             </small>

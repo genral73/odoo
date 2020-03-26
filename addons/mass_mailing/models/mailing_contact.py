@@ -45,7 +45,7 @@ class MassMailingContact(models.Model):
     be able to deal with large contact list to email without bloating the partner
     base."""
     _name = 'mailing.contact'
-    _inherit = ['mail.thread.blacklist', 'mail.thread.phone']
+    _inherit = ['mail.thread.blacklist']
     _description = 'Mailing Contact'
     _order = 'email'
 
@@ -53,8 +53,6 @@ class MassMailingContact(models.Model):
     company_name = fields.Char(string='Company Name')
     title_id = fields.Many2one('res.partner.title', string='Title')
     email = fields.Char('Email')
-    phone = fields.Char()
-    mobile = fields.Char()
     list_ids = fields.Many2many(
         'mailing.list', 'mailing_contact_list_rel',
         'contact_id', 'list_id', string='Mailing Lists')
