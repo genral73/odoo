@@ -38,7 +38,11 @@ class ResCompany(models.Model):
             for company in self:
                 existing_pricelist = ProductPricelist.search(
                     [('company_id', 'in', (False, company.id)),
+<<<<<<< HEAD
                      ('currency_id', '=', currency_id)])
+=======
+                     ('currency_id', 'in', (currency_id, company.currency_id.id))])
+>>>>>>> 1844d09b29c... temp
                 if existing_pricelist:
                     continue
                 if currency_id == company.currency_id.id:
