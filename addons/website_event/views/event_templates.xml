@@ -390,7 +390,6 @@
                 </nav>
             </t>
             <t t-raw="0"/>
-            <div class="oe_structure" id="oe_structure_website_event_layout_1" t-att-data-editor-sub-message="'Following content will appear on all events.'"/>
         </div>
     </t>
 </template>
