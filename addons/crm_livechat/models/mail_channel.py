@@ -30,6 +30,7 @@ class MailChannel(models.Model):
             '%s: %s\n' % (message.author_id.name or self.anonymous_name, message.body)
             for message in self.channel_message_ids.sorted('id')
         )
+        print('\n\n\n >>>>>>>>>>> description :', description)
         utm_source = self.env.ref('crm_livechat.utm_source_livechat', raise_if_not_found=False)
         return self.env['crm.lead'].create({
             'name': html2plaintext(key[5:]),
