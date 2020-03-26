@@ -56,7 +56,7 @@
 
                 </div>
             </div>
-            <div class="oe_structure oe_structure_none" data-editor-message=""/>
+            <div class="oe_structure oe_structure_none" />
         </div>
     </t>
 </template>
