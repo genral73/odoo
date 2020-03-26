@@ -94,34 +94,52 @@ QUnit.module('WebClient', {
             all_menu_ids: [1, 2, 3, 4, 5, 6],
             children: [{
                 id: 1,
-                action: false,
+                action: 'ir.actions.act_window,10',
                 name: "Partners",
+                xmlid: 'la_woman1',
+                web_icon_data: 'bloop',
+                web_icon: 'bloop,bloop,bloop',
                 children: [{
                     id: 2,
                     action: 'ir.actions.act_window,10',
                     name: "All Partners",
                     children: [],
+                    web_icon: false,
+                    xmlid: 'la_woman11',
+                    parent_id: [1, 'Partners'],
                 }, {
                     id: 3,
                     action: 'ir.actions.act_window,11',
                     name: "New partner",
                     children: [],
+                    web_icon: false,
+                    xmlid: 'la_woman12',
+                    parent_id: [1, 'Partners']
                 }, {
                     id: 6,
                     action: 'ir.actions.act_window,12',
                     name: "New partner (Dialog)",
                     children: [],
+                    web_icon: false,
+                    xmlid: 'la_woman13',
+                    parent_id: [1, 'Partners']
                 }],
             }, {
                 id: 4,
                 action: 'ir.actions.act_window,20',
                 name: "Products",
-                children: []
+                children: [],
+                xmlid: 'la_woman2',
+                web_icon_data: 'bloop',
+                web_icon: 'bloop,bloop,bloop',
             }, {
                 id: 5,
                 action: 'ir.actions.act_window,30',
                 name: "Tasks",
                 children: [],
+                xmlid: 'la_woman3',
+                web_icon_data: 'bloop',
+                web_icon: 'bloop,bloop,bloop',
             }],
         };
     },
@@ -310,6 +328,48 @@ QUnit.module('WebClient', {
         assert.verifySteps([
             'on the bayou - Partners - fire'
         ]);
+        webClient.destroy();
+    });
+
+    QUnit.test('can click on anchor link', async function (assert) {
+        assert.expect(2);
+
+        this.archs['partner,false,form'] = `
+                <form>
+                    <sheet>
+                        <a href="#anchored_div" id="the_trigger">The Trigger</a>
+                        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+                        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+                        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+                        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+                        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+                        <div id="anchored_div">
+                            <field name="display_name"/>
+                        </div>
+                    </sheet>
+                </form>`;
+
+        let targetRect = null;
+        const webClient = await createWebClient({
+            data: this.data,
+            actions: this.actions,
+            archs: this.archs,
+            menus: this.menus,
+            webClient: {
+                _scrollTo(data) {
+                    const {top, left} = data;
+                    assert.strictEqual(top, targetRect.top);
+                    assert.strictEqual(left, targetRect.left);
+                    return this._super.apply(this, arguments);
+                }
+            },
+            debug: true,
+        });
+        await testUtils.actionManager.doAction(11, {resID: 1});
+        const anchorTarget = document.getElementById('anchored_div');
+        targetRect = anchorTarget.getBoundingClientRect();
+        await testUtils.dom.click(document.getElementById('the_trigger'));
+
         webClient.destroy();
     });
 });

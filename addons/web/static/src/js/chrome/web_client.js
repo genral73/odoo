@@ -20,8 +20,7 @@ class WebClient extends Component {
         super();
         this.LoadingWidget = LoadingWidget;
         useExternalListener(window, 'hashchange', this._onHashchange);
-        useListener('click', this._domCleaning);
-        useListener('click', 'a', this._onLinkClicked);
+        useExternalListener(document.body, 'click', this._onGenericClick);
 
         this.currentMainComponent = useRef('currentMainComponent');
         this.currentDialogComponent = useRef('currentDialogComponent');
@@ -496,6 +495,32 @@ class WebClient extends Component {
     _onExecuteAction(ev) {
         this.actionManager.executeInFlowAction(ev.detail);
     }
+    _onGenericClick(ev) {
+        this._domCleaning();
+        const target = ev.target;
+        if (!target.tagName === 'a') {
+            return;
+        }
+        var disable_anchor = target.attributes.disable_anchor;
+        if (disable_anchor && disable_anchor.value === "true") {
+            return;
+        }
+
+        var href = target.attributes.href;
+        if (href) {
+            if (href.value[0] === '#' && href.value.length > 1) {
+                let matchingEl = null;
+                try {
+                    matchingEl = this.el.querySelector(`.o_content #${href.value.substr(1)}`);
+                } catch (e) {}
+                if (matchingEl) {
+                    ev.preventDefault();
+                    const {top, left} = matchingEl.getBoundingClientRect();
+                    this._scrollTo({top, left});
+                }
+            }
+        }
+    }
     async _onHashchange() {
         if (!this.ignoreHashchange) {
             const state = this._getUrlState();
@@ -508,25 +533,7 @@ class WebClient extends Component {
         // TODO: reset oldURL in case of failure?
      }
     _onLinkClicked(ev) {
-        // TODO: test this
-        var disable_anchor = ev.target.attributes.disable_anchor;
-        if (disable_anchor && disable_anchor.value === "true") {
-            return;
-        }
 
-        var href = ev.target.attributes.href;
-        if (href) {
-            if (href.value[0] === '#' && href.value.length > 1) {
-                const matchingEl = document.getElementById(href.value.substr(1));
-                if (matchingEl) {
-                    ev.preventDefault();
-                    this._scrollTo({
-                        top: matchingEl.scrollTop,
-                        left: matchingEl.scrollLeft,
-                    });
-                }
-            }
-        }
     }
     /**
      * @private
