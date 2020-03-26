@@ -183,7 +183,19 @@ var DocumentViewer = Widget.extend({
      */
     _onClose: function (e) {
         e.preventDefault();
-        this.destroy();
+        var self = this;
+        if (this.angle && this.angle != 360) {
+            this._rpc({
+                model: this.modelName,
+                method: 'rotate_image',
+                args: [this.activeAttachment.id],
+                kwargs: {angle: this.angle}
+            }).then(function (res) {
+                self.destroy();
+            })
+        } else {
+            this.destroy();
+        }
     },
     /**
      * When popup close complete destroyed modal even DOM footprint too
