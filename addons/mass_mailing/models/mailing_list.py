@@ -15,7 +15,7 @@ class MassMailingList(models.Model):
     active = fields.Boolean(default=True)
     contact_ids = fields.Many2many(
         'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
-        string='Mailing Lists')
+        string='Contact Lists')
 
     mailing_list_ids = fields.Many2many('mailing.mailing', 'mail_mass_mailing_list_rel', string='Mailing Lists')
     mailing_list_count = fields.Integer(compute='_compute_statistic', string='Valid contacts')
@@ -34,16 +34,12 @@ class MassMailingList(models.Model):
 
     contact_ids_blacklisted = fields.Many2many(
         'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
-        compute='_compute_statistic', string='opt out'
+        compute='_compute_statistic', string='blacklisted email'
     )
 
-    contact_ids_valid_email = fields.Many2many(
-        'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
-        compute='_compute_statistic', string='opt out'
-    )
 
     contact_count = fields.Integer(compute='_compute_statistic', string='Total contacts')
-    contact_valid_count = fields.Integer(compute='_compute_statistic', string='Valid contacts')
+    contact_valid_count = fields.Integer(compute='_compute_statistic', string='Number of Valid contacts')
 
     contact_blacklist_percentage = fields.Float(
         compute='_compute_statistic', string='Percentage black listed contact'

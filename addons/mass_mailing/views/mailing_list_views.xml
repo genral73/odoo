@@ -26,7 +26,7 @@
                 <field name="name"/>
                 <field name="create_date"/>
                 <field name="is_public"/>
-                <field name="contact_nbr"/>
+                <field name="contact_valid_count"/>
             </tree>
         </field>
     </record>
@@ -40,7 +40,7 @@
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_valid_email_contacts"
                                 type="object" icon="fa-user" class="oe_stat_button">
-                            <field name="contact_nbr" string="Recipients" widget="statinfo"/>
+                            <field name="contact_valid_count" string="Recipients" widget="statinfo"/>
                         </button>
                     </div>
                     <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
@@ -160,9 +160,9 @@
                             </div>
                             <div class="o_mailing_list_kanban_boxes">
                                 <t t-set="opt_out_status"
-                                   t-value="record.contact_opt_out_percentage.value > 5 ? 'text-danger' :record.contact_opt_out_percentage.value > 2 ? 'text-warning' : ''" />
+                                   t-value="record.contact_opt_out_percentage.value > 0.5 ? 'text-danger': record.contact_opt_out_percentage.value > 0.2 ? 'text-warning' : 'text-black'" />
                                 <t t-set="blacklist_status"
-                                   t-value="record.contact_blacklist_percentage.value > 0.5 ? 'text-danger' :record.contact_opt_out_percentage.value > 1 ? 'text-warning' : ''" />
+                                   t-value="record.contact_blacklist_percentage.value > 0.05 ? 'text-danger': record.contact_blacklist_percentage.value > 0.1 ? 'text-warning' : 'text-black'" />
                                 <div>
                                     <a role="button" class="mr-3 text-black" type="object" name="action_view_mailing">
                                         <i class="fa fa-envelope-o" role="img" aria-label="Mail" title="mail"/>
