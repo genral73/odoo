@@ -742,7 +742,6 @@ var KanbanRecord = Widget.extend({
     _onManageTogglerClicked: function (event) {
         event.preventDefault();
         this.$el.toggleClass('o_dropdown_open');
-        this.getParent().$el.toggleClass('o_kanban_with_searchpanel');
         var colorClass = this._getColorClassname(this.recordData.color || 0);
         this.$('.o_kanban_manage_button_section').toggleClass(colorClass);
     },

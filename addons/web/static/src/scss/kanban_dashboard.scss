@@ -4,9 +4,6 @@
         // correctly display the no_content_helper in dashboards
         flex-flow: row wrap;
     }
-    &.o_kanban_with_searchpanel {
-        height: -webkit-fill-available;
-    }
 
     .o_kanban_record {
         position: relative;
