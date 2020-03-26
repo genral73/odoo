@@ -55,7 +55,9 @@ var ListController = BasicController.extend({
         this.multipleRecordsSavingPromise = null;
         this.fieldChangedPrevented = false;
         this.selectAll = false;
-        this.isExportEnable = params.isExportEnable;
+        this.getSession().user_has_group('base.group_allow_export').then(has_group => {
+            this.isExportEnable = has_group;
+        });
         Object.defineProperty(this, 'mode', {
             get: () => this.renderer.isEditable() ? 'edit' : 'readonly',
             set: () => {},
@@ -352,10 +354,13 @@ var ListController = BasicController.extend({
             return null;
         }
         const props = this._super(...arguments);
-        const otherActionItems = [{
-            description: _t("Export"),
-            callback: () => this._onExportData(),
-        }];
+        const otherActionItems = [];
+        if (this.isExportEnable) {
+            otherActionItems.push({
+                description: _t("Export"),
+                callback: () => this._onExportData()
+            });
+        }
         if (this.archiveEnabled) {
             otherActionItems.push({
                 description: _t("Archive"),
