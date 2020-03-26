@@ -98,7 +98,7 @@ publicWidget.registry.EventRegistrationFormInstance = publicWidget.Widget.extend
     destroy: function(){
         this.instance.setElement(null);
         this._super.apply(this, arguments);
-        return this.instance.attachTo(this.$el);
+        return this.instance.setElement(this.$el);
     }
 });
 
