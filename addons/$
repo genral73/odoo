@@ -201,7 +201,7 @@
         <t t-call="website.layout">
             <t t-set="additional_title">Shop</t>
             <div id="wrap" class="js_sale">
-                <div class="oe_structure oe_structure_small" id="oe_structure_website_sale_products_1"/>
+                <div class="oe_structure " id="oe_structure_website_sale_products_1"/>
                 <div class="container oe_website_sale">
                     <div class="products_pager form-inline flex-md-nowrap justify-content-between justify-content-md-center">
                         <t t-call="website_sale.search">
