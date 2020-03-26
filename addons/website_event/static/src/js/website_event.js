@@ -76,9 +76,9 @@ publicWidget.registry.EventRegistrationFormInstance = publicWidget.Widget.extend
      * @override
      */
     start: function () {
-            var def = this._super.apply(this, arguments);
-            var instance = new EventRegistrationForm(this);
-            return Promise.all([def, instance.attachTo(this.$el)]);
+        var def = this._super.apply(this, arguments);
+        var instance = new EventRegistrationForm(this);
+        return Promise.all([def, instance.attachTo(this.$el)]);
     },
 });
 
