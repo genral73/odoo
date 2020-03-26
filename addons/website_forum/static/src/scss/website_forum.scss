@@ -28,6 +28,11 @@ $bronze: #eea91e;
             background-color: rgba(theme-color('info'), 0.1);
             color: darken(theme-color('info'), 15%)!important;
         }
+
+        img {
+            width: 30px;
+            height: 30px;
+        }
     }
 
     // Single Post
@@ -47,6 +52,13 @@ $bronze: #eea91e;
             padding-left: 1em;
             border-left: .25em solid gray('500');
             color: gray('600');
+        }
+
+        #post_reply {
+            img {
+                width: 24px;
+                height: 24px;
+            }
         }
     }
 
