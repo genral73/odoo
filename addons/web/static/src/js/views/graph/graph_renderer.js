@@ -637,7 +637,7 @@ return AbstractRenderer.extend({
 
         var newDataset = function (datasetLabel, originIndex) {
             var data = new Array(self._getDatasetDataLength(originIndex, labels.length)).fill(0);
-            var domain = new Array(self._getDatasetDataLength(originIndex, labels.length)).fill([]);
+            const domain = new Array(self._getDatasetDataLength(originIndex, labels.length)).fill([]);
             return {
                 label: datasetLabel,
                 data: data,
@@ -687,39 +687,8 @@ return AbstractRenderer.extend({
             legend: this._getLegendOptions(datasetsCount),
             tooltips: this._getTooltipOptions(),
             elements: this._getElementOptions(),
-            onClick: this._openView.bind(this),
+            onClick: this._onOpenView.bind(this),
         };
-    },
-    /**
-     * @private
-     * @param {CustomEvent} ev
-     */
-    _openView: function (ev) {
-        const activeElement = this.chart.getElementAtEvent(ev);
-        if (activeElement.length == 0) {
-            return;
-        }
-
-        const data = activeElement[0]._chart.config.data;
-        const domain = data.datasets[activeElement[0]._datasetIndex].domain[activeElement[0]._index];
-        const label = data.labels[activeElement[0]._index];
-        const context = Object.assign({}, this.state.context);
-        Object.keys(context).forEach(x => {
-            if (x === 'group_by' || x.startsWith('search_default_')) {
-                delete context[x];
-            }
-        });
-
-        this.do_action({
-            type: 'ir.actions.act_window',
-            name: label.length > 0 ? label[0] : _t(this.title),
-            res_model: this.modelName,
-            views: [[false, 'list'], [false, 'form']],
-            view_mode: 'list',
-            target: 'current',
-            context: context,
-            domain: domain,
-        });
     },
     /**
      * Determine how to relabel a label according to a given origin.
@@ -1064,6 +1033,37 @@ return AbstractRenderer.extend({
             this.$legendTooltip.remove();
             this.$legendTooltip = null;
         }
+    },
+    /**
+     * @private
+     * @param {CustomEvent} ev
+     */
+    _onOpenView: function (ev) {
+        const activeElement = this.chart.getElementAtEvent(ev);
+        if (activeElement.length === 0) {
+            return;
+        }
+
+        // const data = activeElement[0]._chart.config.data;
+        const domain = this.config.data.datasets[activeElement[0]._datasetIndex].domain[activeElement[0]._index];
+        const label = this.config.data.labels[activeElement[0]._index];
+        const context = Object.assign({}, this.state.context);
+        Object.keys(context).forEach(x => {
+            if (x === 'group_by' || x.startsWith('search_default_')) {
+                delete context[x];
+            }
+        });
+
+        this.do_action({
+            type: 'ir.actions.act_window',
+            name: label.length > 0 ? label[0] : this.title,
+            res_model: this.modelName,
+            views: [[false, 'list'], [false, 'form']],
+            view_mode: 'list',
+            target: 'current',
+            context: context,
+            domain: domain,
+        });
     },
 });
 });
