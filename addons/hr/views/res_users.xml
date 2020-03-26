@@ -133,7 +133,11 @@
                                             options='{"always_reload": True, "highlight_first_line": True}'
                                             attrs="{'readonly': [('can_edit', '=', False)]}"/>
                                         <field name="private_email" string="Email" attrs="{'readonly': [('can_edit', '=', False)]}"/>
+<<<<<<< HEAD
                                         <field name="employee_phone" string="Phone" attrs="{'readonly': [('can_edit', '=', False)]}" options="{'enable_sms': false}"/>
+=======
+                                        <field name="employee_phone" string="Phone" class="o_force_ltr" attrs="{'readonly': [('can_edit', '=', False)]}"/>
+>>>>>>> 648699b3406... temp
                                         <field name="employee_bank_account_id" attrs="{'readonly': [('can_edit', '=', False)]}"/>
                                         <field name="km_home_work" attrs="{'readonly': [('can_edit', '=', False)]}"/>
                                     </group>
@@ -160,8 +164,13 @@
                                         <field name="children" attrs="{'readonly': [('can_edit', '=', False)]}"/>
                                     </group>
                                     <group string="Emergency">
+<<<<<<< HEAD
                                         <field name="emergency_contact" attrs="{'readonly': [('can_edit', '=', False)]}"/>
                                         <field name="emergency_phone" attrs="{'readonly': [('can_edit', '=', False)]}" options="{'enable_sms': false}"/>
+=======
+                                        <field name="emergency_contact" class="o_force_ltr" attrs="{'readonly': [('can_edit', '=', False)]}"/>
+                                        <field name="emergency_phone" class="o_force_ltr" attrs="{'readonly': [('can_edit', '=', False)]}"/>
+>>>>>>> 648699b3406... temp
                                     </group>
                                     <group string="Work Permit" name="work_permit">
                                         <field name="visa_no" attrs="{'readonly': [('can_edit', '=', False)]}"/>
