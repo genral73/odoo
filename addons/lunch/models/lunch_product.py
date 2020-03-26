@@ -19,7 +19,7 @@ class LunchProductCategory(models.Model):
         return base64.b64encode(open(image_path, 'rb').read())
 
     name = fields.Char('Product Category', required=True, translate=True)
-    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company')
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id')
     topping_label_1 = fields.Char('Extra 1 Label', required=True, default='Extras')
     topping_label_2 = fields.Char('Extra 2 Label', required=True, default='Beverages')
