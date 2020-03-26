@@ -42,7 +42,8 @@
                                     <span t-field="timesheets[0].project_id.name"/></th>
                                 <th>Date</th>
                                 <th>Employee</th>
-                                <th class="text-right">Duration</th>
+                                <th t-if="is_uom_day" class="text-right">Duration (Days)</th>
+                                <th t-else="" class="text-right">Duration (Hours)</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -15,5 +15,5 @@ class ProjectCustomerPortal(CustomerPortal):
         domain = expression.AND([domain, [('task_id', '=', task.id)]])
         timesheets = request.env['account.analytic.line'].sudo().search(domain)
         values['timesheets'] = timesheets
-        values['is_uom_day'] = request.env['account.analytic.line']._is_timesheet_endecode_uom_day()
+        values['is_uom_day'] = request.env['account.analytic.line']._is_timesheet_encode_uom_day()
         return values

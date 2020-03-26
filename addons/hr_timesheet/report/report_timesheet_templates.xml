@@ -20,6 +20,7 @@
 
                     <div class="row" style="margin-top:10px;">
                         <div class="col-lg-12">
+                            <t t-set='is_uom_day' t-value='docs._is_timesheet_encode_uom_day()'/>
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
@@ -28,11 +29,13 @@
                                         <th><span>Description</span></th>
                                         <th t-if="show_project"><span>Project</span></th>
                                         <th t-if="show_task"><span>Task</span></th>
-                                        <th class="text-right"><span>Time</span></th>
+                                        <th class="text-right">
+                                            <span t-if="is_uom_day">Time Spent (Days)</span>
+                                            <span t-else="">Time Spent (Hours)</span>
+                                        </th>
                                     </tr>
                                </thead>
                                <tbody>
-                                    <t t-set='is_uom_day' t-value='docs._is_timesheet_endecode_uom_day()'/>
                                     <tr t-foreach="docs" t-as="l">
                                         <td>
                                            <span t-field="l.date"/>
@@ -59,7 +62,10 @@
                                         <td />
                                         <td t-if="show_project"/>
                                         <td t-if="show_task"/>
-                                        <td class="text-right"><strong>Total</strong></td>
+                                        <td class="text-right">
+                                            <strong t-if="is_uom_day">Total (Days)</strong>
+                                            <strong t-else="">Total (Hours)</strong>
+                                        </td>
                                         <td class="text-right">
                                             <strong t-if="is_uom_day" t-esc="docs._convert_hours_to_days(sum(docs.mapped('unit_amount')))" t-options="{'widget': 'timesheet_uom'}"/>
                                             <strong t-else="" t-esc="sum(docs.mapped('unit_amount'))" t-options="{'widget': 'duration', 'digital': True, 'unit': 'hour', 'round': 'minute'}"/>

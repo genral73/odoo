@@ -230,7 +230,7 @@ class AccountAnalyticLine(models.Model):
     def _action_interrupt_user_timers(self):
         self.action_timer_stop()
 
-    def _is_timesheet_endecode_uom_day(self):
+    def _is_timesheet_encode_uom_day(self):
         company_uom = self.env.company.timesheet_encode_uom_id
         return company_uom and company_uom == self.env.ref('uom.product_uom_day')
 
