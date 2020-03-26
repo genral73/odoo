@@ -20,7 +20,7 @@ class WebClient extends Component {
         super();
         this.LoadingWidget = LoadingWidget;
         useExternalListener(window, 'hashchange', this._onHashchange);
-        useExternalListener(document.body, 'click', this._onGenericClick);
+        useListener('click', this._onGenericClick);
 
         this.currentMainComponent = useRef('currentMainComponent');
         this.currentDialogComponent = useRef('currentDialogComponent');
@@ -512,7 +512,7 @@ class WebClient extends Component {
                 let matchingEl = null;
                 try {
                     matchingEl = this.el.querySelector(`.o_content #${href.value.substr(1)}`);
-                } catch (e) {}
+                } catch (e) {} // Inavlid selector: not an anchor anyway
                 if (matchingEl) {
                     ev.preventDefault();
                     const {top, left} = matchingEl.getBoundingClientRect();
