@@ -47,29 +47,8 @@ class LRU(object):
         del self.d[obj]
 
     @synchronized()
-    def __iter__(self):
-        yield from self.d
-
-    @synchronized()
     def __len__(self):
         return len(self.d)
-
-    @synchronized()
-    def iteritems(self):
-        yield from self.d.items()
-    items = iteritems
-
-    @synchronized()
-    def iterkeys(self):
-        yield from self.d
-
-    @synchronized()
-    def itervalues(self):
-        yield from self.d.values()
-
-    @synchronized()
-    def keys(self):
-        return list(self.d)
 
     @synchronized()
     def pop(self,key):
