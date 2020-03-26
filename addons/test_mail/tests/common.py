@@ -53,7 +53,6 @@ class TestMailCommon(common.SavepointCase, mail_common.MailCase):
 
     def flush_tracking(self):
         """ Force the creation of tracking values. """
-        self.env['base'].flush()
         self.cr.precommit()
 
 
