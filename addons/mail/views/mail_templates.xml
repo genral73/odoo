@@ -247,6 +247,7 @@
                 <script type="text/javascript" src="/mail/static/tests/owl/component/file_uploader_tests.js"></script>
                 <script type="text/javascript" src="/mail/static/tests/owl/component/message_tests.js"></script>
                 <script type="text/javascript" src="/mail/static/tests/owl/component/messaging_menu_tests.js"></script>
+                <script type="text/javascript" src="/mail/static/tests/owl/component/notification_list_tests.js"></script>
                 <script type="text/javascript" src="/mail/static/tests/owl/component/partner_im_status_icon_tests.js"></script>
                 <script type="text/javascript" src="/mail/static/tests/owl/component/thread_tests.js"></script>
                 <script type="text/javascript" src="/mail/static/tests/owl/hooks/use_store_tests.js"></script>

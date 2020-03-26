@@ -52,7 +52,27 @@ class NotificationList extends Component {
      */
     _useStore(state, props) {
         const threads = this._useStoreThreads(state, props);
-        const notifications = threads.map(thread => {
+        const notifications = threads
+            .sort((threadA, threadB) => {
+                if (threadA.message_unread_counter > 0 && threadB.message_unread_counter === 0) {
+                    return -1;
+                } else if (threadA.message_unread_counter === 0 && threadB.message_unread_counter > 0) {
+                    return 1;
+                }
+                const messageLocalIdsA = threadA.messageLocalIds;
+                const messageLocalIdsB = threadB.messageLocalIds;
+                const lastMessageA = state.messages[messageLocalIdsA[messageLocalIdsA.length-1]];
+                const lastMessageB = state.messages[messageLocalIdsB[messageLocalIdsB.length-1]];
+                if (lastMessageA && lastMessageB) {
+                    return lastMessageB.date - lastMessageA.date;
+                } else if (lastMessageA) {
+                    return -1;
+                } else if (lastMessageB) {
+                    return 1;
+                }
+                return 0;
+            })
+            .map(thread => {
             return {
                 threadLocalId: thread.localId,
                 type: 'thread',
