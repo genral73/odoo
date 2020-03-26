@@ -25,9 +25,9 @@ class MailChannel(models.Model):
             ], limit=1, order='visit_datetime')
             utm_data = dict(parse.parse_qsl(parse.urlsplit(utm_page_view.url).query)) if utm_page_view else False
             if utm_data:
-                campaign_id = self.env['utm.campaign'].search([('name', '=', utm_data.get('utm_campaign'))])
-                source_id = self.env['utm.source'].search([('name', '=', utm_data.get('utm_source'))])
-                medium_id = self.env['utm.medium'].search([('name', '=', utm_data.get('utm_medium'))])
+                campaign_id = self.env['utm.campaign'].with_context(lang='en_US').search([('name', '=', utm_data.get('utm_campaign'))])
+                source_id = self.env['utm.source'].with_context(lang='en_US').search([('name', '=', utm_data.get('utm_source'))])
+                medium_id = self.env['utm.medium'].with_context(lang='en_US').search([('name', '=', utm_data.get('utm_medium'))])
                 lead.write({
                     'campaign_id': campaign_id.id or lead.campaign_id.id,
                     'medium_id': medium_id.id or lead.medium_id.id,
