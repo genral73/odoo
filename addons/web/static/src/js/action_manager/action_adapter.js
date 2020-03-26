@@ -106,7 +106,7 @@ odoo.define('web.ActionAdapter', function (require) {
         // Public
         //--------------------------------------------------------------------------
 
-        canBeRemoved() {
+        async canBeRemoved() {
             if (this.legacy && this.widget) {
                 return this.widget.canBeRemoved();
             }
