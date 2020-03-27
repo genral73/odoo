@@ -5,6 +5,7 @@ var concurrency = require('web.concurrency');
 var core = require('web.core');
 var Dialog = require('web.Dialog');
 var dom = require('web.dom');
+const session = require('web.session');
 var Widget = require('web.Widget');
 var options = require('web_editor.snippets.options');
 var Wysiwyg = require('web_editor.wysiwyg');
@@ -987,6 +988,18 @@ var SnippetsMenu = Widget.extend({
     /**
      * @override
      */
+    async willStart() {
+        await this._super(...arguments);
+        const users = await this._rpc({
+            model: 'res.users',
+            method: 'read',
+            args: [[session.user_id], ['lang']],
+        });
+        this._userLanguage = users[0].lang;
+    },
+    /**
+     * @override
+     */
     destroy: function () {
         this._super.apply(this, arguments);
         if (this.$window) {
@@ -1033,7 +1046,7 @@ var SnippetsMenu = Widget.extend({
             method: 'render_template',
             args: [this.options.snippets, {}],
             kwargs: {
-                context: this.options.context,
+                context: Object.assign({lang: this._userLanguage}, this.options.context),
             },
         });
         this.cacheSnippetTemplate[this.options.snippets] = this._defLoadSnippets;
