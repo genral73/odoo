@@ -3,7 +3,16 @@ odoo.define('web.field_registry', function (require) {
 
 var Registry = require('web.Registry');
 
-return new Registry();
+var FieldRegistry = Registry.extend({
+    add: function (key, value, score) {
+        if (value.prototype instanceof owl.Component) {
+            throw "This registry should not contain any Component";
+        }
+        return this._super(...arguments);
+    },
+});
+
+return new FieldRegistry();
 });
 
 odoo.define('web._field_registry', function (require) {
