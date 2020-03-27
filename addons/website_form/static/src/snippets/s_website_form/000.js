@@ -3,13 +3,13 @@ odoo.define('website_form.s_website_form', function (require) {
 
     var core = require('web.core');
     var time = require('web.time');
-    var ajax = require('web.ajax');
+    var ReCaptchaV3Mixin = require('reCaptchaV3Mixin');
     var publicWidget = require('web.public.widget');
 
     var _t = core._t;
     var qweb = core.qweb;
 
-    publicWidget.registry.s_website_form = publicWidget.Widget.extend({
+    publicWidget.registry.s_website_form = publicWidget.Widget.extend(ReCaptchaV3Mixin, {
         selector: '.s_website_form form, form.s_website_form', // !compatibility
         xmlDependencies: ['/website_form/static/src/xml/website_form.xml'],
         events: {
@@ -25,6 +25,7 @@ odoo.define('website_form.s_website_form', function (require) {
         },
 
         start: function () {
+            ReCaptchaV3Mixin.start.call(this);
             var self = this;
             // Initialize datetimepickers
             var datepickers_options = {
@@ -86,7 +87,7 @@ odoo.define('website_form.s_website_form', function (require) {
             this.$target.parent().find('.s_website_form_end_message').addClass('d-none');
         },
 
-        send: function (e) {
+        send: async function (e) {
             e.preventDefault(); // Prevent the default submit behavior
              // Prevent users from crazy clicking
             this.$target.find('.s_website_form_send, .o_website_form_send').addClass('disabled'); // !compatibility
@@ -132,9 +133,15 @@ odoo.define('website_form.s_website_form', function (require) {
                 }
             });
 
+            const token = await this._getReCaptchaV3Token('website_form');
             // Post form and handle result
-            ajax.post(this.$target.attr('action') + (this.$target.data('force_action') || this.$target.data('model_name')), form_values)
-            .then(function (result_data) {
+            this._rpc({
+                route: this.$target.attr('action') + (this.$target.data('force_action') || this.$target.data('model_name')),
+                params: {
+                    values: form_values,
+                    token: token,
+                },
+            }).then(function (result_data) {
                 // Restore send button behavior
                 self.$target.find('.s_website_form_send, .o_website_form_send').removeClass('disabled'); // !compatibility
                 result_data = JSON.parse(result_data);

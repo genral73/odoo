@@ -19,14 +19,18 @@ from odoo.addons.base.models.ir_qweb_fields import nl2br
 class WebsiteForm(http.Controller):
 
     # Check and insert values from the form on the model <model>
-    @http.route('/website_form/<string:model_name>', type='http', auth="public", methods=['POST'], website=True)
-    def website_form(self, model_name, **kwargs):
+    @http.route('/website_form/<string:model_name>', type='json', auth="public", website=True)
+    def website_form(self, model_name, token, values):
+        ip_addr = request.httprequest.remote_addr
+        is_token_valid = request.env['ir.http'].verify_recaptcha_token(ip_addr, token)
+        if not is_token_valid:
+            return False
         model_record = request.env['ir.model'].sudo().search([('model', '=', model_name), ('website_form_access', '=', True)])
         if not model_record:
             return json.dumps(False)
 
         try:
-            data = self.extract_data(model_record, request.params)
+            data = self.extract_data(model_record, values)
         # If we encounter an issue while extracting data
         except ValidationError as e:
             # I couldn't find a cleaner way to pass data to an exception
