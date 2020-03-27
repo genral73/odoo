@@ -21,6 +21,17 @@
         </field>
     </record>
 
+    <record id="sale_expense_product_template_form_view_expense_policy" model="ir.ui.view">
+        <field name="name">sale.expense.product.template.form.view.expense.policy</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sale.product_template_form_view_invoice_policy"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='expense_policy']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('visible_expense_policy', '=', False), ('can_be_expensed', '=', False)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <record id="hr_expense.hr_expense_product" model="ir.actions.act_window">
         <field name="context">{"default_can_be_expensed": 1, 'default_type': 'service',
             'default_invoice_policy':'delivery', 'default_expense_policy' : 'cost'}</field>
