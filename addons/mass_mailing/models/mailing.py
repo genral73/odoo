@@ -129,6 +129,8 @@ class MassMailing(models.Model):
     next_departure = fields.Datetime(compute="_compute_next_departure", string='Scheduled date')
 
     def _compute_total(self):
+        # import pdb
+        # pdb.set_trace()
         for mass_mailing in self:
             mass_mailing.total = len(mass_mailing.sudo()._get_recipients())
 
@@ -480,6 +482,8 @@ class MassMailing(models.Model):
         }
 
     def _get_recipients(self):
+        # import pdb
+        # pdb.set_trace()
         try:
             mailing_domain = literal_eval(self.mailing_domain)
         except:
