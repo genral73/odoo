@@ -246,61 +246,67 @@ class Base(models.AbstractModel):
 
         # retrieve all possible values, and return them with their label and counter
         if field.type == 'many2one':
-            Comodel = self.env[field.comodel_name]
-            parent_name = Comodel._parent_name if Comodel._parent_name in Comodel._fields else False
-            parent_store = Comodel._parent_store
-
-            field_names = ['display_name']
-            if parent_store:
-                field_names.append('parent_path')
-            elif parent_name:
-                field_names.append(parent_name)
-
-            records = Comodel.with_context(hierarchical_naming=False).search_read([], field_names)
-
             # extract the id from a many2one value
             def get_id(value):
                 return value and value[0]
 
-            # get counters
-            counters = defaultdict(lambda: 0)
+            # determine counters
+            counters = defaultdict(int)
+            # comodel_ids = []
             if not disable_counters:
-                # get local counters
                 groups = self.read_group(search_domain, [field_name], [field_name])
                 for group in groups:
-                    id = get_id(group[field_name])
-                    counters[id] = group[field_name + '_count']
+                    record_id = get_id(group[field_name])
+                    counters[record_id] = group[field_name + '_count']
+                    # if record_id:
+                    #     comodel_ids.append(record_id)
 
-            category_values = lazymapping(lambda id: {
+            # determine result
+            result = lazymapping(lambda id: {
                 'id': id,
-                'parent_id': False,
-                'children_ids': [],
-                'count': counters[id],
+                'count': 0,
             })
+
+            # determine records in the comodel, and fill in counters
+            Comodel = self.env[field.comodel_name]
+            parent_name = False
+            field_names = ['display_name']
+            if Comodel._parent_name in Comodel._fields:
+                parent_name = Comodel._parent_name
+                field_names.append(parent_name)
+
+            # in order to restrict the result to the subset corresponding to the
+            # counters, use then domain [('id', 'parent_of', comodel_ids)]
+            records = Comodel.with_context(hierarchical_naming=False).search_read([], field_names)
             for record in records:
                 record_id = record['id']
-                values = category_values[record_id]
+                values = result[record_id]
                 values['display_name'] = record['display_name']
                 if parent_name:
                     parent_id = get_id(record[parent_name])
                     if parent_id:
                         values['parent_id'] = parent_id
-                        category_values[parent_id]['children_ids'].append(record_id)
 
             if not disable_counters and parent_name:
-                def compute_global_count(id):
-                    counts = sum([compute_global_count(child_id) for child_id in category_values[id]['children_ids']])
-                    category_values[id]['count'] += counts
-                    return category_values[id]['count']
-
-                # get global counters
-                for id in category_values:
-                    if not category_values[id]['parent_id']:
-                        compute_global_count(id)
+                # fill in global counters: for each node, add its count to the
+                # node itself and all its ancestors
+                for record in records:
+                    record_id = record['id']
+                    count = counters[record_id]
+                    if count:
+                        while record_id:
+                            values = result[record_id]
+                            values['count'] += count
+                            record_id = values.get('parent_id')
+            else:
+                # fill in local counters
+                for record_id, count in counters.items():
+                    if record_id:
+                        result[record_id]['count'] = count
 
             return {
                 'parent_field': parent_name,
-                'values': [ values for id, values in category_values.items()],
+                'values': list(result.values()),
             }
 
         elif field.type == 'selection':
