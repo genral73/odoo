@@ -25,7 +25,7 @@ QUnit.module('ThreadViewer', {
          * @param {string} threadLocalId
          * @param {Object} [otherProps]
          */
-        this.createThread = async (threadLocalId, otherProps, { isFixedSize = false } = {}) => {
+        this.createThreadViewerComponent = async (threadLocalId, otherProps, { isFixedSize = false } = {}) => {
             const ThreadViewerComponent = components.ThreadViewer;
             ThreadViewerComponent.env = this.env;
             this.component = new ThreadViewerComponent(
@@ -86,7 +86,7 @@ QUnit.test('dragover files on thread with composer', async function (assert) {
         name: "General",
         public: 'public',
     });
-    await this.createThread(threadLocalId, { hasComposer: true });
+    await this.createThreadViewerComponent(threadLocalId, { hasComposer: true });
     dragenterFiles(document.querySelector('.o_ThreadViewer'));
     await afterNextRender();
     assert.ok(
@@ -144,7 +144,7 @@ QUnit.test('message list desc order', async function (assert) {
         name: "General",
         public: 'public',
     });
-    await this.createThread(threadLocalId, { order: 'desc' }, { isFixedSize: true });
+    await this.createThreadViewerComponent(threadLocalId, { order: 'desc' }, { isFixedSize: true });
     const messageItems = document.querySelectorAll(`.o_MessageList_item`);
     assert.notOk(
         messageItems[0].classList.contains("o_MessageList_loadMore"),
@@ -236,7 +236,7 @@ QUnit.test('message list asc order', async function (assert) {
         name: "General",
         public: 'public',
     });
-    await this.createThread(threadLocalId, { order: 'asc' }, { isFixedSize: true });
+    await this.createThreadViewerComponent(threadLocalId, { order: 'asc' }, { isFixedSize: true });
     const messageItems = document.querySelectorAll(`.o_MessageList_item`);
     assert.notOk(
         messageItems[messageItems.length - 1].classList.contains("o_MessageList_loadMore"),

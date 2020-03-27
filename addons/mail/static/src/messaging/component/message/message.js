@@ -533,6 +533,7 @@ class Message extends Component {
      * @private
      */
     _onClickMarkAsRead() {
+        ev.stopPropagation();
         return this.storeDispatch('markMessagesAsRead', [this.props.messageLocalId]);
     }
 

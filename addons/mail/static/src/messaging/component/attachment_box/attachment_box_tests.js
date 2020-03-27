@@ -22,20 +22,20 @@ QUnit.module('component', {}, function () {
 QUnit.module('AttachmentBox', {
     beforeEach() {
         utilsBeforeEach(this);
-        this.createThread = async ({ model, id }, { fetchAttachments = false } = {}) => {
-            const threadLocalId = this.env.store.dispatch('_createThread', { _model: model, id });
-            if (fetchAttachments) {
-                await this.env.store.dispatch('_fetchThreadAttachments', threadLocalId);
-            }
-            return threadLocalId;
-        };
-        this.createAttachmentBox = async (threadLocalId, otherProps) => {
+        this.createAttachmentBoxComponent = async (threadLocalId, otherProps) => {
             const AttachmentBoxComponent = components.AttachmentBox;
             AttachmentBoxComponent.env = this.env;
             this.component = new AttachmentBoxComponent(null, Object.assign({
                 threadLocalId
             }, otherProps));
             await this.component.mount(this.widget.el);
+        };
+        this.createThread = async ({ model, id }, { fetchAttachments = false } = {}) => {
+            const threadLocalId = this.env.store.dispatch('_createThread', { _model: model, id });
+            if (fetchAttachments) {
+                await this.env.store.dispatch('_fetchThreadAttachments', threadLocalId);
+            }
+            return threadLocalId;
         };
         this.start = async params => {
             if (this.widget) {
@@ -77,7 +77,7 @@ QUnit.test('base empty rendering', async function (assert) {
         id: 100,
         model: 'res.partner',
     });
-    await this.createAttachmentBox(threadLocalId);
+    await this.createAttachmentBoxComponent(threadLocalId);
     assert.strictEqual(
         document.querySelectorAll(`.o_AttachmentBox`).length,
         1,
@@ -127,7 +127,7 @@ QUnit.test('base non-empty rendering', async function (assert) {
         id: 100,
         model: 'res.partner',
     }, { fetchAttachments: true });
-    await this.createAttachmentBox(threadLocalId);
+    await this.createAttachmentBoxComponent(threadLocalId);
     assert.verifySteps(
         ['ir.attachment/search_read'],
         "should have fetched attachments"
@@ -170,7 +170,7 @@ QUnit.test('attachment box: drop attachments', async function (assert) {
         id: 100,
         model: 'res.partner',
     }, { fetchAttachments: true });
-    await this.createAttachmentBox(threadLocalId);
+    await this.createAttachmentBoxComponent(threadLocalId);
     const files = [
         await createFile({
             content: 'hello, world',

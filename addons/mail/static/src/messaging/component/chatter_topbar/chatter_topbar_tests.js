@@ -20,7 +20,7 @@ QUnit.module('component', {}, function () {
 QUnit.module('ChatterTopbar', {
     beforeEach() {
         utilsBeforeEach(this);
-        this.createChatterTopbar = async (chatterLocalId, otherProps) => {
+        this.createChatterTopbarComponent = async (chatterLocalId, otherProps) => {
             const ChatterTopBarComponent = components.ChatterTopBar;
             ChatterTopBarComponent.env = this.env;
             const defaultProps = {
@@ -72,7 +72,7 @@ QUnit.test('base rendering', async function (assert) {
         initialThreadId: 100,
         initialThreadModel: 'res.partner',
     });
-    await this.createChatterTopbar(chatterLocalId);
+    await this.createChatterTopbarComponent(chatterLocalId);
 
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatterTopbar`).length,
@@ -141,7 +141,7 @@ QUnit.test('base disabled rendering', async function (assert) {
     const chatterLocalId = this.env.store.dispatch('createChatter', {
         initialThreadModel: 'res.partner'
     });
-    await this.createChatterTopbar(chatterLocalId);
+    await this.createChatterTopbarComponent(chatterLocalId);
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatterTopbar`).length,
         1,
@@ -208,7 +208,7 @@ QUnit.test('attachment counter while loading attachments', async function (asser
         initialThreadId: 100,
         initialThreadModel: 'res.partner',
     });
-    await this.createChatterTopbar(chatterLocalId);
+    await this.createChatterTopbarComponent(chatterLocalId);
 
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatterTopbar`).length,
@@ -249,7 +249,7 @@ QUnit.test('attachment counter transition when attachments become loaded)', asyn
         initialThreadId: 100,
         initialThreadModel: 'res.partner',
     });
-    await this.createChatterTopbar(chatterLocalId);
+    await this.createChatterTopbarComponent(chatterLocalId);
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatterTopbar`).length,
         1,
@@ -305,7 +305,7 @@ QUnit.test('attachment counter without attachments', async function (assert) {
         initialThreadId: 100,
         initialThreadModel: 'res.partner',
     });
-    await this.createChatterTopbar(chatterLocalId);
+    await this.createChatterTopbarComponent(chatterLocalId);
 
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatterTopbar`).length,
@@ -355,7 +355,7 @@ QUnit.test('attachment counter with attachments', async function (assert) {
         initialThreadId: 100,
         initialThreadModel: 'res.partner',
     });
-    await this.createChatterTopbar(chatterLocalId);
+    await this.createChatterTopbarComponent(chatterLocalId);
 
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatterTopbar`).length,
