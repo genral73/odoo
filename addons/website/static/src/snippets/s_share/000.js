@@ -17,7 +17,9 @@ const ShareWidget = publicWidget.Widget.extend({
             var $a = $(this);
             if (($a.attr('target') && $a.attr('target').match(/_blank|_self/i) && !$a.closest('.o_editable').length)) {
                 $a.on('click', function () {
-                    let url = encodeURIComponent(window.location.href),title = encodeURIComponent($('title').text()),media = encodeURIComponent(window.location.origin + $('.product_detail_img').attr('src'));
+                    let url = encodeURIComponent(window.location.href),title = encodeURIComponent($('title').text()),
+                    pin_img = $('.product_detail_img').attr('src') ? $('.product_detail_img').attr('src') : $('img').attr('src'),
+                    media = encodeURIComponent(window.location.origin + pin_img);
                      $a.attr('href', function (i, href) {
                         return href.replace(urlRegex, function (match, a, b, c) {
                             return a + url + c;
