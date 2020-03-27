@@ -27,7 +27,9 @@ class WebsiteBlog(http.Controller):
             tag_ids.remove(current_tag)
         else:
             tag_ids.append(current_tag)
-        tag_ids = request.env['blog.tag'].browse(tag_ids).exists()
+        # TODO: can we assume tag_ids exists since it comes from `active_tag_ids`
+        # in controller where they got already checked with exists()?
+        tag_ids = request.env['blog.tag'].browse(tag_ids)
         return ','.join(slug(tag) for tag in tag_ids)
 
     def nav_list(self, blog=None):
@@ -66,7 +68,6 @@ class WebsiteBlog(http.Controller):
 
         if date_begin and date_end:
             domain += [("post_date", ">=", date_begin), ("post_date", "<=", date_end)]
-
         active_tag_ids = tags and [unslug(tag)[1] for tag in tags.split(',')] or []
         if active_tag_ids:
             fixed_tag_slug = ",".join(slug(t) for t in request.env['blog.tag'].browse(active_tag_ids).exists())
