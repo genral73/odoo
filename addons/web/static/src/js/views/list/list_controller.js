@@ -12,6 +12,7 @@ var BasicController = require('web.BasicController');
 var DataExport = require('web.DataExport');
 var Dialog = require('web.Dialog');
 var ListConfirmDialog = require('web.ListConfirmDialog');
+var session = require('web.session');
 
 var _t = core._t;
 var qweb = core.qweb;
@@ -55,7 +56,7 @@ var ListController = BasicController.extend({
         this.multipleRecordsSavingPromise = null;
         this.fieldChangedPrevented = false;
         this.selectAll = false;
-        this.getSession().user_has_group('base.group_allow_export').then(has_group => {
+        session.user_has_group('base.group_allow_export').then(has_group => {
             this.isExportEnable = has_group;
         });
         Object.defineProperty(this, 'mode', {
