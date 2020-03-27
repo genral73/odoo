@@ -11,7 +11,7 @@
             <!-- Topbar -->
             <t t-call="website_event.index_topbar"/>
             <!-- Drag/Drop Area -->
-            <div id="oe_structure_we_index_1" class="oe_structure"/>
+            <div id="oe_structure_we_index_1" class="oe_structure oe_empty oe_structure_small"/>
             <!-- Content -->
             <div t-attf-class="o_wevent_events_list #{opt_events_list_cards and 'opt_event_list_cards_bg'}">
                 <div class="container">
@@ -29,7 +29,7 @@
                 </div>
             </div>
             <!-- Drag/Drop Area -->
-            <div id="oe_structure_we_index_2" class="oe_structure"/>
+            <div id="oe_structure_we_index_2" class="oe_structure oe_empty oe_structure_small"/>
         </div>
     </t>
 </template>
