@@ -19,6 +19,7 @@ This module provides the core of the Odoo Web Client.
         'views/webclient_templates.xml',
         'views/report_templates.xml',
         'data/report_layout.xml',
+        'data/web_data.xml',
     ],
     'qweb': [
         "static/src/xml/base.xml",
