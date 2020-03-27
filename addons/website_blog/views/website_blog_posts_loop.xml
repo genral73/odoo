@@ -12,12 +12,6 @@ according to the enabled options.
              and if both published/unpublished number is > 0 -->
         <t t-if="state_info" t-set="state" t-value="state_info['state']"/>
 
-        <!-- Check for active options -->
-        <t t-set="opt_posts_loop_show_cover" t-value="request.website.viewref('website_blog.opt_posts_loop_show_cover').active"/>
-        <t t-set="opt_posts_loop_show_author" t-value="request.website.viewref('website_blog.opt_posts_loop_show_author').active"/>
-        <t t-set="opt_posts_loop_show_stats" t-value="request.website.viewref('website_blog.opt_posts_loop_show_stats').active"/>
-        <t t-set="opt_posts_loop_show_teaser" t-value="request.website.viewref('website_blog.opt_posts_loop_show_teaser').active"/>
-
         <div groups="website.group_website_designer" t-if="state_info and (state_info['published'] > 0 and state_info['unpublished'] > 0)">
             <div class="bg-200 py-2 mb-4 alert alert-dismissable">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">&#215;</button>

@@ -89,14 +89,19 @@ class WebsiteBlog(http.Controller):
         else:
             domain += [("post_date", "<=", fields.Datetime.now())]
 
-        use_cover, fullwidth_cover, opt_blog_cards_design, opt_blog_list_view, opt_blog_readable, opt_blog_sidebar_show = request.website.viewsref([
+        use_cover, fullwidth_cover, opt_blog_cards_design, opt_blog_list_view, opt_blog_readable, opt_blog_sidebar_show, opt_posts_loop_show_cover, opt_posts_loop_show_author, opt_posts_loop_show_stats, opt_posts_loop_show_teaser = request.website.viewsref([
             'website_blog.opt_blog_cover_post',
             'website_blog.opt_blog_cover_post_fullwidth_design',
             'website_blog.opt_blog_cards_design',
             'website_blog.opt_blog_list_view',
             'website_blog.opt_blog_readable',
             'website_blog.opt_blog_sidebar_show',
+            'website_blog.opt_posts_loop_show_cover',
+            'website_blog.opt_posts_loop_show_author',
+            'website_blog.opt_posts_loop_show_stats',
+            'website_blog.opt_posts_loop_show_teaser',
         ]).mapped('active')
+
 
         # if blog, we show blog title, if use_cover and not fullwidth_cover we need pager + latest always
         offset = (page - 1) * self._blog_post_per_page
@@ -144,6 +149,10 @@ class WebsiteBlog(http.Controller):
             'opt_blog_list_view': opt_blog_list_view,
             'opt_blog_readable': opt_blog_readable,
             'opt_blog_sidebar_show': opt_blog_sidebar_show,
+            'opt_posts_loop_show_cover': opt_posts_loop_show_cover,
+            'opt_posts_loop_show_author': opt_posts_loop_show_author,
+            'opt_posts_loop_show_stats': opt_posts_loop_show_stats,
+            'opt_posts_loop_show_teaser': opt_posts_loop_show_teaser,
         }
 
     @http.route([
