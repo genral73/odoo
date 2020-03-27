@@ -1,16 +1,15 @@
-odoo.define('mail.component.DiscussMobileMailboxSelection', function (require) {
+odoo.define('mail.messaging.component.DiscussMobileMailboxSelection', function (require) {
 'use strict';
 
-const useStore = require('mail.hooks.useStore');
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component } = owl;
 const { useGetters } = owl.hooks;
 
-class MobileMailboxSelection extends Component {
+class DiscussMobileMailboxSelection extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -43,15 +42,16 @@ class MobileMailboxSelection extends Component {
     }
 }
 
-MobileMailboxSelection.props = {
-    activeThreadLocalId: {
-        type: String,
-        optional: true,
+Object.assign(DiscussMobileMailboxSelection, {
+    props: {
+        activeThreadLocalId: {
+            type: String,
+            optional: true,
+        },
     },
-};
+    template: 'mail.messaging.component.DiscussMobileMailboxSelection',
+});
 
-MobileMailboxSelection.template = 'mail.component.DiscussMobileMailboxSelection';
-
-return MobileMailboxSelection;
+return DiscussMobileMailboxSelection;
 
 });

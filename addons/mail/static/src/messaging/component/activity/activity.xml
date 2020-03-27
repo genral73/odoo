@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="mail.component.Activity" owl="1">
+    <t t-name="mail.messaging.component.Activity" owl="1">
         <div class="o_Activity">
             <div class="o_Activity_sidebar">
                 <div class="o_Activity_user">

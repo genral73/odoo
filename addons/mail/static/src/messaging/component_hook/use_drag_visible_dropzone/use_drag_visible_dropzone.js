@@ -1,4 +1,4 @@
-odoo.define('mail.hooks.useDragVisibleDropZone', function (require) {
+odoo.define('mail.messaging.component_hook.useDragVisibleDropZone', function (require) {
 'use strict';
 
 const { useRef, useState, onMounted, onWillUnmount } = owl.hooks;

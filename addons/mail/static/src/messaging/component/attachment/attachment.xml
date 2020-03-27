@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="mail.component.Attachment" owl="1">
+    <t t-name="mail.messaging.component.Attachment" owl="1">
         <div class="o_Attachment"
             t-att-class="{
                 'o-downloadable': props.isDownloadable,
@@ -42,14 +42,14 @@
                                 <div class="o_Attachment_action o_Attachment_actionUnlink"
                                     t-att-class="{
                                         'o-pretty': env.store.getters.isAttachmentLinkedToComposer(props.attachmentLocalId),
-                                    }" t-on-click.stop="_onClickUnlink" aria-label="Remove" title="Remove"
+                                    }" t-on-click="_onClickUnlink" aria-label="Remove" title="Remove"
                                 >
                                     <i class="fa fa-times"/>
                                 </div>
                             </t>
                             <!-- Download button -->
                             <t t-if="props.isDownloadable and !storeProps.attachment.isTemporary" t-key="'download'">
-                                <div class="o_Attachment_action o_Attachment_actionDownload" t-on-click.stop="_onClickDownload" title="Download" aria-label="Download">
+                                <div class="o_Attachment_action o_Attachment_actionDownload" t-on-click="_onClickDownload" title="Download" aria-label="Download">
                                     <i class="fa fa-download"/>
                                 </div>
                             </t>

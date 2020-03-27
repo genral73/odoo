@@ -4104,7 +4104,7 @@ const actions = {
                 // hack: notification template does not support OWL components,
                 // so we simply use their template to make HTML as if it comes
                 // from component
-                const channelIcon = env.qweb.renderToString('mail.component.ThreadIcon', {
+                const channelIcon = env.qweb.renderToString('mail.messaging.component.ThreadIcon', {
                     storeProps: {
                         thread: channel,
                     },

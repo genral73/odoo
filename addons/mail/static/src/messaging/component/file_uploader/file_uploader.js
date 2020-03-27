@@ -1,4 +1,4 @@
-odoo.define('mail.component.FileUploader', function (require) {
+odoo.define('mail.messaging.component.FileUploader', function (require) {
 'use strict';
 
 const core = require('web.core');
@@ -7,9 +7,9 @@ const { Component } = owl;
 const { useDispatch, useRef } = owl.hooks;
 
 class FileUploader extends Component {
+
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -184,25 +184,25 @@ class FileUploader extends Component {
     }
 }
 
-FileUploader.defaultProps = {
-    uploadId: 0,
-    uploadModel: 'mail.compose.message'
-};
-
-FileUploader.props = {
-    attachmentLocalIds: {
-        type: Array,
-        element: String,
+Object.assign(FileUploader, {
+    defaultProps: {
+        uploadId: 0,
+        uploadModel: 'mail.compose.message'
     },
-    newAttachmentExtraData: {
-        type: Object,
-        optional: true,
+    props: {
+        attachmentLocalIds: {
+            type: Array,
+            element: String,
+        },
+        newAttachmentExtraData: {
+            type: Object,
+            optional: true,
+        },
+        uploadId: Number,
+        uploadModel: String,
     },
-    uploadId: Number,
-    uploadModel: String,
-};
-
-FileUploader.template = 'mail.component.FileUploader';
+    template: 'mail.messaging.component.FileUploader',
+});
 
 return FileUploader;
 

@@ -1,10 +1,12 @@
-odoo.define('mail.component.ChatWindow', function (require) {
+odoo.define('mail.messaging.component.ChatWindow', function (require) {
 'use strict';
 
-const AutocompleteInput = require('mail.component.AutocompleteInput');
-const Header = require('mail.component.ChatWindowHeader');
-const Thread = require('mail.component.Thread');
-const useStore = require('mail.hooks.useStore');
+const components = {
+    AutocompleteInput: require('mail.messaging.component.AutocompleteInput'),
+    ChatWindowHeader: require('mail.messaging.component.ChatWindowHeader'),
+    ThreadViewer: require('mail.messaging.component.ThreadViewer'),
+};
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component, useState } = owl;
 const { useDispatch, useGetters, useRef } = owl.hooks;
@@ -13,7 +15,6 @@ class ChatWindow extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -70,7 +71,7 @@ class ChatWindow extends Component {
     }
 
     //--------------------------------------------------------------------------
-    // Getter / Setter
+    // Public
     //--------------------------------------------------------------------------
 
     /**
@@ -82,11 +83,6 @@ class ChatWindow extends Component {
     get newMessageFormInputPlaceholder() {
         return this.env._t("Search user...");
     }
-
-    //--------------------------------------------------------------------------
-    // Public
-    //--------------------------------------------------------------------------
-
     /**
      * Focus this chat window.
      */
@@ -171,7 +167,7 @@ class ChatWindow extends Component {
             this.storeDispatch('createChannel', {
                 autoselect: true,
                 partnerId,
-                type: 'chat'
+                type: 'chat',
             });
         }
     }
@@ -210,6 +206,7 @@ class ChatWindow extends Component {
      * @param {MouseEvent} ev
      */
     _onClick(ev) {
+        ev.stopPropagation();
         if (this.state.isFocused && !this.isFolded()) {
             return;
         }
@@ -228,6 +225,7 @@ class ChatWindow extends Component {
      * @param {CustomEvent} ev
      */
     _onClickedHeader(ev) {
+        ev.stopPropagation();
         if (this.storeProps.isMobile) {
             return;
         }
@@ -245,6 +243,7 @@ class ChatWindow extends Component {
      * @param {FocusEvent} ev
      */
     _onFocusinThread(ev) {
+        ev.stopPropagation();
         this.state.isFocused = true;
     }
 
@@ -295,52 +294,35 @@ class ChatWindow extends Component {
 
 }
 
-ChatWindow.components = { AutocompleteInput, Header, Thread };
-
-ChatWindow.defaultProps = {
-    dockDirection: 'rtl',
-    dockOffset: 0,
-    hasCloseAsBackButton: false,
-    hasShiftLeft: false,
-    hasShiftRight: false,
-    isDocked: false,
-    isExpandable: false,
-    isFullscreen: false,
-};
-
-ChatWindow.props = {
-    chatWindowLocalId: String,
-    dockDirection: {
-        type: String,
+Object.assign(ChatWindow, {
+    components,
+    defaultProps: {
+        dockDirection: 'rtl',
+        dockOffset: 0,
+        hasCloseAsBackButton: false,
+        hasShiftLeft: false,
+        hasShiftRight: false,
+        isDocked: false,
+        isExpandable: false,
+        isFullscreen: false,
     },
-    dockOffset: {
-        type: Number,
+    props: {
+        chatWindowLocalId: String,
+        dockDirection: String,
+        dockOffset: Number,
+        hasCloseAsBackButton: Boolean,
+        hasShiftLeft: Boolean,
+        hasShiftRight: Boolean,
+        isDocked: Boolean,
+        isExpandable: Boolean,
+        isFullscreen: Boolean,
+        threadInitialScrollTop: {
+            type: Number,
+            optional: true,
+        },
     },
-    hasCloseAsBackButton: {
-        type: Boolean,
-    },
-    hasShiftLeft: {
-        type: Boolean,
-    },
-    hasShiftRight: {
-        type: Boolean,
-    },
-    isDocked: {
-        type: Boolean,
-    },
-    isExpandable: {
-        type: Boolean,
-    },
-    isFullscreen: {
-        type: Boolean,
-    },
-    threadInitialScrollTop: {
-        type: Number,
-        optional: true,
-    },
-};
-
-ChatWindow.template = 'mail.component.ChatWindow';
+    template: 'mail.messaging.component.ChatWindow',
+});
 
 return ChatWindow;
 

@@ -1,9 +1,11 @@
-odoo.define('mail.component.DiscussSidebarItem', function (require) {
+odoo.define('mail.messaging.component.DiscussSidebarItem', function (require) {
 'use strict';
 
-const EditableText = require('mail.component.EditableText');
-const Icon = require('mail.component.ThreadIcon');
-const useStore = require('mail.hooks.useStore');
+const components = {
+    EditableText: require('mail.messaging.component.EditableText'),
+    ThreadIcon: require('mail.messaging.component.ThreadIcon'),
+};
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const Dialog = require('web.Dialog');
 
@@ -14,7 +16,6 @@ class DiscussSidebarItem extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -49,11 +50,6 @@ class DiscussSidebarItem extends Component {
     hasUnpin() {
         return this.storeProps.thread.channel_type === 'chat';
     }
-
-    //--------------------------------------------------------------------------
-    // Getters / Setters
-    //--------------------------------------------------------------------------
-
     /**
      * Get the counter of this discuss item, which is based on the thread type.
      *
@@ -137,6 +133,7 @@ class DiscussSidebarItem extends Component {
      * @param {MouseEvent} ev
      */
     async _onClickLeave(ev) {
+        ev.stopPropagation();
         if (this.storeProps.thread.create_uid === this.env.session.uid) {
             await this._askAdminConfirmation();
         }
@@ -148,6 +145,7 @@ class DiscussSidebarItem extends Component {
      * @param {MouseEvent} ev
      */
     _onClickRename(ev) {
+        ev.stopPropagation();
         this.state.isRenaming = true;
     }
 
@@ -156,6 +154,7 @@ class DiscussSidebarItem extends Component {
      * @param {MouseEvent} ev
      */
     _onClickSettings(ev) {
+        ev.stopPropagation();
         return this.env.do_action({
             type: 'ir.actions.act_window',
             res_model: this.storeProps.thread._model,
@@ -170,6 +169,7 @@ class DiscussSidebarItem extends Component {
      * @param {MouseEvent} ev
      */
     _onClickUnpin(ev) {
+        ev.stopPropagation();
         return this.storeDispatch('unsubscribeFromChannel', this.storeProps.thread.localId);
     }
 
@@ -180,6 +180,7 @@ class DiscussSidebarItem extends Component {
      * @param {string} ev.detail.newName
      */
     _onRename(ev) {
+        ev.stopPropagation();
         this.state.isRenaming = false;
         this.storeDispatch('renameThread',
             this.props.threadLocalId,
@@ -187,20 +188,17 @@ class DiscussSidebarItem extends Component {
     }
 }
 
-DiscussSidebarItem.components = { EditableText, Icon };
-
-DiscussSidebarItem.defaultProps = {
-    isActive: false,
-};
-
-DiscussSidebarItem.props = {
-    isActive: {
-        type: Boolean,
+Object.assign(DiscussSidebarItem, {
+    components,
+    defaultProps: {
+        isActive: false,
     },
-    threadLocalId: String,
-};
-
-DiscussSidebarItem.template = 'mail.component.DiscussSidebarItem';
+    props: {
+        isActive: Boolean,
+        threadLocalId: String,
+    },
+    template: 'mail.messaging.component.DiscussSidebarItem',
+});
 
 return DiscussSidebarItem;
 

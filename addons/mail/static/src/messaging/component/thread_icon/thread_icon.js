@@ -1,7 +1,7 @@
-odoo.define('mail.component.ThreadIcon', function (require) {
+odoo.define('mail.messaging.component.ThreadIcon', function (require) {
 'use strict';
 
-const useStore = require('mail.hooks.useStore');
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component } = owl;
 const { useGetters } = owl.hooks;
@@ -10,7 +10,6 @@ class ThreadIcon extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -30,11 +29,12 @@ class ThreadIcon extends Component {
     }
 }
 
-ThreadIcon.props = {
-    threadLocalId: String,
-};
-
-ThreadIcon.template = 'mail.component.ThreadIcon';
+Object.assign(ThreadIcon, {
+    props: {
+        threadLocalId: String,
+    },
+    template: 'mail.messaging.component.ThreadIcon',
+});
 
 return ThreadIcon;
 

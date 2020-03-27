@@ -1,9 +1,11 @@
-odoo.define('mail.component.DiscussSidebar', function (require) {
+odoo.define('mail.messaging.component.DiscussSidebar', function (require) {
 'use strict';
 
-const AutocompleteInput = require('mail.component.AutocompleteInput');
-const SidebarItem = require('mail.component.DiscussSidebarItem');
-const useStore = require('mail.hooks.useStore');
+const components = {
+    AutocompleteInput: require('mail.messaging.component.AutocompleteInput'),
+    DiscussSidebarItem: require('mail.messaging.component.DiscussSidebarItem'),
+};
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component, useState } = owl;
 const { useGetters, useRef } = owl.hooks;
@@ -12,14 +14,13 @@ class DiscussSidebar extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
         this.state = useState({ quickSearchValue: "" });
         this.storeGetters = useGetters();
-        this.storeProps = useStore((...args) => this._useStore(...args), {
-            compareDepth: () => this._compareDepth(),
+        this.storeProps = useStore((...args) => this._useStoreSelector(...args), {
+            compareDepth: () => this._useStoreCompareDepth(),
         });
         /**
          * Reference of the quick search input. Useful to filter channels and
@@ -29,7 +30,7 @@ class DiscussSidebar extends Component {
     }
 
     //--------------------------------------------------------------------------
-    // Getters / Setters
+    // Public
     //--------------------------------------------------------------------------
 
     /**
@@ -72,7 +73,7 @@ class DiscussSidebar extends Component {
      * @private
      * @returns {Object}
      */
-    _compareDepth() {
+    _useStoreCompareDepth() {
         return {
             pinnedChannelList: 1,
             pinnedChatList: 1,
@@ -86,7 +87,7 @@ class DiscussSidebar extends Component {
      * @param {Object} props
      * @returns {Object}
      */
-    _useStore(state, props) {
+    _useStoreSelector(state, props) {
         return {
             pinnedChannelList: this.storeGetters.pinnedChannelList(),
             pinnedChatList: this.storeGetters.pinnedChatList(),
@@ -106,6 +107,7 @@ class DiscussSidebar extends Component {
      * @param {MouseEvent} ev
      */
     _onClickChannelAdd(ev) {
+        ev.stopPropagation();
         this.trigger('o-discuss-adding-channel');
     }
 
@@ -116,6 +118,7 @@ class DiscussSidebar extends Component {
      * @param {MouseEvent} ev
      */
     _onClickChannelTitle(ev) {
+        ev.stopPropagation();
         return this.env.do_action({
             name: this.env._t("Public Channels"),
             type: 'ir.actions.act_window',
@@ -132,6 +135,7 @@ class DiscussSidebar extends Component {
      * @param {MouseEvent} ev
      */
     _onClickChatAdd(ev) {
+        ev.stopPropagation();
         this.trigger('o-discuss-adding-chat');
     }
 
@@ -155,6 +159,7 @@ class DiscussSidebar extends Component {
      * @param {CustomEvent} ev
      */
     _onHideAddingItem(ev) {
+        ev.stopPropagation();
         this.trigger('o-discuss-cancel-adding-item');
     }
 
@@ -163,26 +168,27 @@ class DiscussSidebar extends Component {
      * @param {KeyboardEvent} ev
      */
     _onInputQuickSearch(ev) {
+        ev.stopPropagation();
         this.state.quickSearchValue = this._quickSearchRef.el.value;
     }
 }
 
-DiscussSidebar.components = { AutocompleteInput, SidebarItem };
-
-DiscussSidebar.props = {
-    activeThreadLocalId: {
-        type: String,
-        optional: true,
+Object.assign(DiscussSidebar, {
+    components,
+    props: {
+        activeThreadLocalId: {
+            type: String,
+            optional: true,
+        },
+        isAddingChannel: Boolean,
+        isAddingChat: Boolean,
+        onAddChannelAutocompleteSelect: Function,
+        onAddChannelAutocompleteSource: Function,
+        onAddChatAutocompleteSelect: Function,
+        onAddChatAutocompleteSource: Function,
     },
-    isAddingChannel: Boolean,
-    isAddingChat: Boolean,
-    onAddChannelAutocompleteSelect: Function,
-    onAddChannelAutocompleteSource: Function,
-    onAddChatAutocompleteSelect: Function,
-    onAddChatAutocompleteSource: Function,
-};
-
-DiscussSidebar.template = 'mail.component.DiscussSidebar';
+    template: 'mail.messaging.component.DiscussSidebar',
+});
 
 return DiscussSidebar;
 

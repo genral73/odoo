@@ -1,21 +1,26 @@
-odoo.define('mail.component.Activity', function (require) {
+odoo.define('mail.messaging.component.Activity', function (require) {
 'use strict';
 
-const ActivityMarkDoneButton = require('mail.component.ActivityMarkDoneButton');
-const FileUploader = require('mail.component.FileUploader');
-const MailTemplate = require('mail.component.MailTemplate');
-const useStore = require('mail.hooks.useStore');
+const components = {
+    ActivityMarkDoneButton: require('mail.messaging.component.ActivityMarkDoneButton'),
+    FileUploader: require('mail.messaging.component.FileUploader'),
+    MailTemplate: require('mail.messaging.component.MailTemplate'),
+};
+const useStore = require('mail.messaging.component_hook.useStore');
 
-const { auto_str_to_date, getLangDateFormat, getLangDatetimeFormat } = require('web.time');
+const {
+    auto_str_to_date,
+    getLangDateFormat,
+    getLangDatetimeFormat,
+} = require('web.time');
 
-const { Component } = owl;
-const { useDispatch, useGetters, useRef, useState } = owl.hooks;
+const { Component, useState } = owl;
+const { useDispatch, useGetters, useRef } = owl.hooks;
 
 class Activity extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -36,7 +41,7 @@ class Activity extends Component {
     }
 
     //--------------------------------------------------------------------------
-    // Getters / Setters
+    // Public
     //--------------------------------------------------------------------------
 
     /**
@@ -100,6 +105,7 @@ class Activity extends Component {
      * @private
      * @param {CustomEvent} ev
      * @param {Object} ev.detail
+     * @param {string} ev.detail.attachmentLocalId
      */
     _onAttachmentCreated(ev) {
         const { attachmentLocalId } = ev.detail;
@@ -161,11 +167,11 @@ class Activity extends Component {
 }
 
 Object.assign(Activity, {
-    components: { ActivityMarkDoneButton, FileUploader, MailTemplate },
+    components,
     props: {
         activityLocalId: String,
     },
-    template: 'mail.component.Activity',
+    template: 'mail.messaging.component.Activity',
 });
 
 return Activity;

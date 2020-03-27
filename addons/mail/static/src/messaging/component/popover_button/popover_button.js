@@ -1,4 +1,4 @@
-odoo.define('mail.component.PopoverButton', function (require) {
+odoo.define('mail.messaging.component.PopoverButton', function (require) {
 'use strict';
 
 const { Component, useState } = owl;
@@ -29,9 +29,6 @@ class PopoverButton extends Component {
         this._onClickCaptureGlobal = this._onClickCaptureGlobal.bind(this);
     }
 
-    /**
-     * @override
-     */
     async mounted() {
         const self = this;
         const popoverParams = {
@@ -53,9 +50,6 @@ class PopoverButton extends Component {
         document.addEventListener('click', this._onClickCaptureGlobal, true);
     }
 
-    /**
-     * @override
-     */
     willUnmount() {
         this._hidePopover();
         document.removeEventListener('click', this._onClickCaptureGlobal, true);
@@ -143,7 +137,7 @@ Object.assign(PopoverButton, {
         },
         trigger: String,
     },
-    template: 'mail.component.PopoverButton',
+    template: 'mail.messaging.component.PopoverButton',
 });
 
 return PopoverButton;

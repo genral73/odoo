@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="mail.component.Message" owl="1">
+    <t t-name="mail.messaging.component.Message" owl="1">
         <div class="o_Message"
             t-att-class="{
                 'o-clicked': state.isClicked,
@@ -48,7 +48,7 @@
                                     'o-message-selected': props.isSelected,
                                     'o-message-starred': isStarred,
                                     'o-mobile': storeProps.isMobile,
-                                }" t-on-click.stop="_onClickStar"
+                                }" t-on-click="_onClickStar"
                             />
                         </t>
                     </div>
@@ -93,7 +93,7 @@
                                     t-att-class="{
                                         'o-message-selected': props.isSelected,
                                         'o-mobile': storeProps.isMobile,
-                                    }" t-on-click.stop="_onClickReply" title="Reply" aria-label="Reply"
+                                    }" t-on-click="_onClickReply" title="Reply" aria-label="Reply"
                                 />
                             </t>
                             <t t-if="props.hasMarkAsReadIcon">

@@ -1,7 +1,7 @@
-odoo.define('mail.component.ActivityMarkDonePopover', function (require) {
+odoo.define('mail.messaging.component.ActivityMarkDonePopover', function (require) {
 'use strict';
 
-const useStore = require('mail.hooks.useStore');
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component } = owl;
 const { useDispatch, useRef } = owl.hooks;
@@ -10,7 +10,6 @@ class ActivityMarkDonePopover extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -23,11 +22,11 @@ class ActivityMarkDonePopover extends Component {
     }
 
     //--------------------------------------------------------------------------
-    // Getters
+    // Public
     //--------------------------------------------------------------------------
 
     /**
-     * @returns {String}
+     * @returns {string}
      */
     get DONE_AND_SCHEDULE_NEXT() {
         return this.env._t("Done & Schedule Next");
@@ -73,7 +72,7 @@ Object.assign(ActivityMarkDonePopover, {
     props: {
         activityLocalId: String,
     },
-    template: 'mail.component.ActivityMarkDonePopover',
+    template: 'mail.messaging.component.ActivityMarkDonePopover',
 });
 
 return ActivityMarkDonePopover;

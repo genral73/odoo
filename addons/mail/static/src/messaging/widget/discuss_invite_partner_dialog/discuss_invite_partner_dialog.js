@@ -1,4 +1,4 @@
-odoo.define('mail.widget.DiscussInvitePartnerDialog', function (require) {
+odoo.define('mail.messaging.widget.DiscussInvitePartnerDialog', function (require) {
 'use strict';
 
 const core = require('web.core');
@@ -16,10 +16,10 @@ const QWeb = core.qweb;
  */
 const PartnerInviteDialog = Dialog.extend({
     dialog_title: _t("Invite people"),
-    template: 'mail.widget.DiscussInvitePartnerDialog',
+    template: 'mail.messaging.widget.DiscussInvitePartnerDialog',
     /**
      * @override {web.Dialog}
-     * @param {mail.widget.Discuss} parent
+     * @param {mail.messaging.widget.Discuss} parent
      * @param {Object} param1
      * @param {string} param1.activeThreadLocalId
      * @param {Object} param1.messagingEnv
@@ -61,7 +61,7 @@ const PartnerInviteDialog = Dialog.extend({
                     const partner = this.store.state.partners[partnerLocalId];
                     status = partner.im_status;
                 }
-                const $status = QWeb.render('mail.widget.UserStatus', { status });
+                const $status = QWeb.render('mail.messaging.widget.UserStatus', { status });
                 return $('<span>').text(item.text).prepend($status);
             },
             query: query => {
@@ -83,7 +83,7 @@ const PartnerInviteDialog = Dialog.extend({
                 });
             }
         });
-        return this._super.apply(this, arguments);
+        return this._super(...arguments);
     },
 
     //--------------------------------------------------------------------------

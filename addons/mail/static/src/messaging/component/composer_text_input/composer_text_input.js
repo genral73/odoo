@@ -1,7 +1,7 @@
-odoo.define('mail.component.ComposerTextInput', function (require) {
+odoo.define('mail.messaging.component.ComposerTextInput', function (require) {
 'use strict';
 
-const useStore = require('mail.hooks.useStore');
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component } = owl;
 const { useDispatch, useGetters, useRef } = owl.hooks;
@@ -13,7 +13,6 @@ class ComposerTextInput extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -129,7 +128,8 @@ class ComposerTextInput extends Component {
         this._textareaRef.el.value = this.storeProps.composer.textInputContent;
         this._textareaRef.el.setSelectionRange(
             this.storeProps.composer.textInputCursorStart,
-            this.storeProps.composer.textInputCursorEnd);
+            this.storeProps.composer.textInputCursorEnd
+        );
         this._updateHeight();
     }
 
@@ -203,16 +203,16 @@ class ComposerTextInput extends Component {
     }
 }
 
-ComposerTextInput.defaultProps = {
-    hasSendOnEnterEnabled: true
-};
-
-ComposerTextInput.props = {
-    hasSendOnEnterEnabled: Boolean,
-    composerLocalId: String,
-};
-
-ComposerTextInput.template = 'mail.component.ComposerTextInput';
+Object.assign(ComposerTextInput, {
+    defaultProps: {
+        hasSendOnEnterEnabled: true
+    },
+    props: {
+        hasSendOnEnterEnabled: Boolean,
+        composerLocalId: String,
+    },
+    template: 'mail.messaging.component.ComposerTextInput',
+});
 
 return ComposerTextInput;
 

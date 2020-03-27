@@ -1,15 +1,15 @@
-odoo.define('mail.component.ChatterTopbar', function (require) {
+odoo.define('mail.messaging.component.ChatterTopbar', function (require) {
 'use strict';
 
-const useStore = require('mail.hooks.useStore');
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component } = owl;
 const { useDispatch } = owl.hooks;
 
 class ChatterTopbar extends Component {
+
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -114,11 +114,12 @@ class ChatterTopbar extends Component {
     }
 }
 
-ChatterTopbar.props = {
-    chatterLocalId: String,
-};
-
-ChatterTopbar.template = 'mail.component.ChatterTopbar';
+Object.assign(ChatterTopbar, {
+    props: {
+        chatterLocalId: String,
+    },
+    template: 'mail.messaging.component.ChatterTopbar',
+});
 
 return ChatterTopbar;
 

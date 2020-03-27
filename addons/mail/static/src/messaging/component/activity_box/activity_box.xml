@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="mail.component.ActivityBox" owl="1">
+
+    <t t-name="mail.messaging.component.ActivityBox" owl="1">
         <div class="o_ActivityBox">
             <t t-if="storeProps.chatter.activityLocalIds">
                 <a role="button" class="o_ActivityBox_title btn" t-on-click="_onClickTitle">
@@ -40,4 +41,5 @@
             </t>
         </div>
     </t>
+
 </templates>

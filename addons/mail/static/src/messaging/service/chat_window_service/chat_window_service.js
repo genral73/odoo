@@ -1,7 +1,9 @@
-odoo.define('mail.service.ChatWindow', function (require) {
+odoo.define('mail.messaging.service.ChatWindow', function (require) {
 'use strict';
 
-const ChatWindowManager = require('mail.component.ChatWindowManager');
+const components = {
+    ChatWindowManager: require('mail.messaging.component.ChatWindowManager'),
+};
 
 const AbstractService = require('web.AbstractService');
 const { bus, serviceRegistry } = require('web.core');
@@ -56,8 +58,9 @@ const ChatWindowService = AbstractService.extend({
             this.component.destroy();
             this.component = undefined;
         }
-        ChatWindowManager.env = this.env;
-        this.component = new ChatWindowManager(null);
+        const ChatWindowManagerComponent = components.ChatWindowManager;
+        ChatWindowManagerComponent.env = this.env;
+        this.component = new ChatWindowManagerComponent(null);
         const parentNode = this._getParentNode();
         await this.component.mount(parentNode);
     },

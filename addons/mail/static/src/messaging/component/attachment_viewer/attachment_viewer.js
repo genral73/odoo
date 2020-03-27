@@ -1,7 +1,7 @@
-odoo.define('mail.component.AttachmentViewer', function (require) {
+odoo.define('mail.messaging.component.AttachmentViewer', function (require) {
 'use strict';
 
-const useStore = require('mail.hooks.useStore');
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component, QWeb, useState } = owl;
 const { useDispatch, useGetters, useRef } = owl.hooks;
@@ -14,7 +14,6 @@ class AttachmentViewer extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -93,7 +92,7 @@ class AttachmentViewer extends Component {
     }
 
     //--------------------------------------------------------------------------
-    // Getter / Setter
+    // Public
     //--------------------------------------------------------------------------
 
     /**
@@ -117,10 +116,6 @@ class AttachmentViewer extends Component {
         }
         return style;
     }
-
-    //--------------------------------------------------------------------------
-    // Public
-    //--------------------------------------------------------------------------
 
     /**
      * Mandatory method for dialog components.
@@ -349,6 +344,7 @@ class AttachmentViewer extends Component {
      * @param {MouseEvent} ev
      */
     _onClickDownload(ev) {
+        ev.stopPropagation();
         this._download();
     }
 
@@ -396,6 +392,7 @@ class AttachmentViewer extends Component {
      * @param {MouseEvent} ev
      */
     _onClickNext(ev) {
+        ev.stopPropagation();
         this._next();
     }
 
@@ -406,6 +403,7 @@ class AttachmentViewer extends Component {
      * @param {MouseEvent} ev
      */
     _onClickPrevious(ev) {
+        ev.stopPropagation();
         this._previous();
     }
 
@@ -416,6 +414,7 @@ class AttachmentViewer extends Component {
      * @param {MouseEvent} ev
      */
     _onClickPrint(ev) {
+        ev.stopPropagation();
         this._print();
     }
 
@@ -426,6 +425,7 @@ class AttachmentViewer extends Component {
      * @param {MouseEvent} ev
      */
     _onClickRotate(ev) {
+        ev.stopPropagation();
         this._rotate();
     }
 
@@ -447,6 +447,7 @@ class AttachmentViewer extends Component {
      * @param {MouseEvent} ev
      */
     _onClickZoomIn(ev) {
+        ev.stopPropagation();
         this._zoomIn();
     }
 
@@ -457,6 +458,7 @@ class AttachmentViewer extends Component {
      * @param {MouseEvent} ev
      */
     _onClickZoomOut(ev) {
+        ev.stopPropagation();
         this._zoomOut();
     }
 
@@ -467,6 +469,7 @@ class AttachmentViewer extends Component {
      * @param {MouseEvent} ev
      */
     _onClickZoomReset(ev) {
+        ev.stopPropagation();
         this._zoomReset();
     }
 
@@ -552,6 +555,7 @@ class AttachmentViewer extends Component {
      * @param {Event} ev
      */
     _onWheelImage(ev) {
+        ev.stopPropagation();
         if (!this.el) {
             return;
         }
@@ -563,21 +567,22 @@ class AttachmentViewer extends Component {
     }
 }
 
-AttachmentViewer.props = {
-    id: String,
-    info: {
-        type: Object,
-        shape: {
-            attachmentLocalId: String,
-            attachmentLocalIds: {
-                type: Array,
-                element: String,
-            }
+Object.assign(AttachmentViewer, {
+    props: {
+        id: String,
+        info: {
+            type: Object,
+            shape: {
+                attachmentLocalId: String,
+                attachmentLocalIds: {
+                    type: Array,
+                    element: String,
+                }
+            },
         },
     },
-};
-
-AttachmentViewer.template = 'mail.component.AttachmentViewer';
+    template: 'mail.messaging.component.AttachmentViewer',
+});
 
 QWeb.registerComponent('AttachmentViewer', AttachmentViewer);
 

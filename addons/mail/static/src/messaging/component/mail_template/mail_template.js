@@ -1,17 +1,15 @@
-odoo.define('mail.component.MailTemplate', function (require) {
+odoo.define('mail.messaging.component.MailTemplate', function (require) {
 'use strict';
 
-const useStore = require('mail.hooks.useStore');
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component } = owl;
 const { useDispatch } = owl.hooks;
-
 
 class MailTemplate extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -53,7 +51,7 @@ Object.assign(MailTemplate, {
         activityLocalId: String,
         mailTemplateLocalId: String,
     },
-    template: 'mail.component.MailTemplate',
+    template: 'mail.messaging.component.MailTemplate',
 });
 
 return MailTemplate;

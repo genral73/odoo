@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="mail.component.ThreadIcon" owl="1">
+    <t t-name="mail.messaging.component.ThreadIcon" owl="1">
         <div name="root" class="o_ThreadIcon">
             <t t-if="storeProps.thread.channel_type === 'channel'">
                 <t t-if="storeProps.thread.public === 'private'">

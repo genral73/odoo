@@ -1,4 +1,4 @@
-odoo.define('mail.service.Messaging', function (require) {
+odoo.define('mail.messaging.service.Messaging', function (require) {
 'use strict';
 
 const actions = require('mail.store.actions');

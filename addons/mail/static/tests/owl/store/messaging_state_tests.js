@@ -5,9 +5,10 @@ const {
     afterEach: utilsAfterEach,
     beforeEach: utilsBeforeEach,
     start: utilsStart,
-} = require('mail.messagingTestUtils');
+} = require('mail.messaging.testUtils');
 
-QUnit.module('mail.messaging', {}, function () {
+QUnit.module('mail', {}, function () {
+QUnit.module('messaging', {}, function () {
 QUnit.module('store', {}, function () {
 QUnit.module('State', {
     beforeEach() {
@@ -315,4 +316,6 @@ QUnit.test("global state after default '/mail/init_messaging' RPC data", async f
 
 });
 });
+});
+
 });

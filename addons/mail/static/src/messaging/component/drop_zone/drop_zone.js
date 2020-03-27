@@ -1,4 +1,4 @@
-odoo.define('mail.component.DropZone', function (require) {
+odoo.define('mail.messaging.component.DropZone', function (require) {
 'use strict';
 
 const { Component, useState } = owl;
@@ -7,7 +7,6 @@ class DropZone extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -73,6 +72,7 @@ class DropZone extends Component {
      * @param {DragEvent} ev
      */
     _onDragenter(ev) {
+        ev.preventDefault();
         if (this._dragCount === 0) {
             this.state.isDraggingInside = true;
         }
@@ -99,6 +99,7 @@ class DropZone extends Component {
      * @private
      */
     _onDragover(ev) {
+        ev.preventDefault();
         ev.dataTransfer.dropEffect = 'copy';
     }
 
@@ -113,6 +114,7 @@ class DropZone extends Component {
      * @param {DragEvent} ev
      */
     _onDrop(ev) {
+        ev.preventDefault();
         if (this._isDragSourceExternalFile(ev.dataTransfer)) {
             this.trigger('o-dropzone-files-dropped', {
                 files: ev.dataTransfer.files,
@@ -123,7 +125,10 @@ class DropZone extends Component {
 
 }
 
-DropZone.template = 'mail.component.DropZone';
+Object.assign(DropZone, {
+    props: {},
+    template: 'mail.messaging.component.DropZone',
+});
 
 return DropZone;
 

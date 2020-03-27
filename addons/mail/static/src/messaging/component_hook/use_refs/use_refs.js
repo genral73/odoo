@@ -1,4 +1,4 @@
-odoo.define('mail.hooks.useRefs', function (require) {
+odoo.define('mail.messaging.component_hook.useRefs', function (require) {
 'use strict';
 
 const { Component } = owl;
@@ -12,7 +12,7 @@ const { Component } = owl;
 function useRefs() {
     const component = Component.current;
     return function () {
-        return component.__owl__.refs;
+        return component.__owl__.refs || {};
     };
 }
 

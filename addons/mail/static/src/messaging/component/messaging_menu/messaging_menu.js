@@ -1,10 +1,12 @@
-odoo.define('mail.component.MessagingMenu', function (require) {
+odoo.define('mail.messaging.component.MessagingMenu', function (require) {
 'use strict';
 
-const AutocompleteInput = require('mail.component.AutocompleteInput');
-const MobileMessagingNavbar = require('mail.component.MobileMessagingNavbar');
-const NotificationList = require('mail.component.NotificationList');
-const useStore = require('mail.hooks.useStore');
+const components = {
+    AutocompleteInput: require('mail.messaging.component.AutocompleteInput'),
+    MobileMessagingNavbar: require('mail.messaging.component.MobileMessagingNavbar'),
+    NotificationList: require('mail.messaging.component.NotificationList'),
+};
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component } = owl;
 const { useDispatch, useGetters, useRef } = owl.hooks;
@@ -13,7 +15,6 @@ class MessagingMenu extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -25,7 +26,7 @@ class MessagingMenu extends Component {
         this.id = _.uniqueId('o_messagingMenu_');
         this.storeDispatch = useDispatch();
         this.storeGetters = useGetters();
-        this.storeProps = useStore((...args) => this._useStore(...args));
+        this.storeProps = useStore((...args) => this._useStoreSelector(...args));
 
         /**
          * Reference of the new message input in mobile. Useful to include it
@@ -50,7 +51,7 @@ class MessagingMenu extends Component {
     }
 
     //--------------------------------------------------------------------------
-    // Getters / Setters
+    // Public
     //--------------------------------------------------------------------------
 
     /**
@@ -86,7 +87,7 @@ class MessagingMenu extends Component {
     /**
      * @private
      */
-    _useStore(state, props) {
+    _useStoreSelector(state, props) {
         const unreadMailChannelCounter = this.storeGetters.mailChannelList()
             .reduce((acc, mailChannel) => {
                 if (mailChannel.message_unread_counter > 0) {
@@ -138,6 +139,7 @@ class MessagingMenu extends Component {
      * @param {MouseEvent} ev
      */
     _onClickDesktopTabButton(ev) {
+        ev.stopPropagation();
         this.storeDispatch('updateMessagingMenu', {
             activeTabId: ev.currentTarget.dataset.tabId,
         });
@@ -148,6 +150,7 @@ class MessagingMenu extends Component {
      * @param {MouseEvent} ev
      */
     _onClickNewMessage(ev) {
+        ev.stopPropagation();
         if (!this.storeProps.isMobile) {
             this.storeDispatch('openThread', 'new_message');
             this.storeDispatch('closeMessagingMenu');
@@ -161,6 +164,8 @@ class MessagingMenu extends Component {
      * @param {MouseEvent} ev
      */
     _onClickToggler(ev) {
+        ev.stopPropagation();
+        ev.preventDefault();
         this.storeDispatch('toggleMessagingMenuOpen');
     }
 
@@ -230,6 +235,7 @@ class MessagingMenu extends Component {
      * @param {string} ev.detail.tabId
      */
     _onSelectMobileNavbarTab(ev) {
+        ev.stopPropagation();
         this.storeDispatch('updateMessagingMenu', {
             activeTabId: ev.detail.tabId,
         });
@@ -242,6 +248,7 @@ class MessagingMenu extends Component {
      * @param {string} ev.detail.threadLocalId
      */
     _onSelectThread(ev) {
+        ev.stopPropagation();
         this.storeDispatch('openThread', ev.detail.threadLocalId);
         if (!this.storeProps.isMobile) {
             this.storeDispatch('closeMessagingMenu');
@@ -250,12 +257,9 @@ class MessagingMenu extends Component {
 }
 
 Object.assign(MessagingMenu, {
-    components: {
-        AutocompleteInput,
-        MobileMessagingNavbar,
-        NotificationList,
-    },
-    template: 'mail.component.MessagingMenu',
+    components,
+    props: {},
+    template: 'mail.messaging.component.MessagingMenu',
 });
 
 return MessagingMenu;

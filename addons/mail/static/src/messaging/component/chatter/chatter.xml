@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="mail.component.Chatter" owl="1">
+    <t t-name="mail.messaging.component.Chatter" owl="1">
         <div class="o_Chatter">
             <ChatterTopbar
                 class="o_Chatter_topbar"
@@ -33,7 +33,7 @@
                     />
                 </t>
                 <t t-if="storeProps.chatter.hasThread">
-                    <Thread
+                    <ThreadViewer
                         class="o_Chatter_thread"
                         hasComposer="false"
                         haveMessagesAuthorRedirect="true"

@@ -1,24 +1,31 @@
-odoo.define('mail.component.ChatterTests', function (require) {
+odoo.define('mail.messaging.component.ChatterTests', function (require) {
 'use strict';
 
-const Chatter = require('mail.component.Chatter');
+const components = {
+    Chatter: require('mail.messaging.component.Chatter'),
+};
 const {
     afterEach: utilsAfterEach,
     afterNextRender,
     beforeEach: utilsBeforeEach,
     pause,
     start: utilsStart,
-} = require('mail.messagingTestUtils');
+} = require('mail.messaging.testUtils');
 
-QUnit.module('mail.messaging', {}, function () {
+QUnit.module('mail', {}, function () {
+QUnit.module('messaging', {}, function () {
 QUnit.module('component', {}, function () {
 QUnit.module('Chatter', {
     beforeEach() {
         utilsBeforeEach(this);
         this.createChatterComponent = async ({ chatterLocalId }, otherProps) => {
-            Chatter.env = this.env;
-            this.chatter = new Chatter(null, Object.assign({ chatterLocalId }, otherProps));
-            await this.chatter.mount(this.widget.el);
+            const ChatterComponent = components.Chatter;
+            ChatterComponent.env = this.env;
+            this.component = new ChatterComponent(
+                null,
+                Object.assign({ chatterLocalId }, otherProps)
+            );
+            await this.component.mount(this.widget.el);
             await afterNextRender();
         };
         this.start = async params => {
@@ -34,13 +41,13 @@ QUnit.module('Chatter', {
     },
     afterEach() {
         utilsAfterEach(this);
-        if (this.chatter) {
-            this.chatter.destroy();
+        if (this.component) {
+            this.component.destroy();
         }
         if (this.widget) {
             this.widget.destroy();
         }
-        delete Chatter.env;
+        delete components.Chatter.env;
         this.env = undefined;
     }
 });
@@ -63,15 +70,14 @@ QUnit.test('base rendering when chatter has no attachment', async function (asse
 
                 for (let i = firstIValue; i > lastIValue; i--) {
                     messagesData.push({
-                        author_id: [firstIValue, `#${firstIValue}`],
-                        body: `<em>Page ${amountOfCalls + 1}</em><br/><p>#${i} message</p>`,
-                        channel_ids: [20],
+                        author_id: [10, "Demo User"],
+                        body: `<p>Message ${amountOfCalls + 1}</p>`,
                         date: "2019-04-20 10:00:00",
                         id: lastId + i,
                         message_type: 'comment',
-                        model: 'mail.channel',
+                        model: 'res.partner',
                         record_name: 'General',
-                        res_id: 20,
+                        res_id: 100,
                     });
                 }
                 lastId = lastIValue;
@@ -334,4 +340,6 @@ QUnit.test('composer show/hide on log note/send message', async function (assert
 
 });
 });
+});
+
 });

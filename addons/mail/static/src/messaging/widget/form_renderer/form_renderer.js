@@ -1,7 +1,10 @@
-odoo.define('mail.form_renderer', function (require) {
+odoo.define('mail.messaging.widget.FormRenderer', function (require) {
 "use strict";
 
-const Chatter = require('mail.component.Chatter');
+const components = {
+    Chatter: require('mail.messaging.component.Chatter'),
+};
+
 const FormRenderer = require('web.FormRenderer');
 
 const { EventBus } = owl.core;
@@ -130,7 +133,8 @@ FormRenderer.include({
      * @private
      */
     _makeChatterComponent() {
-        this._chatterComponent = new Chatter(null, {
+        const ChatterComponent = components.Chatter;
+        this._chatterComponent = new ChatterComponent(null, {
             chatterLocalId: this._chatterLocalId,
             formRendererBus: this._chatterBus,
         });
@@ -155,7 +159,6 @@ FormRenderer.include({
     },
     /**
      * @override
-     * @private
      */
     _renderNode(node) {
         if (!this._isFromFormViewDialog && node.tag === 'div' && node.attrs.class === 'oe_chatter') {
@@ -170,12 +173,12 @@ FormRenderer.include({
      * rendered.
      *
      * @override
-     * @private
      */
     async _renderView() {
         await this._super(...arguments);
         if (this._hasChatter()) {
-            Chatter.env = this.env;
+            const ChatterComponent = components.Chatter;
+            ChatterComponent.env = this.env;
             const context = this.record ? this.record.getContext() : {};
             const activityIds = this.state.data.activity_ids
                 ? this.state.data.activity_ids.res_ids

@@ -1,8 +1,10 @@
-odoo.define('mail.component.NotificationList', function (require) {
+odoo.define('mail.messaging.component.NotificationList', function (require) {
 'use strict';
 
-const ThreadPreview = require('mail.component.ThreadPreview');
-const useStore = require('mail.hooks.useStore');
+const components = {
+    ThreadPreview: require('mail.messaging.component.ThreadPreview'),
+};
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component } = owl;
 const { useDispatch, useGetters } = owl.hooks;
@@ -11,13 +13,12 @@ class NotificationList extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
         this.storeDispatch = useDispatch();
         this.storeGetters = useGetters();
-        this.storeProps = useStore((...args) => this._useStore(...args), {
+        this.storeProps = useStore((...args) => this._useStoreSelector(...args), {
             compareDepth: {
                 // list + notification object created in useStore
                 notifications: 2,
@@ -49,9 +50,11 @@ class NotificationList extends Component {
 
     /**
      * @private
+     * @param {Object} state
+     * @param {Object} props
      */
-    _useStore(state, props) {
-        const threads = this._useStoreThreads(state, props);
+    _useStoreSelector(state, props) {
+        const threads = this._useStoreSelectorThreads(state, props);
         const notifications = threads.map(thread => {
             return {
                 threadLocalId: thread.localId,
@@ -70,7 +73,7 @@ class NotificationList extends Component {
      * @param {Object} props
      * @returns {Object[]} threads
      */
-    _useStoreThreads(state, props) {
+    _useStoreSelectorThreads(state, props) {
         if (props.filter === 'mailbox') {
             return this.storeGetters.mailboxList();
         } else if (props.filter === 'channel') {
@@ -88,7 +91,7 @@ class NotificationList extends Component {
 
 Object.assign(NotificationList, {
     _allowedFilters: ['all', 'mailbox', 'channel', 'chat'],
-    components: { ThreadPreview },
+    components,
     defaultProps: {
         filter: 'all',
     },
@@ -98,7 +101,7 @@ Object.assign(NotificationList, {
             validate: prop => NotificationList._allowedFilters.includes(prop),
         },
     },
-    template: 'mail.component.NotificationList',
+    template: 'mail.messaging.component.NotificationList',
 });
 
 return NotificationList;

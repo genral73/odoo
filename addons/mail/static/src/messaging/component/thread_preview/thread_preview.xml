@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="mail.component.ThreadPreview" owl="1">
-
+    <t t-name="mail.messaging.component.ThreadPreview" owl="1">
         <!--
             The preview template is used by the discuss in mobile, and by the systray
             menu in order to show preview of threads.
@@ -10,7 +9,7 @@
         <div class="o_ThreadPreview" t-att-class="{ 'o-muted': storeProps.thread.message_unread_counter === 0 }" t-on-click="_onClick" t-att-data-thread-local-id="props.threadLocalId">
             <div class="o_ThreadPreview_sidebar">
                 <div class="o_ThreadPreview_imageContainer o_ThreadPreview_sidebarItem">
-                    <img class="o_ThreadPreview_image rounded-circle" t-att-src="getImage()" alt="Thread Image"/>
+                    <img class="o_ThreadPreview_image rounded-circle" t-att-src="image()" alt="Thread Image"/>
                     <t t-if="storeProps.threadDirectPartner and storeProps.threadDirectPartner.im_status">
                         <PartnerImStatusIcon
                             class="o_ThreadPreview_partnerImStatusIcon"
@@ -52,7 +51,7 @@
                     </span>
                     <span class="o-autogrow"/>
                     <t t-if="storeProps.thread.message_unread_counter > 0">
-                        <span class="o_ThreadPreview_coreItem o_ThreadPreview_markAsRead fa fa-check" title="Mark as Read" t-on-click.stop="_onClickMarkAsRead"/>
+                        <span class="o_ThreadPreview_coreItem o_ThreadPreview_markAsRead fa fa-check" title="Mark as Read" t-on-click="_onClickMarkAsRead"/>
                     </t>
                 </div>
             </div>

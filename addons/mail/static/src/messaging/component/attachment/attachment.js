@@ -1,7 +1,7 @@
-odoo.define('mail.component.Attachment', function (require) {
+odoo.define('mail.messaging.component.Attachment', function (require) {
 'use strict';
 
-const useStore = require('mail.hooks.useStore');
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component } = owl;
 const { useDispatch, useGetters } = owl.hooks;
@@ -10,7 +10,6 @@ class Attachment extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -92,6 +91,7 @@ class Attachment extends Component {
      * @param {MouseEvent} ev
      */
     _onClickDownload(ev) {
+        ev.stopPropagation();
         const attachmentId = this.storeProps.attachment.id;
         window.location = `/web/content/ir.attachment/${attachmentId}/datas?download=true`;
     }
@@ -117,45 +117,36 @@ class Attachment extends Component {
      * @param {MouseEvent} ev
      */
     _onClickUnlink(ev) {
+        ev.stopPropagation();
         this.storeDispatch('unlinkAttachment', this.props.attachmentLocalId);
     }
 }
 
-Attachment.defaultProps = {
-    attachmentLocalIds: [],
-    detailsMode: 'auto',
-    imageSize: 'medium',
-    isDownloadable: false,
-    isEditable: true,
-    showExtension: true,
-    showFilename: true,
-};
-
-Attachment.props = {
-    attachmentLocalId: {
-        type: String,
+Object.assign(Attachment, {
+    defaultProps: {
+        attachmentLocalIds: [],
+        detailsMode: 'auto',
+        imageSize: 'medium',
+        isDownloadable: false,
+        isEditable: true,
+        showExtension: true,
+        showFilename: true,
     },
-    attachmentLocalIds: {
-        type: Array,
-        element: String,
+    props: {
+        attachmentLocalId: String,
+        attachmentLocalIds: {
+            type: Array,
+            element: String,
+        },
+        detailsMode: String, //['auto', 'card', 'hover', 'none']
+        imageSize: String, //['small', 'medium', 'large']
+        isDownloadable: Boolean,
+        isEditable: Boolean,
+        showExtension: Boolean,
+        showFilename: Boolean,
     },
-    detailsMode: String, //['auto', 'card', 'hover', 'none']
-    imageSize: String, //['small', 'medium', 'large']
-    isDownloadable: {
-        type: Boolean,
-    },
-    isEditable: {
-        type: Boolean,
-    },
-    showExtension: {
-        type: Boolean,
-    },
-    showFilename: {
-        type: Boolean,
-    },
-};
-
-Attachment.template = 'mail.component.Attachment';
+    template: 'mail.messaging.component.Attachment',
+});
 
 return Attachment;
 

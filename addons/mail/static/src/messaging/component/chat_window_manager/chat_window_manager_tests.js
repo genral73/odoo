@@ -1,4 +1,4 @@
-odoo.define('mail.component.ChatWindowManagerTests', function (require) {
+odoo.define('mail.messaging.component.ChatWindowManagerTests', function (require) {
 'use strict';
 
 const {
@@ -8,11 +8,12 @@ const {
     inputFiles,
     pause,
     start: utilsStart,
-} = require('mail.messagingTestUtils');
+} = require('mail.messaging.testUtils');
 
 const { file: { createFile } } = require('web.test_utils');
 
-QUnit.module('mail.messaging', {}, function () {
+QUnit.module('mail', {}, function () {
+QUnit.module('messaging', {}, function () {
 QUnit.module('component', {}, function () {
 QUnit.module('ChatWindowManager', {
     beforeEach() {
@@ -284,8 +285,8 @@ QUnit.test('chat window: basic rendering', async function (assert) {
         "should have part to display thread content inside chat window"
     );
     assert.ok(
-        chatWindow.querySelector(`:scope .o_ChatWindow_thread`).classList.contains('o_Thread'),
-        "thread part should use component thread"
+        chatWindow.querySelector(`:scope .o_ChatWindow_thread`).classList.contains('o_ThreadViewer'),
+        "thread viewer part should use component ThreadViewer"
     );
 });
 
@@ -601,7 +602,7 @@ QUnit.test('chat window: state conservation on toggle home menu', async function
     document.querySelector(`.o_MessagingMenu_dropdownMenu .o_NotificationList_preview`).click();
     await afterNextRender();
     // Set a scroll position to chat window
-    document.querySelector(`.o_Thread_messageList`).scrollTop = 142;
+    document.querySelector(`.o_ThreadViewer_messageList`).scrollTop = 142;
     // Set html content of the composer of the chat window
     let composerTextInputTextArea = document.querySelector(`.o_ComposerTextInput_textarea`);
     composerTextInputTextArea.focus();
@@ -625,7 +626,7 @@ QUnit.test('chat window: state conservation on toggle home menu', async function
     );
     await afterNextRender();
     assert.strictEqual(
-        document.querySelector(`.o_Thread_messageList`).scrollTop,
+        document.querySelector(`.o_ThreadViewer_messageList`).scrollTop,
         142,
         "verify chat window initial scrollTop"
     );
@@ -644,7 +645,7 @@ QUnit.test('chat window: state conservation on toggle home menu', async function
     await this.widget.call('chat_window', '_onWillHideHomeMenu');
     await this.widget.call('chat_window', '_onHideHomeMenu');
     assert.strictEqual(
-        document.querySelector(`.o_Thread_messageList`).scrollTop,
+        document.querySelector(`.o_ThreadViewer_messageList`).scrollTop,
         142,
         "chat window scrollTop should still be the same (1)"
     );
@@ -664,7 +665,7 @@ QUnit.test('chat window: state conservation on toggle home menu', async function
     await this.widget.call('chat_window', '_onWillShowHomeMenu');
     await this.widget.call('chat_window', '_onShowHomeMenu');
     assert.strictEqual(
-        document.querySelector(`.o_Thread_messageList`).scrollTop,
+        document.querySelector(`.o_ThreadViewer_messageList`).scrollTop,
         142,
         "chat window scrollTop should still be the same (2)"
     );
@@ -684,7 +685,7 @@ QUnit.test('chat window: state conservation on toggle home menu', async function
 QUnit.test('open 2 different chat windows: enough screen width', async function (assert) {
     /**
      * computation uses following info:
-     * ([mocked] global window width: @see `mail.component.test_utils:create()` method)
+     * ([mocked] global window width: @see `mail.messaging.testUtils:start()` method)
      * (others: @see store action `_computeChatWindows`)
      *
      * - chat window width: 325px
@@ -748,7 +749,10 @@ QUnit.test('open 2 different chat windows: enough screen width', async function 
     await afterNextRender();
     document.querySelector(`
         .o_MessagingMenu_dropdownMenu
-        .o_NotificationList_preview[data-thread-local-id="mail.channel_10"]`).click();
+        .o_NotificationList_preview[data-thread-local-id="${
+            'mail.channel_10'
+        }"]
+    `).click();
     await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatWindow`).length,
@@ -756,13 +760,20 @@ QUnit.test('open 2 different chat windows: enough screen width', async function 
         "should have open a chat window"
     );
     assert.strictEqual(
-        document.querySelectorAll(`.o_ChatWindow[data-thread-local-id="mail.channel_10"]`).length,
+        document.querySelectorAll(`
+            .o_ChatWindow[data-thread-local-id="${
+                'mail.channel_10'
+            }"]
+        `).length,
         1,
         "chat window of chat should be open"
     );
     assert.ok(
-        document.querySelector(`.o_ChatWindow[data-thread-local-id="mail.channel_10"]`)
-            .classList.contains('o-focused'),
+        document.querySelector(`
+            .o_ChatWindow[data-thread-local-id="${
+                'mail.channel_10'
+            }"]
+        `).classList.contains('o-focused'),
         "chat window of chat should have focus"
     );
 
@@ -770,8 +781,10 @@ QUnit.test('open 2 different chat windows: enough screen width', async function 
     await afterNextRender();
     document.querySelector(`
         .o_MessagingMenu_dropdownMenu
-        .o_NotificationList_preview[data-thread-local-id="mail.channel_20"]`
-    ).click();
+        .o_NotificationList_preview[data-thread-local-id="${
+            'mail.channel_20'
+        }"]
+    `).click();
     await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatWindow`).length,
@@ -779,23 +792,37 @@ QUnit.test('open 2 different chat windows: enough screen width', async function 
         "should have open a new chat window"
     );
     assert.strictEqual(
-        document.querySelectorAll(`.o_ChatWindow[data-thread-local-id="mail.channel_20"]`).length,
+        document.querySelectorAll(`
+            .o_ChatWindow[data-thread-local-id="${
+                'mail.channel_20'
+            }"]
+        `).length,
         1,
         "chat window of channel should be open"
     );
     assert.strictEqual(
-        document.querySelectorAll(`.o_ChatWindow[data-thread-local-id="mail.channel_10"]`).length,
+        document.querySelectorAll(`
+            .o_ChatWindow[data-thread-local-id="${
+                'mail.channel_10'
+            }"]
+        `).length,
         1,
         "chat window of chat should still be open"
     );
     assert.ok(
-        document.querySelector(`.o_ChatWindow[data-thread-local-id="mail.channel_20"]`)
-            .classList.contains('o-focused'),
+        document.querySelector(`
+            .o_ChatWindow[data-thread-local-id="${
+                'mail.channel_20'
+            }"]
+        `).classList.contains('o-focused'),
         "chat window of channel should have focus"
     );
     assert.notOk(
-        document.querySelector(`.o_ChatWindow[data-thread-local-id="mail.channel_10"]`)
-            .classList.contains('o-focused'),
+        document.querySelector(`
+            .o_ChatWindow[data-thread-local-id="${
+                'mail.channel_10'
+            }"]
+        `).classList.contains('o-focused'),
         "chat window of chat should no longer have focus"
     );
 });
@@ -857,8 +884,10 @@ QUnit.test('open 3 different chat windows: not enough screen width', async funct
     await afterNextRender();
     document.querySelector(`
         .o_MessagingMenu_dropdownMenu
-        .o_NotificationList_preview[data-thread-local-id="mail.channel_1"]`
-    ).click();
+        .o_NotificationList_preview[data-thread-local-id="${
+            'mail.channel_1'
+        }"]
+    `).click();
     await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatWindow`).length,
@@ -880,8 +909,10 @@ QUnit.test('open 3 different chat windows: not enough screen width', async funct
     await afterNextRender();
     document.querySelector(`
         .o_MessagingMenu_dropdownMenu
-        .o_NotificationList_preview[data-thread-local-id="mail.channel_2"]`
-    ).click();
+        .o_NotificationList_preview[data-thread-local-id="${
+            'mail.channel_2'
+        }"]
+    `).click();
     await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatWindow`).length,
@@ -903,8 +934,10 @@ QUnit.test('open 3 different chat windows: not enough screen width', async funct
     await afterNextRender();
     document.querySelector(`
         .o_MessagingMenu_dropdownMenu
-        .o_NotificationList_preview[data-thread-local-id="mail.channel_3"]`
-    ).click();
+        .o_NotificationList_preview[data-thread-local-id="${
+            'mail.channel_3'
+        }"]
+    `).click();
     await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`.o_ChatWindow`).length,
@@ -922,22 +955,35 @@ QUnit.test('open 3 different chat windows: not enough screen width', async funct
         "messaging menu should be hidden"
     );
     assert.strictEqual(
-        document.querySelectorAll(`.o_ChatWindow[data-thread-local-id="mail.channel_1"]`).length,
+        document.querySelectorAll(`
+            .o_ChatWindow[data-thread-local-id="${
+                'mail.channel_1'
+            }"]
+        `).length,
         1,
         "chat window of channel 1 should be open"
     );
     assert.strictEqual(
-        document.querySelectorAll(`.o_ChatWindow[data-thread-local-id="mail.channel_3"]`).length,
+        document.querySelectorAll(`
+            .o_ChatWindow[data-thread-local-id="${
+                'mail.channel_3'
+            }"]
+        `).length,
         1,
         "chat window of channel 3 should be open"
     );
     assert.ok(
-        document.querySelector(`.o_ChatWindow[data-thread-local-id="mail.channel_3"]`)
-            .classList.contains('o-focused'),
+        document.querySelector(`
+            .o_ChatWindow[data-thread-local-id="${
+                'mail.channel_3'
+            }"]
+        `).classList.contains('o-focused'),
         "chat window of channel 3 should have focus"
     );
 });
 
 });
 });
+});
+
 });

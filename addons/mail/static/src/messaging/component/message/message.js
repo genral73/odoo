@@ -1,16 +1,18 @@
-odoo.define('mail.component.Message', function (require) {
+odoo.define('mail.messaging.component.Message', function (require) {
 'use strict';
 
-const AttachmentList = require('mail.component.AttachmentList');
-const ModerationBanDialog = require('mail.component.ModerationBanDialog');
-const ModerationDiscardDialog = require('mail.component.ModerationDiscardDialog');
-const ModerationRejectDialog = require('mail.component.ModerationRejectDialog');
-const PartnerImStatusIcon = require('mail.component.PartnerImStatusIcon');
-const useStore = require('mail.hooks.useStore');
-const mailUtils = require('mail.utils');
+const components = {
+    AttachmentList: require('mail.messaging.component.AttachmentList'),
+    ModerationBanDialog: require('mail.messaging.component.ModerationBanDialog'),
+    ModerationDiscardDialog: require('mail.messaging.component.ModerationDiscardDialog'),
+    ModerationRejectDialog: require('mail.messaging.component.ModerationRejectDialog'),
+    PartnerImStatusIcon: require('mail.messaging.component.PartnerImStatusIcon'),
+};
+const useStore = require('mail.messaging.component_hook.useStore');
+const { timeFromNow } = require('mail.utils');
 
 const { _lt } = require('web.core');
-const time = require('web.time');
+const { getLangDatetimeFormat } = require('web.time');
 
 const { Component, useState } = owl;
 const { useDispatch, useGetters, useRef } = owl.hooks;
@@ -22,7 +24,6 @@ class Message extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -74,7 +75,9 @@ class Message extends Component {
          * Reference to the content of the message.
          */
         this._contentRef = useRef('content');
-        // To get checkbox state.
+        /**
+         * To get checkbox state.
+         */
         this._checkboxRef = useRef('checkbox');
         /**
          * Id of setInterval used to auto-update time elapsed of message at
@@ -84,7 +87,7 @@ class Message extends Component {
     }
 
     mounted() {
-        this.state.timeElapsed = mailUtils.timeFromNow(this.storeProps.message.date);
+        this.state.timeElapsed = timeFromNow(this.storeProps.message.date);
         this._insertReadMoreLess($(this._contentRef.el));
     }
 
@@ -93,7 +96,7 @@ class Message extends Component {
     }
 
     //--------------------------------------------------------------------------
-    // Getters / Setters
+    // Public
     //--------------------------------------------------------------------------
 
     /**
@@ -122,7 +125,7 @@ class Message extends Component {
      * @return {string}
      */
     get datetime() {
-        return this.storeProps.message.date.format(time.getLangDatetimeFormat());
+        return this.storeProps.message.date.format(getLangDatetimeFormat());
     }
 
     /**
@@ -219,7 +222,7 @@ class Message extends Component {
     get timeElapsed() {
         clearInterval(this._intervalId);
         this._intervalId = setInterval(() => {
-            this.state.timeElapsed = mailUtils.timeFromNow(this.storeProps.message.date);
+            this.state.timeElapsed = timeFromNow(this.storeProps.message.date);
         }, 60 * 1000);
         return this.state.timeElapsed;
     }
@@ -253,10 +256,6 @@ class Message extends Component {
             return value;
         });
     }
-
-    //--------------------------------------------------------------------------
-    // Public
-    //--------------------------------------------------------------------------
 
     /**
      * Tell whether the bottom of this message is visible or not.
@@ -321,7 +320,6 @@ class Message extends Component {
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
-
 
     /**
      * Modifies the message to add the 'read more/read less' functionality
@@ -401,6 +399,7 @@ class Message extends Component {
             });
         }
     }
+
     /**
      * @private
      * @param {Object} param0
@@ -456,6 +455,7 @@ class Message extends Component {
             model: this.storeProps.author._model,
         });
     }
+
     /**
      * @private
      * @param {MouseEvent} ev
@@ -464,6 +464,7 @@ class Message extends Component {
         ev.preventDefault();
         this.storeDispatch('moderateMessages', [this.props.messageLocalId], 'accept');
     }
+
     /**
      * @private
      * @param {MouseEvent} ev
@@ -472,6 +473,7 @@ class Message extends Component {
         ev.preventDefault();
         this.storeDispatch('moderateMessages', [this.props.messageLocalId], 'allow');
     }
+
     /**
      * @private
      * @param {MouseEvent} ev
@@ -480,6 +482,7 @@ class Message extends Component {
         ev.preventDefault();
         this.state.hasModerationBanDialog = true;
     }
+
     /**
      * @private
      * @param {MouseEvent} ev
@@ -488,6 +491,7 @@ class Message extends Component {
         ev.preventDefault();
         this.state.hasModerationDiscardDialog = true;
     }
+
     /**
      * @private
      * @param {MouseEvent} ev
@@ -496,6 +500,7 @@ class Message extends Component {
         ev.preventDefault();
         this.state.hasModerationRejectDialog = true;
     }
+
     /**
      * @private
      * @param {MouseEvent} ev
@@ -513,6 +518,7 @@ class Message extends Component {
      * @param {MouseEvent} ev
      */
     _onClickStar(ev) {
+        ev.stopPropagation();
         return this.storeDispatch('toggleStarMessage', this.props.messageLocalId);
     }
 
@@ -525,30 +531,36 @@ class Message extends Component {
 
     /**
      * @private
+     * @param {MouseEvent} ev
      */
-    _onClickReply() {
+    _onClickReply(ev) {
+        ev.stopPropagation();
         this.trigger('o-reply-message', {
             messageLocalId: this.props.messageLocalId,
         });
     }
+
     /**
      * @private
      */
     _onDialogClosedModerationBan() {
         this.state.hasModerationBanDialog = false;
     }
+
     /**
      * @private
      */
     _onDialogClosedModerationDiscard() {
         this.state.hasModerationDiscardDialog = false;
     }
+
     /**
      * @private
      */
     _onDialogClosedModerationReject() {
         this.state.hasModerationRejectDialog = false;
     }
+
     /**
      * @private
      */
@@ -562,56 +574,40 @@ class Message extends Component {
             },
         );
     }
+
 }
 
-Message.components = {
-    AttachmentList,
-    ModerationBanDialog,
-    ModerationDiscardDialog,
-    ModerationRejectDialog,
-    PartnerImStatusIcon,
-};
-
-Message.defaultProps = {
-    hasAuthorRedirect: false,
-    hasCheckbox: false,
-    hasMarkAsReadIcon: false,
-    hasReplyIcon: false,
-    isSelected: false,
-    isSquashed: false,
-    threadStringifiedDomain: '[]',
-};
-
-Message.props = {
-    attachmentsDetailsMode: {
-        type: String, //['auto', 'card', 'hover', 'none']
-        optional: true
+Object.assign(Message, {
+    components,
+    defaultProps: {
+        hasAuthorRedirect: false,
+        hasCheckbox: false,
+        hasMarkAsReadIcon: false,
+        hasReplyIcon: false,
+        isSelected: false,
+        isSquashed: false,
+        threadStringifiedDomain: '[]',
     },
-    hasAuthorRedirect: {
-        type: Boolean,
+    props: {
+        attachmentsDetailsMode: {
+            type: String, //['auto', 'card', 'hover', 'none']
+            optional: true
+        },
+        hasAuthorRedirect: Boolean,
+        hasCheckbox: Boolean,
+        hasMarkAsReadIcon: Boolean,
+        hasReplyIcon: Boolean,
+        isSelected: Boolean,
+        isSquashed: Boolean,
+        messageLocalId: String,
+        threadLocalId: {
+            type: String,
+            optional: true,
+        },
+        threadStringifiedDomain: String,
     },
-    hasCheckbox: Boolean,
-    hasMarkAsReadIcon: {
-        type: Boolean,
-    },
-    hasReplyIcon: {
-        type: Boolean,
-    },
-    isSelected: {
-        type: Boolean,
-    },
-    isSquashed: {
-        type: Boolean,
-    },
-    messageLocalId: String,
-    threadLocalId: {
-        type: String,
-        optional: true,
-    },
-    threadStringifiedDomain: String,
-};
-
-Message.template = 'mail.component.Message';
+    template: 'mail.messaging.component.Message',
+});
 
 return Message;
 

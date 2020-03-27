@@ -1,9 +1,11 @@
-odoo.define('mail.component.ThreadPreview', function (require) {
+odoo.define('mail.messaging.component.ThreadPreview', function (require) {
 'use strict';
 
-const MessageAuthorPrefix = require('mail.component.MessageAuthorPrefix');
-const PartnerImStatusIcon = require('mail.component.PartnerImStatusIcon');
-const useStore = require('mail.hooks.useStore');
+const components = {
+    MessageAuthorPrefix: require('mail.messaging.component.MessageAuthorPrefix'),
+    PartnerImStatusIcon: require('mail.messaging.component.PartnerImStatusIcon'),
+};
+const useStore = require('mail.messaging.component_hook.useStore');
 const mailUtils = require('mail.utils');
 
 const { Component } = owl;
@@ -13,7 +15,6 @@ class ThreadPreview extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -43,7 +44,7 @@ class ThreadPreview extends Component {
     }
 
     //--------------------------------------------------------------------------
-    // Getter / Setter
+    // Public
     //--------------------------------------------------------------------------
 
     /**
@@ -59,17 +60,12 @@ class ThreadPreview extends Component {
             this.storeGetters.messagePrettyBody(this.storeProps.lastMessage.localId),
             mailUtils.inline);
     }
-
-    //--------------------------------------------------------------------------
-    // Public
-    //--------------------------------------------------------------------------
-
     /**
      * Get the image route of the thread.
      *
      * @return {string}
      */
-    getImage() {
+    image() {
         const directPartnerLocalId = this.storeProps.thread.directPartnerLocalId;
         if (directPartnerLocalId) {
             const directPartner = this.env.store.state.partners[directPartnerLocalId];
@@ -109,20 +105,18 @@ class ThreadPreview extends Component {
      * @param {MouseEvent} ev
      */
     _onClickMarkAsRead(ev) {
+        ev.stopPropagation();
         this.storeDispatch('markThreadAsSeen', this.props.threadLocalId);
     }
 }
 
-ThreadPreview.components = {
-    MessageAuthorPrefix,
-    PartnerImStatusIcon,
-};
-
-ThreadPreview.props = {
-    threadLocalId: String,
-};
-
-ThreadPreview.template = 'mail.component.ThreadPreview';
+Object.assign(ThreadPreview, {
+    components,
+    props: {
+        threadLocalId: String,
+    },
+    template: 'mail.messaging.component.ThreadPreview',
+});
 
 return ThreadPreview;
 

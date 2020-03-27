@@ -1,7 +1,7 @@
-odoo.define('mail.component.ModerationBanDialog', function (require) {
+odoo.define('mail.messaging.component.ModerationBanDialog', function (require) {
 'use strict';
 
-const useStore = require('mail.hooks.useStore');
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const Dialog = require('web.OwlDialog');
 
@@ -59,7 +59,7 @@ Object.assign(ModerationBanDialog, {
             element: String,
         },
     },
-    template: 'mail.component.ModerationBanDialog',
+    template: 'mail.messaging.component.ModerationBanDialog',
 });
 
 return ModerationBanDialog;

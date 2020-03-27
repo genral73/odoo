@@ -1,14 +1,17 @@
-odoo.define('mail.messagingTestUtils', function (require) {
+odoo.define('mail.messaging.testUtils', function (require) {
 'use strict';
 
 const BusService = require('bus.BusService');
 
-const ComposerTextInput = require('mail.component.ComposerTextInput');
-const ChatWindowService = require('mail.service.ChatWindow');
-const DialogService = require('mail.service.Dialog');
-const MessagingService = require('mail.service.Messaging');
-const DiscussWidget = require('mail.widget.Discuss');
-const MessagingMenuWidget = require('mail.widget.MessagingMenu');
+const components = {
+    ComposerTextInput: require('mail.messaging.component.ComposerTextInput'),
+};
+
+const ChatWindowService = require('mail.messaging.service.ChatWindow');
+const DialogService = require('mail.messaging.service.Dialog');
+const MessagingService = require('mail.messaging.service.Messaging');
+const DiscussWidget = require('mail.messaging.widget.Discuss');
+const MessagingMenuWidget = require('mail.messaging.widget.MessagingMenu');
 
 const AbstractStorageService = require('web.AbstractStorageService');
 const Class = require('web.Class');
@@ -25,9 +28,6 @@ const {
     },
 } = require('web.test_utils');
 const Widget = require('web.Widget');
-
-const { Component, tags: { xml } } = owl;
-const useStore = require('mail.hooks.useStore');
 
 //------------------------------------------------------------------------------
 // Private
@@ -432,7 +432,7 @@ function beforeEach(self) {
     const originals = {
         '_.debounce': _.debounce,
         '_.throttle': _.throttle,
-        'ComposerTestInput._loadSummernote': ComposerTextInput.prototype._loadSummernote,
+        'ComposerTestInput._loadSummernote': components.ComposerTextInput.prototype._loadSummernote,
         'window.fetch': window.fetch,
         'window.Notification': window.Notification,
     };
@@ -441,7 +441,7 @@ function beforeEach(self) {
         // patch _.debounce and _.throttle to be fast and synchronous
         _.debounce = _.identity;
         _.throttle = _.identity;
-        ComposerTextInput.prototype._loadSummernote = () => {};
+        components.ComposerTextInput.prototype._loadSummernote = () => {};
         let uploadedAttachmentsCount = 1;
         window.fetch = async function (route, form) {
             const formData = form.body;
@@ -473,7 +473,7 @@ function beforeEach(self) {
         _.debounce = originals['_.debounce'];
         _.throttle = originals['_.throttle'];
         window.fetch = originals['window.fetch'];
-        ComposerTextInput.prototype._loadSummernote = originals['ComposerTestInput._loadSummernote'];
+        components.ComposerTextInput.prototype._loadSummernote = originals['ComposerTestInput._loadSummernote'];
         window.Notification = originals['window.Notification'];
     }
 

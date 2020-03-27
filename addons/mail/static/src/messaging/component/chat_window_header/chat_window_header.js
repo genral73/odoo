@@ -1,8 +1,10 @@
-odoo.define('mail.component.ChatWindowHeader', function (require) {
+odoo.define('mail.messaging.component.ChatWindowHeader', function (require) {
 'use strict';
 
-const Icon = require('mail.component.ThreadIcon');
-const useStore = require('mail.hooks.useStore');
+const components = {
+    ThreadIcon: require('mail.messaging.component.ThreadIcon'),
+};
+const useStore = require('mail.messaging.component_hook.useStore');
 
 const { Component } = owl;
 const { useDispatch, useGetters } = owl.hooks;
@@ -11,7 +13,6 @@ class ChatWindowHeader extends Component {
 
     /**
      * @override
-     * @param {...any} args
      */
     constructor(...args) {
         super(...args);
@@ -49,6 +50,7 @@ class ChatWindowHeader extends Component {
      * @param {MouseEvent} ev
      */
     _onClickClose(ev) {
+        ev.stopPropagation();
         this.storeDispatch('closeChatWindow', this.props.chatWindowLocalId);
     }
 
@@ -57,11 +59,12 @@ class ChatWindowHeader extends Component {
      * @param {MouseEvent} ev
      */
     _onClickExpand(ev) {
+        ev.stopPropagation();
         if (!this.storeProps.thread) {
             return;
         }
         if (['mail.channel', 'mail.box'].includes(this.storeProps.thread._model)) {
-            this.env.do_action('mail.action_owl_discuss', {
+            this.env.do_action('mail.action_new_discuss', {
                 clear_breadcrumbs: false,
                 active_id: this.storeProps.thread.localId,
                 on_reverse_breadcrumb: () =>
@@ -81,6 +84,7 @@ class ChatWindowHeader extends Component {
      * @param {MouseEvent} ev
      */
     _onClickShiftLeft(ev) {
+        ev.stopPropagation();
         this.storeDispatch('shiftLeftChatWindow', this.props.chatWindowLocalId);
     }
 
@@ -89,38 +93,28 @@ class ChatWindowHeader extends Component {
      * @param {MouseEvent} ev
      */
     _onClickShiftRight(ev) {
+        ev.stopPropagation();
         this.storeDispatch('shiftRightChatWindow', this.props.chatWindowLocalId);
     }
 }
 
-ChatWindowHeader.components = {
-    Icon,
-};
-
-ChatWindowHeader.defaultProps = {
-    hasCloseAsBackButton: false,
-    hasShiftLeft: false,
-    hasShiftRight: false,
-    isExpandable: false,
-};
-
-ChatWindowHeader.props = {
-    chatWindowLocalId: String,
-    hasCloseAsBackButton: {
-        type: Boolean,
+Object.assign(ChatWindowHeader, {
+    components,
+    defaultProps: {
+        hasCloseAsBackButton: false,
+        hasShiftLeft: false,
+        hasShiftRight: false,
+        isExpandable: false,
     },
-    hasShiftLeft: {
-        type: Boolean,
+    props: {
+        chatWindowLocalId: String,
+        hasCloseAsBackButton: Boolean,
+        hasShiftLeft: Boolean,
+        hasShiftRight: Boolean,
+        isExpandable: Boolean,
     },
-    hasShiftRight: {
-        type: Boolean,
-    },
-    isExpandable: {
-        type: Boolean,
-    },
-};
-
-ChatWindowHeader.template = 'mail.component.ChatWindowHeader';
+    template: 'mail.messaging.component.ChatWindowHeader',
+});
 
 return ChatWindowHeader;
 

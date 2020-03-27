@@ -1,14 +1,16 @@
-odoo.define('mail.widget.Discuss', function (require) {
+odoo.define('mail.messaging.widget.Discuss', function (require) {
 'use strict';
 
-const DiscussComponent = require('mail.component.Discuss');
-const InvitePartnerDialog = require('mail.widget.DiscussInvitePartnerDialog');
+const components = {
+    DiscussComponent: require('mail.messaging.component.Discuss'),
+};
+const InvitePartnerDialog = require('mail.messaging.widget.DiscussInvitePartnerDialog');
 
 const AbstractAction = require('web.AbstractAction');
-const { _t, action_registry, qweb } = require('web.core');
+const { action_registry, qweb } = require('web.core');
 
 const DiscussWidget = AbstractAction.extend({
-    template: 'mail.widget.Discuss',
+    template: 'mail.messaging.widget.Discuss',
     hasControlPanel: true,
     loadControlPanel: true,
     withSearchBar: true,
@@ -30,7 +32,7 @@ const DiscussWidget = AbstractAction.extend({
         this._super(...arguments);
 
         // render buttons in control panel
-        this.$buttons = $(qweb.render('mail.widget.DiscussControlButtons'));
+        this.$buttons = $(qweb.render('mail.messaging.widget.DiscussControlButtons'));
         this.$buttons.find('button').css({ display: 'inline-block' });
         this.$buttons.on('click', '.o_invite', ev => this._onClickInvite(ev));
         this.$buttons.on('click', '.o_widget_Discuss_controlPanelButtonMarkAllRead',
@@ -88,8 +90,9 @@ const DiscussWidget = AbstractAction.extend({
             // prevent twice call to on_attach_callback (FIXME)
             return;
         }
-        DiscussComponent.env = this.env;
-        this.component = new DiscussComponent(null, {
+        const DiscussComponentComponent = components.DiscussComponent;
+        DiscussComponentComponent.env = this.env;
+        this.component = new DiscussComponentComponent(null, {
             initActiveThreadLocalId: this._initActiveThreadLocalId,
         });
         this._pushStateActionManagerEventListener = ev => {
@@ -165,7 +168,7 @@ const DiscussWidget = AbstractAction.extend({
      */
     _showRainbowMan() {
         this.trigger_up('show_effect', {
-            message: _t("Congratulations, your inbox is empty!"),
+            message: this.env._t("Congratulations, your inbox is empty!"),
             type: 'rainbow_man',
         });
     },
@@ -222,7 +225,7 @@ const DiscussWidget = AbstractAction.extend({
             this.$buttons.find('.o_mobile_new_message').addClass('o_hidden');
         }
         if (isMobile) {
-            this._setTitle(_t("Discuss"));
+            this._setTitle(this.env._t("Discuss"));
         } else {
             let title;
             if (activeThread) {
@@ -234,7 +237,7 @@ const DiscussWidget = AbstractAction.extend({
                     : '';
                 title = `${prefix}${activeThreadName}`;
             } else {
-                title = _t("Discuss");
+                title = this.env._t("Discuss");
             }
             this._setTitle(title);
         }
@@ -252,6 +255,7 @@ const DiscussWidget = AbstractAction.extend({
             $unselectAll.addClass('o_hidden');
             $unselectAll.addClass('disabled');
         }
+
         // Moderation Actions
         const $moderationButtons = this.$buttons.find('.o_widget_Discuss_controlPanelButtonModeration');
         const nonModerableMessageLocalIds = checkedMessageLocalIds.filter(messageLocalId =>
@@ -262,6 +266,7 @@ const DiscussWidget = AbstractAction.extend({
         } else {
             $moderationButtons.addClass('o_hidden');
         }
+
         this.updateControlPanel({
             cp_content: {
                 $buttons: this.$buttons,
@@ -364,7 +369,7 @@ const DiscussWidget = AbstractAction.extend({
     },
 });
 
-action_registry.add('mail.widget.discuss', DiscussWidget);
+action_registry.add('mail.messaging.widget.discuss', DiscussWidget);
 
 return DiscussWidget;
 

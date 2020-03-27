@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="mail.component.ActivityMarkDonePopover" owl="1">
+    <t t-name="mail.messaging.component.ActivityMarkDonePopover" owl="1">
         <div class="o_ActivityMarkDonePopover">
             <textarea class="form-control o_ActivityMarkDonePopover_feedback" rows="3" placeholder="Write Feedback" t-ref="feedbackTextarea"/>
             <div class="o_ActivityMarkDonePopover_buttons">
