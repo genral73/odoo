@@ -4,7 +4,7 @@
 from odoo import api, models
 from odoo.addons.iap.models import iap
 
-DEFAULT_ENDPOINT = 'https://iap-sms.odoo.com'
+DEFAULT_ENDPOINT = 'https://iap-services-test.odoo.com'
 
 
 class SmsApi(models.AbstractModel):
@@ -55,4 +55,4 @@ class SmsApi(models.AbstractModel):
         params = {
             'messages': messages
         }
-        return self._contact_iap('/iap/sms/1/send', params)
+        return self._contact_iap('/iap/sms/2/send', params)

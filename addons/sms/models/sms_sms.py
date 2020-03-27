@@ -19,7 +19,8 @@ class SmsSms(models.Model):
         'success': 'sent',
         'insufficient_credit': 'sms_credit',
         'wrong_number_format': 'sms_number_format',
-        'server_error': 'sms_server'
+        'server_error': 'sms_server',
+        'unregistered': 'sms_unregistered'
     }
 
     number = fields.Char('Number')
@@ -37,6 +38,7 @@ class SmsSms(models.Model):
         ('sms_number_format', 'Wrong Number Format'),
         ('sms_credit', 'Insufficient Credit'),
         ('sms_server', 'Server Error'),
+        ('sms_unregistered', 'Unregistered Account'),
         # mass mode specific codes
         ('sms_blacklist', 'Blacklisted'),
         ('sms_duplicate', 'Duplicate'),
@@ -98,6 +100,7 @@ class SmsSms(models.Model):
             'number': record.number,
             'content': record.body,
         } for record in self]
+        # import pudb;pu.db
 
         try:
             iap_results = self.env['sms.api']._send_sms_batch(iap_data)

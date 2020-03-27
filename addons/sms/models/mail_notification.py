@@ -14,5 +14,6 @@ class Notification(models.Model):
         ('sms_number_missing', 'Missing Number'),
         ('sms_number_format', 'Wrong Number Format'),
         ('sms_credit', 'Insufficient Credit'),
-        ('sms_server', 'Server Error')]
-    )
+        ('sms_server', 'Server Error'),
+        ('sms_unregistered', 'Unregistered Account')
+    ])
