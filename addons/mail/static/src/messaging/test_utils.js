@@ -432,7 +432,6 @@ function beforeEach(self) {
     const originals = {
         '_.debounce': _.debounce,
         '_.throttle': _.throttle,
-        'ComposerTestInput._loadSummernote': components.ComposerTextInput.prototype._loadSummernote,
         'window.fetch': window.fetch,
         'window.Notification': window.Notification,
     };
@@ -441,7 +440,6 @@ function beforeEach(self) {
         // patch _.debounce and _.throttle to be fast and synchronous
         _.debounce = _.identity;
         _.throttle = _.identity;
-        components.ComposerTextInput.prototype._loadSummernote = () => {};
         let uploadedAttachmentsCount = 1;
         window.fetch = async function (route, form) {
             const formData = form.body;
@@ -473,7 +471,6 @@ function beforeEach(self) {
         _.debounce = originals['_.debounce'];
         _.throttle = originals['_.throttle'];
         window.fetch = originals['window.fetch'];
-        components.ComposerTextInput.prototype._loadSummernote = originals['ComposerTestInput._loadSummernote'];
         window.Notification = originals['window.Notification'];
     }
 
