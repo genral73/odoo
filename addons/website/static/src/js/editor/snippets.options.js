@@ -1465,10 +1465,10 @@ options.registry.topMenuColor = options.Class.extend({
         await this._super(...arguments);
         const className = widgetValue ? (params.colorPrefix + widgetValue) : '';
         const color = _.intersection([className], this.$target[0].classList).join(' ');
-        const toggleOption = color && color.length ? 'header_color' : 'header_inline_color';
+        const toggleColorOption = color && color.length ? 'header_color' : 'header_inline_color';
         this.trigger_up('action_demand', {
             actionName: 'toggle_page_option',
-            params: [{name: toggleOption, value: color  || widgetValue}],
+            params: [{name: toggleColorOption, value: color  || widgetValue}],
         });
     },
 
