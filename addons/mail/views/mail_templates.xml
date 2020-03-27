@@ -48,17 +48,13 @@
                 <script type="text/javascript" src="/mail/static/src/js/document_viewer.js"></script>
                     <!-- composers -->
                     <script type="text/javascript" src="/mail/static/src/js/composers/basic_composer.js"></script>
-                    <script type="text/javascript" src="/mail/static/src/js/composers/chatter_composer.js"></script>
                     <script type="text/javascript" src="/mail/static/src/js/composers/extended_composer.js"></script>
                     <script type="text/javascript" src="/mail/static/src/js/composers/mention_manager.js"></script>
-                <script type="text/javascript" src="/mail/static/src/js/chatter.js"></script>
-                <script type="text/javascript" src="/mail/static/src/js/followers.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/form_controller.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/form_view.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/form_renderer.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/basic_model.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/basic_view.js"></script>
-                <script type="text/javascript" src="/mail/static/src/js/thread_field.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/thread_widget.js"></script>
                 <!-- systray -->
                 <script type="text/javascript" src="/mail/static/src/js/systray/systray_activity_menu.js"></script>
@@ -78,8 +74,6 @@
                 <script type="text/javascript" src="/mail/static/src/js/views/activity/activity_renderer.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/views/activity/activity_record.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/views/activity/activity_cell.js"></script>
-                <!-- Attachment box -->
-                <script type="text/javascript" src="/mail/static/src/js/attachment_box.js"></script>
                 <!-- Emojis -->
                 <script type="text/javascript" src="/mail/static/src/js/emojis.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/emojis_mixin.js"/>
@@ -90,14 +84,11 @@
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/abstract_thread_window.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/thread_window.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/composer.scss"/>
-                <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/chatter.scss"/>
-                <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/followers.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/thread.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/systray.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/mail_activity.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/activity_view.scss"/>
                 <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/kanban_view.scss"/>
-                <link rel="stylesheet" type="text/scss" href="/mail/static/src/scss/attachment_box.scss"/>
 
                 <!-- owl -->
                 <script type="text/javascript" src="/mail/static/src/owl/components/activity/activity.js"></script>
