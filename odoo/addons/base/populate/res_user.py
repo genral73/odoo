@@ -18,16 +18,15 @@ class Users(models.Model):
     def _populate_factories(self):
         partner_ids = self.env.registry.populated_models["res.partner"]
 
-        def partner_id_callable(values=None, counter=0, complete=False, random=None, **kwargs):
+        def partner_id_callable(random=None, **kwargs):
             partner_id = random.choice(partner_ids)
             partner_ids.remove(partner_id)
             return partner_id
 
         return [
+            ("active", populate.cartesian([True, False], [0.9, 0.1])),  # it petes
             ("partner_id", populate.compute(partner_id_callable)),
             ("login", populate.constant("user_login_{counter}")),
-            #  ("active", populate.cartesian([True, False], [0.9, 0.1])),  # it petes
-            ("state", populate.constant("active_{counter}")),  # can be active or new see auth_signup inherited model. Avoid trying to send mail for now
         ]
 
     def _populate(self, scale):

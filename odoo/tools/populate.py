@@ -32,11 +32,11 @@ def root_factory():
         yield {'__complete': True}
 
 
-def randomize(vals, weights=None, seed=False, formater=format_str):
+def randomize(vals, weights=None, seed=False, formater=format_str, counter_offset=0):
     """ Return a factory for an iterator of values dicts with pseudo-randomly
     chosen values (among ``vals``) for a field.
     """
-    def generate(iterator, field_name, model_name, counter_offset=0):
+    def generate(iterator, field_name, model_name):
         r = Random('%s+field+%s' % (model_name, seed or field_name))
         for counter, values in enumerate(iterator):
             val = r.choices(vals, weights)[0]
@@ -45,7 +45,7 @@ def randomize(vals, weights=None, seed=False, formater=format_str):
     return generate
 
 
-def cartesian(vals, weights=None, seed=False, formater=format_str):
+def cartesian(vals, weights=None, seed=False, formater=format_str, then=None):
     """ Return a factory for an iterator of values dicts that combines all ``vals`` for
     the field with the other field values in input.
     """
@@ -57,11 +57,11 @@ def cartesian(vals, weights=None, seed=False, formater=format_str):
             for val in vals:
                 yield {**values, field_name: formater(val, counter, values)}
             counter += 1
-        yield from randomize(vals, weights, seed, formater)(iterator, field_name, model_name, counter)
+        yield from (then if then else randomize(vals, weights, seed, formater, counter))(iterator, field_name, model_name)
     return generate
 
 
-def iterate(vals, weights=None, seed=False, formater=format_str):
+def iterate(vals, weights=None, seed=False, formater=format_str, then=None):
     """ Return a factory for an iterator of values dicts that picks a value among ``vals``
     for each input.  Once all ``vals`` have been used once, resume as a ``randomize``
     generator.
@@ -74,7 +74,7 @@ def iterate(vals, weights=None, seed=False, formater=format_str):
             values['__complete'] = False
             yield values
             counter += 1
-        yield from randomize(vals, weights, seed, formater)(iterator, field_name, model_name, counter)
+        yield from (then if then else randomize(vals, weights, seed, formater, counter))(iterator, field_name, model_name)
     return generate
 
 
@@ -111,13 +111,3 @@ def randint(a, b, seed=None):
     def get_rand_int(random=None, **kwargs):
         random.randint(a, b)
     return compute(get_rand_int, seed=seed)
-
-def datetime_from_days_ago(max_days_ago=50, seed=False):
-    """ generate datetimes before 2020-01-01"""
-    def generate(iterator, field_name, model_name):
-        r = Random(seed or '%s+field+%s' % (model_name, field_name))
-        for counter, (values, complete) in enumerate(iterator):
-            days_ago = r.randint(0, max_days_ago)
-            values[field_name] = datetime(2020,1,1) - timedelta(days=days_ago)
-            yield values, complete
-    return generate
