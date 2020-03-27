@@ -32,7 +32,7 @@ class DropZone extends Component {
      * Returns whether the given node is self or a children of self.
      *
      * @param {Node} node
-     * @return {boolean}
+     * @returns {boolean}
      */
     contains(node) {
         return this.el.contains(node);
@@ -48,7 +48,7 @@ class DropZone extends Component {
      *
      * @private
      * @param {DataTransfer} dataTransfer
-     * @return {boolean}
+     * @returns {boolean}
      */
     _isDragSourceExternalFile(dataTransfer) {
         const dragDataType = dataTransfer.types;

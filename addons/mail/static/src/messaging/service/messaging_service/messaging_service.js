@@ -71,7 +71,7 @@ const MessagingService = AbstractService.extend({
     //--------------------------------------------------------------------------
 
     /**
-     * @return {Object}
+     * @returns {Object}
      */
     getMessagingEnv() {
         return this.messagingEnv;

@@ -53,7 +53,7 @@ class DiscussSidebarItem extends Component {
     /**
      * Get the counter of this discuss item, which is based on the thread type.
      *
-     * @return {integer}
+     * @returns {integer}
      */
     get counter() {
         if (this.thread._model === 'mail.box') {
@@ -79,7 +79,7 @@ class DiscussSidebarItem extends Component {
 
     /**
      * @private
-     * @return {Promise}
+     * @returns {Promise}
      */
     _askAdminConfirmation() {
         return new Promise(resolve => {

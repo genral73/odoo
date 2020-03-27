@@ -35,7 +35,7 @@ const ChatWindowService = AbstractService.extend({
 
     /**
      * @private
-     * @return {Node}
+     * @returns {Node}
      */
     _getParentNode() {
         return document.querySelector('body');

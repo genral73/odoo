@@ -98,7 +98,7 @@ class Composer extends Component {
     /**
      * Get the current partner image URL.
      *
-     * @return {string}
+     * @returns {string}
      */
     get currentPartnerAvatar() {
         const avatar = this.env.session.uid > 0
@@ -114,7 +114,7 @@ class Composer extends Component {
     /**
      * Determine whether composer should display a footer.
      *
-     * @return {boolean}
+     * @returns {boolean}
      */
     get hasFooter() {
         return this.composer.attachmentLocalIds.length > 0 || !this.props.isCompact;
@@ -123,7 +123,7 @@ class Composer extends Component {
     /**
      * Determine whether the composer should display a header.
      *
-     * @return {boolean}
+     * @returns {boolean}
      */
     get hasHeader() {
         return (
@@ -136,7 +136,7 @@ class Composer extends Component {
      * Get an object which is passed to FileUploader component to be used when
      * creating attachment.
      *
-     * @return {Object}
+     * @returns {Object}
      */
     get newAttachmentExtraData() {
         return { composerLocalId: this.props.composerLocalId };

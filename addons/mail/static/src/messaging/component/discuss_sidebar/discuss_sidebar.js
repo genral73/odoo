@@ -36,7 +36,7 @@ class DiscussSidebar extends Component {
     /**
      * Return the list of chats that match the quick search value input.
      *
-     * @return {mail.store.model.Thread[]}
+     * @returns {mail.store.model.Thread[]}
      */
     get quickSearchPinnedAndOrderedChats() {
         if (!this.state.quickSearchValue) {
@@ -52,7 +52,7 @@ class DiscussSidebar extends Component {
     /**
      * Return the list of channels that match the quick search value input.
      *
-     * @return {mail.store.model.Thread[]}
+     * @returns {mail.store.model.Thread[]}
      */
     get quickSearchOrderedAndPinnedMultiUserChannels() {
         if (!this.state.quickSearchValue) {

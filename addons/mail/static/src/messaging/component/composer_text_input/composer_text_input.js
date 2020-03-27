@@ -120,7 +120,7 @@ class ComposerTextInput extends Component {
      * Determines whether the textarea is empty or not.
      *
      * @private
-     * @return {boolean}
+     * @returns {boolean}
      */
     _isEmpty() {
         return this.getContent() === "";

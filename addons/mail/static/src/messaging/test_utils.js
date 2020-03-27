@@ -94,7 +94,7 @@ const MockMailService = Class.extend({
  * which is passed to drag and drop events.
  *
  * @param {Object[]} files
- * @return {Object}
+ * @returns {Object}
  */
 function _createFakeDataTransfer(files) {
     return {
@@ -113,7 +113,7 @@ function _createFakeDataTransfer(files) {
  * @param {function[]} callbacks.mount
  * @param {function[]} callbacks.destroy
  * @param {function[]} callbacks.return
- * @return {Object} update callbacks
+ * @returns {Object} update callbacks
  */
 function _useChatWindow(callbacks) {
     const {
@@ -138,7 +138,7 @@ function _useChatWindow(callbacks) {
  * @param {function[]} callbacks.mount
  * @param {function[]} callbacks.destroy
  * @param {function[]} callbacks.return
- * @return {Object} update callbacks
+ * @returns {Object} update callbacks
  */
 function _useDiscuss(callbacks) {
     const {
@@ -187,7 +187,7 @@ function _useDiscuss(callbacks) {
  * @param {function[]} callbacks.mount
  * @param {function[]} callbacks.destroy
  * @param {function[]} callbacks.return
- * @return {Object} update callbacks
+ * @returns {Object} update callbacks
  */
 function _useMessagingMenu(callbacks) {
     const {
@@ -219,7 +219,7 @@ function _useMessagingMenu(callbacks) {
  * @param {Object} [param0={}]
  * @param {boolean} [hasChatWindow]
  * @param {boolean} [isDebug]
- * @return {Object}
+ * @returns {Object}
  */
 function getServices({ hasChatWindow, isDebug } = {}) {
     return new MockMailService().getServices({ hasChatWindow, isDebug });
@@ -532,7 +532,7 @@ async function pause() {
  * @param {Object} [param0.viewOptions] makes only sense when `param0.hasView`
  *   is set: the view options to use in createView.
  * @param {...Object} [param0.kwargs]
- * @return {Object}
+ * @returns {Object}
  */
 async function start(param0) {
     let callbacks = {

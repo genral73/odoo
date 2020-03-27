@@ -6,7 +6,7 @@ const { Component } = owl;
 /**
  * This hook provides support for dynamic-refs.
  *
- * @return {function} returns object whose keys are t-ref values of active refs.
+ * @returns {function} returns object whose keys are t-ref values of active refs.
  *   and values are refs.
  */
 function useRefs() {

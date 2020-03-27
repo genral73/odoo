@@ -87,7 +87,7 @@ class ThreadViewer extends Component {
     /**
      * Get the scroll position in the message list.
      *
-     * @return {integer|undefined}
+     * @returns {integer|undefined}
      */
     getScrollTop() {
         if (!this._messageListRef.comp) {

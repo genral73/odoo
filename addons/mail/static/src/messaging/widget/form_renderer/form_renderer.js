@@ -95,7 +95,7 @@ FormRenderer.include({
      * This is based on arch, which should have `div.oe_chatter`.
      *
      * @private
-     * @return {boolean}
+     * @returns {boolean}
      */
     _hasChatter() {
         return !!this._chatterContainerTarget;

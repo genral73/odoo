@@ -43,7 +43,7 @@ const PartnerInviteDialog = Dialog.extend({
     },
     /**
      * @override {web.Dialog}
-     * @return {Promise}
+     * @returns {Promise}
      */
     start: function () {
         this.$input = this.$('.o_input');

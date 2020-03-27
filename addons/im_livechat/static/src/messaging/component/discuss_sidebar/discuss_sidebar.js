@@ -16,7 +16,7 @@ patch(components.DiscussSidebar, 'im_livechat.messaging.component.DiscussSidebar
     /**
      * Return the list of livechats that match the quick search value input.
      *
-     * @return {mail.store.model.Thread[]}
+     * @returns {mail.store.model.Thread[]}
      */
     quickSearchOrderedAndPinnedLivechatList() {
         if (!this.state.quickSearchValue) {

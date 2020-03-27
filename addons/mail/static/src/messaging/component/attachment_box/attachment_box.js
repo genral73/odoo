@@ -45,7 +45,7 @@ class AttachmentBox extends Component {
      * Get an object which is passed to FileUploader component to be used when
      * creating attachment.
      *
-     * @return {Object}
+     * @returns {Object}
      */
     get newAttachmentExtraData() {
         return {

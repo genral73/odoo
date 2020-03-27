@@ -98,7 +98,7 @@ class AttachmentViewer extends Component {
     /**
      * Compute the style of the image (scale + rotation).
      *
-     * @return {string}
+     * @returns {string}
      */
     get imageStyle() {
         let style = `transform: ` +
@@ -122,7 +122,7 @@ class AttachmentViewer extends Component {
      * Prevent closing the dialog when clicking on the mask when the user is
      * currently dragging the image.
      *
-     * @return {boolean}
+     * @returns {boolean}
      */
     isCloseable() {
         return !this._isDragging;
@@ -253,7 +253,7 @@ class AttachmentViewer extends Component {
      * defining them in the template, for performance reasons.
      *
      * @private
-     * @return {string}
+     * @returns {string}
      */
     _updateZoomerStyle() {
         const tx = this._imageRef.el.offsetWidth * this.state.scale > this._zoomerRef.el.offsetWidth

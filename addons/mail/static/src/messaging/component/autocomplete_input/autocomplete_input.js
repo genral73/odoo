@@ -37,7 +37,7 @@ class AutocompleteInput extends Component {
      * the suggestion menu.
      *
      * @param {Node} node
-     * @return {boolean}
+     * @returns {boolean}
      */
     contains(node) {
         if (this.el.contains(node)) {

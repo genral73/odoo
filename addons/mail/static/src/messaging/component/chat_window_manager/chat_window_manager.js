@@ -67,7 +67,7 @@ class ChatWindowManager extends Component {
     /**
      * Determine the direction of chat windows positions.
      *
-     * @return {string} either 'rtl' or 'ltr'
+     * @returns {string} either 'rtl' or 'ltr'
      */
     get direction() {
         if (this.TEXT_DIRECTION === 'rtl') {
@@ -80,7 +80,7 @@ class ChatWindowManager extends Component {
      * Return list of chat ids ordered by DOM position,
      * i.e. from left to right with this.TEXT_DIRECTION = 'rtl'.
      *
-     * @return {Array}
+     * @returns {Array}
      */
     get orderedVisible() {
         return [...this.storeProps.computed.visible].reverse();
@@ -90,7 +90,7 @@ class ChatWindowManager extends Component {
      * command. Right-most chat window should not have this command.
      *
      * @param {integer} index
-     * @return {boolean}
+     * @returns {boolean}
      */
     chatWindowShiftRight(index) {
         return index < this.storeProps.computed.visible.length - 1;
@@ -137,7 +137,7 @@ class ChatWindowManager extends Component {
          * `reverse` option.
          *
          * @param {integer} index
-         * @return {integer}
+         * @returns {integer}
          */
         const _getNextIndex = index => {
             const directionOffset = reverse ? -1 : 1;
@@ -169,7 +169,7 @@ class ChatWindowManager extends Component {
      * necessary.
      *
      * @private
-     * @return {mail.messaging.component.ChatWindow}
+     * @returns {mail.messaging.component.ChatWindow}
      */
     _getChatWindowRef(chatWindowLocalId) {
         return this._getRefs()[`chatWindow_${chatWindowLocalId}`];

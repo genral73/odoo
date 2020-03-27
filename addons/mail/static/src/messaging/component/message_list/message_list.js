@@ -138,14 +138,14 @@ class MessageList extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @return {mail.messaging.component.Message|undefined}
+     * @returns {mail.messaging.component.Message|undefined}
      */
     get firstMessageRef() {
         return this.messageRefs[0];
     }
 
     /**
-     * @return {mail.messaging.component.Message|undefined}
+     * @returns {mail.messaging.component.Message|undefined}
      */
     get lastCurrentPartnerMessageRef() {
         const currentPartnerMessageRefs = this.messageRefs.filter(messageRef =>
@@ -156,7 +156,7 @@ class MessageList extends Component {
     }
 
     /**
-     * @return {mail.messaging.component.Message|undefined}
+     * @returns {mail.messaging.component.Message|undefined}
      */
     get lastMessageRef() {
         let { length: l, [l - 1]: lastMessageRef } = this.messageRefs;
@@ -164,7 +164,7 @@ class MessageList extends Component {
     }
 
     /**
-     * @return {mail.messaging.component.Message[]}
+     * @returns {mail.messaging.component.Message[]}
      */
     get messageRefs() {
         return Object.entries(this._getRefs())
@@ -173,7 +173,7 @@ class MessageList extends Component {
             .sort((ref1, ref2) => (ref1.storeProps.message.id < ref2.storeProps.message.id ? -1 : 1));
     }
     /**
-     * @return {mail.model.Message[]}
+     * @returns {mail.model.Message[]}
      */
     get messages() {
         if (this.props.order === 'desc') {
@@ -183,7 +183,7 @@ class MessageList extends Component {
     }
     /**
      * @param {mail.store.model.Message} message
-     * @return {string}
+     * @returns {string}
      */
     getDateDay(message) {
         const date = message.date.format('YYYY-MM-DD');
@@ -200,21 +200,21 @@ class MessageList extends Component {
     }
 
     /**
-     * @return {integer}
+     * @returns {integer}
      */
     getScrollTop() {
         return this.el.scrollTop;
     }
 
     /**
-     * @return {boolean}
+     * @returns {boolean}
      */
     hasMessages() {
         return this.storeProps.messages && this.storeProps.messages.length > 0;
     }
 
     /**
-     * @return {Promise}
+     * @returns {Promise}
      */
     async scrollToLastMessage() {
         this._isAutoLoadOnScrollActive = false;
@@ -239,7 +239,7 @@ class MessageList extends Component {
     /**
      * @param {mail.store.model.Message} prevMessage
      * @param {mail.store.model.Message} message
-     * @return {boolean}
+     * @returns {boolean}
      */
     shouldMessageBeSquashed(prevMessage, message) {
         if (!this.props.hasSquashCloseMessages) {
@@ -367,7 +367,7 @@ class MessageList extends Component {
 
     /**
      * @private
-     * @return {boolean}
+     * @returns {boolean}
      */
     _isLoadMoreVisible() {
         const loadMore = this._loadMoreRef.el;

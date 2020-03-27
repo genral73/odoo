@@ -52,14 +52,14 @@ class Activity extends Component {
     }
 
     /**
-     * @return {string}
+     * @returns {string}
      */
     get assignedUserText() {
         return _.str.sprintf(this.env._t("for %s"), this.activity.userDisplayName);
     }
 
     /**
-     * @return {string}
+     * @returns {string}
      */
     get delayLabel() {
         const today = moment().startOf('day');
@@ -80,7 +80,7 @@ class Activity extends Component {
     }
 
     /**
-     * @return {string}
+     * @returns {string}
      */
     get formattedCreateDatetime() {
         const momentCreateDate = moment(auto_str_to_date(this.activity.dateCreate));
@@ -89,7 +89,7 @@ class Activity extends Component {
     }
 
     /**
-     * @return {string}
+     * @returns {string}
      */
     get formattedDeadlineDate() {
         const momentDeadlineDate = moment(auto_str_to_date(this.activity.dateDeadline));
@@ -98,7 +98,7 @@ class Activity extends Component {
     }
 
     /**
-     * @return {string}
+     * @returns {string}
      */
     get summary() {
         return _.str.sprintf(this.env._t("“%s”"), this.activity.summary);

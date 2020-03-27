@@ -33,7 +33,7 @@ class FileUploader extends Component {
 
     /**
      * @param {FileList|Array} files
-     * @return {Promise}
+     * @returns {Promise}
      */
     async uploadFiles(files) {
         await this._unlinkExistingAttachments(files);
@@ -53,7 +53,7 @@ class FileUploader extends Component {
     /**
      * @private
      * @param {Object} fileData
-     * @return {string}
+     * @returns {string}
      */
      _createAttachment(fileData) {
         return this.storeDispatch('createAttachment', Object.assign(

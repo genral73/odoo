@@ -50,7 +50,7 @@ class ThreadPreview extends Component {
     /**
      * Get inline content of the last message of this conversation.
      *
-     * @return {string}
+     * @returns {string}
      */
     get inlineLastMessageBody() {
         if (!this.storeProps.lastMessage) {
@@ -63,7 +63,7 @@ class ThreadPreview extends Component {
     /**
      * Get the image route of the thread.
      *
-     * @return {string}
+     * @returns {string}
      */
     image() {
         const directPartnerLocalId = this.thread.directPartnerLocalId;
@@ -78,7 +78,7 @@ class ThreadPreview extends Component {
      * Determine whether the last message of this conversation comes from
      * current user or not.
      *
-     * @return {boolean}
+     * @returns {boolean}
      */
     get isMyselfLastMessageAuthor() {
         return (

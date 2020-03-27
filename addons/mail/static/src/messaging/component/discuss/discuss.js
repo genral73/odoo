@@ -227,14 +227,14 @@ class Discuss extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @return {string}
+     * @returns {string}
      */
     get addChannelInputPlaceholder() {
         return this.env._t("Create or search channel...");
     }
 
     /**
-     * @return {string}
+     * @returns {string}
      */
     get addChatInputPlaceholder() {
         return this.env._t("Search user...");
@@ -256,7 +256,7 @@ class Discuss extends Component {
     }
 
     /**
-     * @return {Object[]}
+     * @returns {Object[]}
      */
     mobileNavbarTabs() {
         return [{
@@ -275,7 +275,7 @@ class Discuss extends Component {
     }
 
     /**
-     * @return {boolean}
+     * @returns {boolean}
      */
     hasActiveThreadMessages() {
         if (!this.storeProps.activeThreadCache) {

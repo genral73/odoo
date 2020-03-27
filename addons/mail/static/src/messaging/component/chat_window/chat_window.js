@@ -78,7 +78,7 @@ class ChatWindow extends Component {
      * Get the content of placeholder for the autocomplete input of
      * 'new_message' chat window.
      *
-     * @return {string}
+     * @returns {string}
      */
     get newMessageFormInputPlaceholder() {
         return this.env._t("Search user...");
@@ -98,7 +98,7 @@ class ChatWindow extends Component {
     /**
      * Determine whether this chat window is folded or not.
      *
-     * @return {boolean}
+     * @returns {boolean}
      */
     isFolded() {
         if (this.thread) {

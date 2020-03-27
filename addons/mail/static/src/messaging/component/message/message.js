@@ -100,7 +100,7 @@ class Message extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @return {string}
+     * @returns {string}
      */
     get avatar() {
         if (
@@ -122,7 +122,7 @@ class Message extends Component {
     /**
      * Get the date time of the message at current user locale time.
      *
-     * @return {string}
+     * @returns {string}
      */
     get datetime() {
         return this.message.date.format(getLangDatetimeFormat());
@@ -131,7 +131,7 @@ class Message extends Component {
     /**
      * Get the displayed author name of this message.
      *
-     * @return {string}
+     * @returns {string}
      */
     get displayedAuthorName() {
         if (this.storeProps.author) {
@@ -144,7 +144,7 @@ class Message extends Component {
      * Determine whether author redirect feature is enabled on message.
      * Click on message author should redirect to author.
      *
-     * @return {boolean}
+     * @returns {boolean}
      */
     get hasAuthorRedirect() {
         if (!this.props.hasAuthorRedirect) {
@@ -165,7 +165,7 @@ class Message extends Component {
      * component of this message component is linked to the origin thread of
      * this message, then the origin is the same.
      *
-     * @return {boolean}
+     * @returns {boolean}
      */
     get hasDifferentOriginThread() {
         return (
@@ -175,7 +175,7 @@ class Message extends Component {
     }
 
     /**
-     * @return {string[]}
+     * @returns {string[]}
      */
     get imageAttachmentLocalIds() {
         if (!this.message.attachmentLocalIds) {
@@ -189,7 +189,7 @@ class Message extends Component {
     /**
      * Determine whether the message is starred.
      *
-     * @return {boolean}
+     * @returns {boolean}
      */
     get isStarred() {
         return this.message.threadLocalIds.includes('mail.box_starred');
@@ -203,7 +203,7 @@ class Message extends Component {
     }
 
     /**
-     * @return {string[]}
+     * @returns {string[]}
      */
     get nonImageAttachmentLocalIds() {
         if (!this.message.attachmentLocalIds) {
@@ -217,14 +217,14 @@ class Message extends Component {
     /**
      * Get the shorttime format of the message date.
      *
-     * @return {string}
+     * @returns {string}
      */
     get shortTime() {
         return this.message.date.format('hh:mm');
     }
 
     /**
-     * @return {string}
+     * @returns {string}
      */
     get timeElapsed() {
         clearInterval(this._intervalId);
@@ -235,7 +235,7 @@ class Message extends Component {
     }
 
     /**
-     * @return {Object}
+     * @returns {Object}
      */
     get trackingValues() {
         return this.message.tracking_value_ids.map(trackingValue => {
@@ -269,7 +269,7 @@ class Message extends Component {
      *
      * @param {Object} param0
      * @param {integer} [offset=0]
-     * @return {boolean}
+     * @returns {boolean}
      */
     isBottomVisible({ offset=0 }={}) {
         const elRect = this.el.getBoundingClientRect();
@@ -287,7 +287,7 @@ class Message extends Component {
     /**
      * Tell whether the message is partially visible on browser window or not.
      *
-     * @return {boolean}
+     * @returns {boolean}
      */
     isPartiallyVisible() {
         const elRect = this.el.getBoundingClientRect();
@@ -309,7 +309,7 @@ class Message extends Component {
      * @param {Object} [param0={}]
      * @param {string} [param0.behavior='auto']
      * @param {string} [param0.block='end']
-     * @return {Promise}
+     * @returns {Promise}
      */
     async scrollIntoView({ behavior='auto', block='end' }={}) {
         this.el.scrollIntoView({

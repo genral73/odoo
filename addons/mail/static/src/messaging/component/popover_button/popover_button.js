@@ -61,7 +61,7 @@ class PopoverButton extends Component {
 
     /**
      * @param {EventTarget} target
-     * @return {boolean}
+     * @returns {boolean}
      */
     isInsideEventTarget(target) {
         return target === this.el || target.closest(`#${this._popoverId}`);

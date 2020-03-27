@@ -54,7 +54,7 @@ class ChatWindowHiddenMenu extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @return {integer}
+     * @returns {integer}
      */
     get unreadCounter() {
         return this.storeProps.threads.reduce((count, thread) => {

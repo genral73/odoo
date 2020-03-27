@@ -62,14 +62,14 @@ class MessagingMenu extends Component {
     }
 
     /**
-     * @return {string}
+     * @returns {string}
      */
     get mobileNewMessageInputPlaceholder() {
         return this.env._t("Search user...");
     }
 
     /**
-     * @return {Object[]}
+     * @returns {Object[]}
      */
     get tabs() {
         return [{

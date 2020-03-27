@@ -37,7 +37,7 @@ class Attachment extends Component {
      * Return the url of the attachment. Temporary attachments, a.k.a. uploading
      * attachments, do not have an url.
      *
-     * @return {string}
+     * @returns {string}
      */
     get attachmentUrl() {
         if (this.attachment.isTemporary) {
@@ -52,7 +52,7 @@ class Attachment extends Component {
     /**
      * Get the details mode after auto mode is computed
      *
-     * @return {string} 'card', 'hover' or 'none'
+     * @returns {string} 'card', 'hover' or 'none'
      */
     get detailsMode() {
         if (this.props.detailsMode !== 'auto') {
@@ -69,7 +69,7 @@ class Attachment extends Component {
     /**
      * Get the attachment representation style to be applied
      *
-     * @return {string}
+     * @returns {string}
      */
     get imageStyle() {
         const fileType =
