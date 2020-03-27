@@ -7,7 +7,7 @@
             <t t-if="!storeProps.isMobile or true">
                 <a class="o_MessagingMenu_toggler o-no-caret" t-att-class="{ show: messagingMenu.isOpen }" href="#" t-on-click="_onClickToggler" data-toggle="dropdown" data-display="static" title="Conversations" role="button" aria-expanded="false">
                     <i class="o_MessagingMenu_icon fa fa-comments-o" role="img" aria-label="Messages"/>
-                    <t t-if="!storeProps.isMessagingReady">
+                    <t t-if="!storeProps.isMessagingInitialized">
                         <i class="o_MessagingMenu_loading fa fa-spinner fa-spin"/>
                     </t>
                     <t t-elif="storeProps.counter > 0">
@@ -19,8 +19,8 @@
             </t>
             <!-- TODO FIXME restore mobile stuff here (activeMobileThread) -->
             <t t-if="messagingMenu.isOpen and (!storeProps.isMobile or true)">
-                <div class="o_MessagingMenu_dropdownMenu dropdown-menu dropdown-menu-right" t-att-class="{ 'o-mobile': storeProps.isMobile, 'o-messaging-not-initialized': !storeProps.isMessagingReady }" role="menu">
-                    <t t-if="!storeProps.isMessagingReady">
+                <div class="o_MessagingMenu_dropdownMenu dropdown-menu dropdown-menu-right" t-att-class="{ 'o-mobile': storeProps.isMobile, 'o-messaging-not-initialized': !storeProps.isMessagingInitialized }" role="menu">
+                    <t t-if="!storeProps.isMessagingInitialized">
                         <span><i class="o_MessagingMenu_dropdownLoadingIcon fa fa-spinner fa-spin"/>Please wait...</span>
                     </t>
                     <t t-else="">

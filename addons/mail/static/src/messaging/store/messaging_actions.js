@@ -530,7 +530,7 @@ const actions = {
         env.call('bus_service', 'on', 'window_focus', null, () =>
             dispatch('_handleGlobalWindowFocus')
         );
-        state.isMessagingReady = true;
+        state.isMessagingInitialized = true;
         env.call('bus_service', 'startPolling');
         dispatch('_startLoopFetchPartnerImStatus');
     },

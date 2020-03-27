@@ -97,7 +97,7 @@ class Discuss extends Component {
                 activeThreadCounter: activeThread && activeThread.counter,
                 checkedMessageLocalIds,
                 discuss: state.discuss,
-                isMessagingReady: state.isMessagingReady,
+                isMessagingInitialized: state.isMessagingInitialized,
                 isMobile: state.isMobile,
                 uncheckedMessageLocalIds,
             };
@@ -156,7 +156,7 @@ class Discuss extends Component {
             this.trigger('o-push-state-action-manager', {
                 activeThreadLocalId: this.props.initActiveThreadLocalId,
             });
-        } else if (this.storeProps.isMessagingReady) {
+        } else if (this.storeProps.isMessagingInitialized) {
             this.storeDispatch('openThread', this.props.initActiveThreadLocalId, {
                 resetDiscussDomain: true,
             });
@@ -209,7 +209,7 @@ class Discuss extends Component {
         ) {
             this.trigger('o-show-rainbow-man');
         }
-        if (!this._wasMessagingReady && this.storeProps.isMessagingReady) {
+        if (!this._wasMessagingReady && this.storeProps.isMessagingInitialized) {
             this.storeDispatch('openThread', this.props.initActiveThreadLocalId, {
                 resetDiscussDomain: true,
             });
@@ -362,7 +362,7 @@ class Discuss extends Component {
          * ready. This is important because data on thread may require messaging
          * to be ready.
          */
-        this._wasMessagingReady = this.storeProps.isMessagingReady;
+        this._wasMessagingReady = this.storeProps.isMessagingInitialized;
     }
 
     //--------------------------------------------------------------------------

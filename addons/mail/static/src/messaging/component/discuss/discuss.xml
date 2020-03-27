@@ -8,7 +8,7 @@
                 'o-mobile': storeProps.isMobile,
             }"
         >
-            <t t-if="!storeProps.isMessagingReady">
+            <t t-if="!storeProps.isMessagingInitialized">
                 <div class="o_Discuss_messagingNotInitialized"><i class="o_Discuss_messagingNotInitializedIcon fa fa-spinner fa-spin"/>Please wait...</div>
             </t>
             <t t-else="">

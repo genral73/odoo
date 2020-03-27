@@ -85,7 +85,7 @@ QUnit.test("global state after default '/mail/init_messaging' RPC data", async f
     assert.deepEqual(
         this.env.store.state,
         {
-            isMessagingReady: true,
+            isMessagingInitialized: true,
             activities: {},
             attachments: {},
             cannedResponses: {},

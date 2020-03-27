@@ -108,7 +108,7 @@ class MessagingMenu extends Component {
         return {
             counter,
             isDiscussOpen: state.discuss.isOpen,
-            isMessagingReady: state.isMessagingReady,
+            isMessagingInitialized: state.isMessagingInitialized,
             isMobile: state.isMobile,
             messagingMenu: state.messagingMenu,
         };
