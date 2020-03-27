@@ -6,7 +6,7 @@
             <t t-if="storeProps.author and storeProps.author.localId === storeProps.currentPartnerLocalId">
                 <i class="o_MessageAuthorPrefixIcon fa fa-mail-reply"/>You:
             </t>
-            <t t-elif="storeProps.thread and storeProps.thread.channel_type === 'channel'">
+            <t t-elif="thread and thread.channel_type === 'channel'">
                 <t t-esc="storeProps.authorName"/>:
             </t>
         </span>

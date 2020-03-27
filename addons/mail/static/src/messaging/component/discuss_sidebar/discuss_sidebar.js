@@ -34,33 +34,33 @@ class DiscussSidebar extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * Return the list of channels that match the quick search value input.
+     * Return the list of chats that match the quick search value input.
      *
      * @return {mail.store.model.Thread[]}
      */
-    get quickSearchChannelList() {
+    get quickSearchPinnedAndOrderedChats() {
         if (!this.state.quickSearchValue) {
-            return this.storeProps.pinnedChannelList;
+            return this.storeProps.allOrderedAndPinnedChats;
         }
         const qsVal = this.state.quickSearchValue.toLowerCase();
-        return this.storeProps.pinnedChannelList.filter(channel => {
-            const nameVal = this.storeGetters.threadName(channel.localId).toLowerCase();
+        return this.storeProps.allOrderedAndPinnedChats.filter(chat => {
+            const nameVal = this.storeGetters.threadName(chat.localId).toLowerCase();
             return nameVal.includes(qsVal);
         });
     }
 
     /**
-     * Return the list of chats that match the quick search value input.
+     * Return the list of channels that match the quick search value input.
      *
      * @return {mail.store.model.Thread[]}
      */
-    get quickSearchChatList() {
+    get quickSearchOrderedAndPinnedMultiUserChannels() {
         if (!this.state.quickSearchValue) {
-            return this.storeProps.pinnedChatList;
+            return this.storeProps.allOrderedAndPinnedMultiUserChannels;
         }
         const qsVal = this.state.quickSearchValue.toLowerCase();
-        return this.storeProps.pinnedChatList.filter(chat => {
-            const nameVal = this.storeGetters.threadName(chat.localId).toLowerCase();
+        return this.storeProps.allOrderedAndPinnedMultiUserChannels.filter(channel => {
+            const nameVal = this.storeGetters.threadName(channel.localId).toLowerCase();
             return nameVal.includes(qsVal);
         });
     }
@@ -75,10 +75,10 @@ class DiscussSidebar extends Component {
      */
     _useStoreCompareDepth() {
         return {
-            pinnedChannelList: 1,
-            pinnedChatList: 1,
-            pinnedMailboxList: 1,
-            pinnedMailChannelAmount: 1,
+            allOrderedAndPinnedChats: 1,
+            allOrderedAndPinnedMailboxes: 1,
+            allOrderedAndPinnedMultiUserChannels: 1,
+            allPinnedChannelAmount: 1,
         };
     }
     /**
@@ -89,10 +89,13 @@ class DiscussSidebar extends Component {
      */
     _useStoreSelector(state, props) {
         return {
-            pinnedChannelList: this.storeGetters.pinnedChannelList(),
-            pinnedChatList: this.storeGetters.pinnedChatList(),
-            pinnedMailboxList: this.storeGetters.pinnedMailboxList(),
-            pinnedMailChannelAmount: this.storeGetters.pinnedMailChannelAmount(),
+            allOrderedAndPinnedChats:
+                this.storeGetters.allOrderedAndPinnedChats(),
+            allOrderedAndPinnedMailboxes:
+                this.storeGetters.allOrderedAndPinnedMailboxes(),
+            allOrderedAndPinnedMultiUserChannels:
+                this.storeGetters.allOrderedAndPinnedMultiUserChannels(),
+            allPinnedChannelAmount: this.storeGetters.allPinnedChannelAmount(),
         };
     }
 

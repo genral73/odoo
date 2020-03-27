@@ -27,6 +27,18 @@ class ThreadIcon extends Component {
             };
         });
     }
+
+    //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * @returns {mail.messaging.entity.Thread}
+     */
+    get thread() {
+        return this.storeProps.thread;
+    }
+
 }
 
 Object.assign(ThreadIcon, {

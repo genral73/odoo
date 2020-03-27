@@ -5,12 +5,12 @@
         <div class="o_Message"
             t-att-class="{
                 'o-clicked': state.isClicked,
-                'o-discussion': storeProps.message.is_discussion or
-                    storeProps.message.is_notification,
+                'o-discussion': message.is_discussion or
+                    message.is_notification,
                 'o-mobile': storeProps.isMobile,
-                'o-not-discussion': !(storeProps.message.is_discussion or
-                    storeProps.message.is_notification),
-                'o-notification': storeProps.message.message_type === 'notification',
+                'o-not-discussion': !(message.is_discussion or
+                    message.is_notification),
+                'o-notification': message.message_type === 'notification',
                 'o-selected': props.isSelected,
                 'o-squashed': props.isSquashed,
                 'o-starred': isStarred,
@@ -24,9 +24,7 @@
                             <PartnerImStatusIcon
                                 class="o_Message_partnerImStatusIcon"
                                 t-att-class="{
-                                    'o-message-not-discussion': !(
-                                        storeProps.message.is_discussion or
-                                        storeProps.message.is_notification),
+                                    'o-message-not-discussion': !(message.is_discussion or message.is_notification),
                                     'o-message-selected': props.isSelected,
                                     'o_Message_partnerImStatusIcon-mobile': storeProps.isMobile,
                                 }"
@@ -40,7 +38,7 @@
                         <t t-esc="shortTime"/>
                     </div>
                     <div class="o_Message_commands o_Message_sidebarCommands o_Message_sidebarItem o-message-squashed" t-att-class="{ 'o-message-selected': props.isSelected, 'o-mobile': storeProps.isMobile }">
-                        <t t-if="storeProps.message.message_type !== 'notification'">
+                        <t t-if="message.message_type !== 'notification'">
                             <div class="o_Message_command o_Message_commandStar fa"
                                 t-att-class="{
                                     'fa-star': isStarred,
@@ -73,11 +71,11 @@
                                 </t>
                             </div>
                         </t>
-                        <t t-if="storeProps.message.moderation_status === 'pending_moderation' and !storeGetters.isMessageModeratedByUser(storeProps.message.localId)">
+                        <t t-if="message.moderation_status === 'pending_moderation' and !storeGetters.isMessageModeratedByUser(storeProps.message.localId)">
                             <span class="o_Message_moderationPending o-author" title="Your message is pending moderation.">Pending moderation</span>
                         </t>
                         <div class="o_Message_commands o_Message_headerCommands" t-att-class="{ 'o-mobile': storeProps.isMobile }">
-                            <t t-if="!storeProps.message.isTemporary and ((storeProps.message.message_type !== 'notification' and storeProps.originThread and storeProps.originThread._model === 'mail.channel') or !storeProps.message.isTransient) and storeProps.message.moderation_status !== 'pending_moderation'">
+                            <t t-if="!message.isTemporary and ((message.message_type !== 'notification' and storeProps.originThread and storeProps.originThread._model === 'mail.channel') or !message.isTransient) and message.moderation_status !== 'pending_moderation'">
                                 <span class="o_Message_command o_Message_commandStar o_Message_headerCommand fa"
                                     t-att-class="{
                                         'fa-star': isStarred,
@@ -106,7 +104,7 @@
                             </t>
                         </div>
                     </div>
-                    <t t-if="storeGetters.isMessageModeratedByUser(storeProps.message.localId)">
+                    <t t-if="storeGetters.isMessageModeratedByUser(message.localId)">
                         <div class="o_Message_moderationSubHeader">
                             <t t-if="props.hasCheckbox and storeProps.hasCheckbox">
                                 <input class="o_Message_checkbox" type="checkbox" t-att-checked="storeProps.isChecked ? 'checked': ''" t-on-change="_onChangeCheckbox" t-ref="checkbox"/>
@@ -122,10 +120,10 @@
                 </t>
                 <div class="o_Message_content" t-ref="content">
                     <t t-raw="storeGetters.messagePrettyBody(props.messageLocalId)"/>
-                    <t t-if="storeProps.message.subtype_description">
-                        <p t-esc="storeProps.message.subtype_description"/>
+                    <t t-if="message.subtype_description">
+                        <p t-esc="message.subtype_description"/>
                     </t>
-                    <t t-if="storeProps.message.tracking_value_ids.length > 0">
+                    <t t-if="message.tracking_value_ids.length > 0">
                         <ul class="o_Message_trackingValues">
                             <t t-foreach="trackingValues" t-as="value" t-key="value.id">
                                 <li>

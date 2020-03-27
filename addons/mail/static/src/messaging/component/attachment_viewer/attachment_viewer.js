@@ -565,6 +565,7 @@ class AttachmentViewer extends Component {
             this._zoomOut({ scroll: true });
         }
     }
+
 }
 
 Object.assign(AttachmentViewer, {

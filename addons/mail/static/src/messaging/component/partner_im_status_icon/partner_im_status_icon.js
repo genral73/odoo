@@ -22,6 +22,17 @@ class PartnerImStatusIcon extends Component {
             };
         });
     }
+
+    //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * @returns {mail.messaging.entity.Partner}
+     */
+    get partner() {
+        return this.storeProps.partner;
+    }
 }
 
 Object.assign(PartnerImStatusIcon, {

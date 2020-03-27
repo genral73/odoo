@@ -30,6 +30,18 @@ class MessageAuthorPrefix extends Component {
             };
         });
     }
+
+    //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * @returns {mail.messaging.entity.Thread|undefined}
+     */
+    get thread() {
+        return this.storeProps.thread;
+    }
+
 }
 
 Object.assign(MessageAuthorPrefix, {

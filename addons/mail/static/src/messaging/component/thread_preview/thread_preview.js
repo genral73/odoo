@@ -66,12 +66,12 @@ class ThreadPreview extends Component {
      * @return {string}
      */
     image() {
-        const directPartnerLocalId = this.storeProps.thread.directPartnerLocalId;
+        const directPartnerLocalId = this.thread.directPartnerLocalId;
         if (directPartnerLocalId) {
             const directPartner = this.env.store.state.partners[directPartnerLocalId];
             return `/web/image/res.partner/${directPartner.id}/image_128`;
         }
-        return `/web/image/mail.channel/${this.storeProps.thread.id}/image_128`;
+        return `/web/image/mail.channel/${this.thread.id}/image_128`;
     }
 
     /**
@@ -87,6 +87,13 @@ class ThreadPreview extends Component {
         ) || false;
     }
 
+    /**
+     * @returns {mail.messaging.entity.Thread}
+     */
+    get thread() {
+        return this.storeProps.thread;
+    }
+
     //--------------------------------------------------------------------------
     // Handlers
     //--------------------------------------------------------------------------
@@ -97,7 +104,7 @@ class ThreadPreview extends Component {
      */
     _onClick(ev) {
         this.trigger('o-select-thread', {
-            threadLocalId: this.storeProps.thread.localId,
+            threadLocalId: this.thread.localId,
         });
     }
     /**

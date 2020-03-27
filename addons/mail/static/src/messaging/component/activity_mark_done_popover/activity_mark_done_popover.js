@@ -26,6 +26,13 @@ class ActivityMarkDonePopover extends Component {
     //--------------------------------------------------------------------------
 
     /**
+     * @returns {mail.messaging.entity.Activity}
+     */
+    get activity() {
+        return this.storeProps.activity;
+    }
+
+    /**
      * @returns {string}
      */
     get DONE_AND_SCHEDULE_NEXT() {
@@ -62,7 +69,7 @@ class ActivityMarkDonePopover extends Component {
             { feedback }
         );
         const on_close = () => {
-            this.storeDispatch('refreshChatterActivities', this.storeProps.activity.chatterLocalId);
+            this.storeDispatch('refreshChatterActivities', this.activity.chatterLocalId);
         };
         this.env.do_action(action, { on_close });
     }

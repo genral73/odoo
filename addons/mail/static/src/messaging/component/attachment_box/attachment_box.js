@@ -78,6 +78,7 @@ class AttachmentBox extends Component {
         await this._fileUploaderRef.comp.uploadFiles(ev.detail.files);
         this.isDropZoneVisible.value = false;
     }
+
 }
 
 Object.assign(AttachmentBox, {

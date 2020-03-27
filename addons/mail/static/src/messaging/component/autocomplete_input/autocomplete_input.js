@@ -123,6 +123,7 @@ class AutocompleteInput extends Component {
             this.trigger('o-hide');
         }
     }
+
 }
 
 Object.assign(AutocompleteInput, {

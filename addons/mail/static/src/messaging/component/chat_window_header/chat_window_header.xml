@@ -8,21 +8,21 @@
                     <i class="fa fa-arrow-left"/>
                 </div>
             </t>
-            <t t-if="storeProps.thread">
+            <t t-if="thread">
                 <ThreadIcon
                     class="o_ChatWindowHeader_icon o_ChatWindowHeader_item"
                     threadLocalId="props.chatWindowLocalId"
                 />
             </t>
             <div class="o_ChatWindowHeader_item o_ChatWindowHeader_name">
-                <t t-if="storeProps.thread">
-                    <t t-esc="storeProps.threadName"/>
+                <t t-if="thread">
+                    <t t-esc="storeGetters.threadName(thread.localId)"/>
                 </t>
                 <t t-else="">New message</t>
             </div>
-            <t t-if="storeProps.thread and storeProps.thread.message_unread_counter > 0">
+            <t t-if="thread and thread.message_unread_counter > 0">
                 <div class="o_ChatWindowHeader_counter o_ChatWindowHeader_item">
-                    (<t t-esc="storeProps.thread.message_unread_counter"/>)
+                    (<t t-esc="thread.message_unread_counter"/>)
                 </div>
             </t>
             <div class="o-autogrow"/>

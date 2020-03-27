@@ -4,7 +4,7 @@
     <t t-name="mail.messaging.component.DiscussSidebar" owl="1">
         <div name="root" class="o_DiscussSidebar">
             <div class="o_DiscussSidebar_group o_DiscussSidebar_groupMailbox">
-                <t t-foreach="storeProps.pinnedMailboxList" t-as="mailbox" t-key="mailbox.localId">
+                <t t-foreach="storeProps.allOrderedAndPinnedMailboxes" t-as="mailbox" t-key="mailbox.localId">
                     <DiscussSidebarItem
                         class="o_DiscussSidebar_item"
                         isActive="props.activeThreadLocalId === mailbox.localId"
@@ -15,7 +15,7 @@
                 </t>
             </div>
             <hr class="o_DiscussSidebar_separator"/>
-            <t t-if="storeProps.pinnedMailChannelAmount > 19">
+            <t t-if="storeProps.allPinnedChannelAmount > 19">
                 <input class="o_DiscussSidebar_quickSearch" t-on-input="_onInputQuickSearch" placeholder="Quick search..." t-ref="quickSearch"/>
             </t>
             <div class="o_DiscussSidebar_group o_DiscussSidebar_groupChannel">
@@ -40,7 +40,7 @@
                             />
                         </div>
                     </t>
-                    <t t-foreach="quickSearchChannelList" t-as="channel" t-key="channel.localId">
+                    <t t-foreach="quickSearchOrderedAndPinnedMultiUserChannels" t-as="channel" t-key="channel.localId">
                         <DiscussSidebarItem
                             class="o_DiscussSidebar_item"
                             isActive="props.activeThreadLocalId === channel.localId"
@@ -72,7 +72,7 @@
                             />
                         </div>
                     </t>
-                    <t t-foreach="quickSearchChatList" t-as="chat" t-key="chat.localId">
+                    <t t-foreach="quickSearchPinnedAndOrderedChats" t-as="chat" t-key="chat.localId">
                         <DiscussSidebarItem
                             class="o_DiscussSidebar_item"
                             isActive="props.activeThreadLocalId === chat.localId"

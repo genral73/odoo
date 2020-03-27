@@ -50,6 +50,13 @@ class ComposerTextInput extends Component {
     // Public
     //--------------------------------------------------------------------------
 
+    /**
+     * @returns {mail.messaging.entity.Composer}
+     */
+    get composer() {
+        return this.storeProps.composer;
+    }
+
     focus() {
         this._textareaRef.el.focus();
     }
@@ -125,10 +132,10 @@ class ComposerTextInput extends Component {
      * @private
      */
     _update() {
-        this._textareaRef.el.value = this.storeProps.composer.textInputContent;
+        this._textareaRef.el.value = this.composer.textInputContent;
         this._textareaRef.el.setSelectionRange(
-            this.storeProps.composer.textInputCursorStart,
-            this.storeProps.composer.textInputCursorEnd
+            this.composer.textInputCursorStart,
+            this.composer.textInputCursorEnd
         );
         this._updateHeight();
     }

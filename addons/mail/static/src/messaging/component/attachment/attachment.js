@@ -27,17 +27,24 @@ class Attachment extends Component {
     //--------------------------------------------------------------------------
 
     /**
+     * @returns {mail.messaging.entity.Attachment}
+     */
+    get attachment() {
+        return this.storeProps.attachment;
+    }
+
+    /**
      * Return the url of the attachment. Temporary attachments, a.k.a. uploading
      * attachments, do not have an url.
      *
      * @return {string}
      */
     get attachmentUrl() {
-        if (this.storeProps.attachment.isTemporary) {
+        if (this.attachment.isTemporary) {
             return '';
         }
         return this.env.session.url('/web/content', {
-            id: this.storeProps.attachment.id,
+            id: this.attachment.id,
             download: true,
         });
     }
@@ -76,7 +83,7 @@ class Attachment extends Component {
         } else {
             size = '160x160';
         }
-        const attachmentId = this.storeProps.attachment.id;
+        const attachmentId = this.attachment.id;
         return `background-image:url(/web/image/${attachmentId}/${size}/?crop=true);`;
     }
 
@@ -92,7 +99,7 @@ class Attachment extends Component {
      */
     _onClickDownload(ev) {
         ev.stopPropagation();
-        const attachmentId = this.storeProps.attachment.id;
+        const attachmentId = this.attachment.id;
         window.location = `/web/content/ir.attachment/${attachmentId}/datas?download=true`;
     }
 

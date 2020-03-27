@@ -5,6 +5,7 @@ const { Component } = owl;
 const { useRef } = owl.hooks;
 
 class Dialog extends Component {
+
     /**
      * @param {...any} args
      */

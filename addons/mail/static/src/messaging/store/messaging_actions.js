@@ -4105,9 +4105,7 @@ const actions = {
                 // so we simply use their template to make HTML as if it comes
                 // from component
                 const channelIcon = env.qweb.renderToString('mail.messaging.component.ThreadIcon', {
-                    storeProps: {
-                        thread: channel,
-                    },
+                    thread: channel,
                 });
                 const channelName = _.escape(getters.threadName(channelLocalId));
                 const channelNameWithIcon = channelIcon + channelName;

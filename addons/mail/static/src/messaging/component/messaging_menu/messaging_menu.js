@@ -55,6 +55,13 @@ class MessagingMenu extends Component {
     //--------------------------------------------------------------------------
 
     /**
+     * @returns {mail.messaging.entity.MessagingMenu}
+     */
+    get messagingMenu() {
+        return this.storeProps.messagingMenu;
+    }
+
+    /**
      * @return {string}
      */
     get mobileNewMessageInputPlaceholder() {
@@ -98,12 +105,13 @@ class MessagingMenu extends Component {
         const mailboxInboxCounter = state.threads['mail.box_inbox'].counter;
         const counter = unreadMailChannelCounter + mailboxInboxCounter;
 
-        return Object.assign({}, state.messagingMenu, {
+        return {
             counter,
             isDiscussOpen: state.discuss.isOpen,
             isMessagingReady: state.isMessagingReady,
             isMobile: state.isMobile,
-        });
+            messagingMenu: state.messagingMenu,
+        };
     }
 
     //--------------------------------------------------------------------------

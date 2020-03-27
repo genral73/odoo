@@ -15,7 +15,7 @@
                 <t t-if="!storeProps.isMobile">
                     <DiscussSidebar
                         class="o_Discuss_sidebar"
-                        activeThreadLocalId="storeProps.activeThreadLocalId"
+                        activeThreadLocalId="discuss.activeThreadLocalId"
                         isAddingChannel="state.isAddingChannel"
                         isAddingChat="state.isAddingChat"
                         onAddChannelAutocompleteSelect="_onAddChannelAutocompleteSelect"
@@ -47,10 +47,10 @@
     </t>
 
     <t t-name="mail.messaging.component.DiscussContent" owl="1">
-        <t t-if="storeProps.isMobile and storeProps.activeMobileNavbarTabId === 'mailbox'">
+        <t t-if="storeProps.isMobile and discuss.activeMobileNavbarTabId === 'mailbox'">
             <DiscussMobileMailboxSelection
                 class="o_Discuss_mobileMailboxSelection"
-                activeThreadLocalId="storeProps.activeThreadLocalId"
+                activeThreadLocalId="discuss.activeThreadLocalId"
                 t-on-o-select-thread="_onSelectThread"
             />
         </t>
@@ -66,12 +66,12 @@
                     t-on-o-hide="_onHideMobileAddItemHeader"/>
             </div>
         </t>
-        <t t-if="(storeProps.isMobile and storeProps.activeMobileNavbarTabId === 'mailbox' and storeProps.activeThreadLocalId and storeProps.activeThread._model === 'mail.box') or (!storeProps.isMobile and storeProps.activeThreadLocalId)">
+        <t t-if="(storeProps.isMobile and discuss.activeMobileNavbarTabId === 'mailbox' and discuss.activeThreadLocalId and storeProps.activeThread._model === 'mail.box') or (!storeProps.isMobile and discuss.activeThreadLocalId)">
             <ThreadViewer
                 class="o_Discuss_thread"
                 t-att-class="{ 'o-mobile': storeProps.isMobile }"
                 composerAttachmentsDetailsMode="'card'"
-                domain="storeProps.domain"
+                domain="discuss.domain"
                 hasComposer="storeProps.activeThread._model !== 'mail.box'"
                 hasComposerCurrentPartnerAvatar="!storeProps.isMobile"
                 hasMessageCheckbox="true"
@@ -83,29 +83,29 @@
                     state.threadCachesStoredScrollTop[storeProps.activeThreadCacheLocalId] and
                     state.threadCachesStoredScrollTop[storeProps.activeThreadCacheLocalId].value"
                 selectedMessageLocalId="state.replyingToMessageMessageLocalId"
-                threadLocalId="storeProps.activeThreadLocalId"
+                threadLocalId="discuss.activeThreadLocalId"
                 t-on-o-redirect="_onRedirect"
                 t-on-o-rendered="_onThreadRendered"
                 t-on-o-reply-message="_onReplyMessage"
                 t-ref="thread"
             />
         </t>
-        <t t-if="!storeProps.activeThreadLocalId and (!storeProps.isMobile or storeProps.activeMobileNavbarTabId === 'mailbox')">
+        <t t-if="!discuss.activeThreadLocalId and (!storeProps.isMobile or discuss.activeMobileNavbarTabId === 'mailbox')">
             <div class="o_Discuss_noThread">
                 No conversation selected.
             </div>
         </t>
-        <t t-if="storeProps.isMobile and storeProps.activeMobileNavbarTabId !== 'mailbox'">
+        <t t-if="storeProps.isMobile and discuss.activeMobileNavbarTabId !== 'mailbox'">
             <NotificationList
                 class="o_Discuss_notificationList"
-                filter="storeProps.activeMobileNavbarTabId"
+                filter="discuss.activeMobileNavbarTabId"
                 t-on-o-select-thread="_onSelectThread"
             />
         </t>
         <t t-if="storeProps.isMobile and !state.isReplyingToMessage">
             <MobileMessagingNavbar
                 class="o_Discuss_mobileMessagingNavbar"
-                activeTabId="storeProps.activeMobileNavbarTabId"
+                activeTabId="discuss.activeMobileNavbarTabId"
                 tabs="mobileNavbarTabs()"
                 t-on-o-select-mobile-messaging-navbar-tab="_onSelectMobileNavbarTab"
             />

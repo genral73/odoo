@@ -18,12 +18,12 @@ patch(components.DiscussSidebar, 'im_livechat.messaging.component.DiscussSidebar
      *
      * @return {mail.store.model.Thread[]}
      */
-    quickSearchLivechatList() {
+    quickSearchOrderedAndPinnedLivechatList() {
         if (!this.state.quickSearchValue) {
-            return this.storeProps.pinnedLivechatList;
+            return this.storeProps.allOrderedAndPinnedLivechats;
         }
         const qsVal = this.state.quickSearchValue.toLowerCase();
-        return this.storeProps.pinnedLivechatList.filter(livechat => {
+        return this.storeProps.allOrderedAndPinnedLivechats.filter(livechat => {
             const nameVal = this.storeGetters.threadName(livechat.localId).toLowerCase();
             return nameVal.includes(qsVal);
         });
@@ -38,7 +38,7 @@ patch(components.DiscussSidebar, 'im_livechat.messaging.component.DiscussSidebar
      */
     _useStoreCompareDepth(state, props) {
         return Object.assign(this._super(...arguments), {
-            pinnedLivechatList: 1,
+            allOrderedAndPinnedLivechats: 1,
         });
     },
     /**
@@ -48,7 +48,7 @@ patch(components.DiscussSidebar, 'im_livechat.messaging.component.DiscussSidebar
      */
     _useStoreSelector(state, props) {
         return Object.assign(this._super(...arguments), {
-            pinnedLivechatList: this.storeGetters.pinnedLivechatList(),
+            allOrderedAndPinnedLivechats: this.storeGetters.allOrderedAndPinnedLivechats(),
         });
     },
 

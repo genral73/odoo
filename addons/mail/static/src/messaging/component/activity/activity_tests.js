@@ -817,12 +817,14 @@ QUnit.test('activity click on cancel', async function (assert) {
     Object.assign(ParentComponent, {
         components,
         props: { activityLocalId: String },
-        template: xml`<div>
-            <p>parent</p>
-            <t t-if="storeProps.activity">
-                <Activity activityLocalId="props.activityLocalId"/>
-            </t>
-        </div>`,
+        template: xml`
+            <div>
+                <p>parent</p>
+                <t t-if="storeProps.activity">
+                    <Activity activityLocalId="props.activityLocalId"/>
+                </t>
+            </div>
+        `,
     });
     this.component = new ParentComponent(null, { activityLocalId });
     await this.component.mount(this.widget.el);

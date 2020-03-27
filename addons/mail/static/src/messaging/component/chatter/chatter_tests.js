@@ -115,7 +115,7 @@ QUnit.test('base rendering when chatter has no attachment', async function (asse
     assert.strictEqual(
         document.querySelector(`.o_Chatter_thread`).dataset.threadLocalId,
         'res.partner_100',
-        'thread should have the right thread local id'
+        "thread should have the right thread local id"
     );
     assert.strictEqual(
         document.querySelectorAll(`.o_Message`).length,
@@ -128,7 +128,7 @@ QUnit.test('base rendering when chatter has no record', async function (assert) 
     assert.expect(7);
     await this.start({});
     const chatterLocalId = this.env.store.dispatch('createChatter', {
-        initialThreadModel: 'res.partner'
+        initialThreadModel: 'res.partner',
     });
     await this.createChatterComponent({ chatterLocalId });
     assert.strictEqual(
@@ -191,7 +191,7 @@ QUnit.test('base rendering when chatter has attachments', async function (assert
     });
     const chatterLocalId = this.env.store.dispatch('createChatter', {
         initialThreadId: 100,
-        initialThreadModel: 'res.partner'
+        initialThreadModel: 'res.partner',
     });
     await this.createChatterComponent({ chatterLocalId });
     assert.strictEqual(

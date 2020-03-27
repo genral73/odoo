@@ -32,6 +32,17 @@ class ChatWindowHeader extends Component {
     }
 
     //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * @returns {mail.messaging.entity.Thread}
+     */
+    get thread() {
+        return this.storeProps.thread;
+    }
+
+    //--------------------------------------------------------------------------
     // Handlers
     //--------------------------------------------------------------------------
 
@@ -60,21 +71,21 @@ class ChatWindowHeader extends Component {
      */
     _onClickExpand(ev) {
         ev.stopPropagation();
-        if (!this.storeProps.thread) {
+        if (!this.thread) {
             return;
         }
-        if (['mail.channel', 'mail.box'].includes(this.storeProps.thread._model)) {
+        if (['mail.channel', 'mail.box'].includes(this.thread._model)) {
             this.env.do_action('mail.action_new_discuss', {
                 clear_breadcrumbs: false,
-                active_id: this.storeProps.thread.localId,
+                active_id: this.thread.localId,
                 on_reverse_breadcrumb: () =>
                     // ideally discuss should do it itself...
                     this.storeDispatch('closeDiscuss'),
             });
         } else {
             this.storeDispatch('openDocument', {
-                id: this.storeProps.thread.id,
-                model: this.storeProps.thread._model,
+                id: this.thread.id,
+                model: this.thread._model,
             });
         }
     }
@@ -96,6 +107,7 @@ class ChatWindowHeader extends Component {
         ev.stopPropagation();
         this.storeDispatch('shiftRightChatWindow', this.props.chatWindowLocalId);
     }
+
 }
 
 Object.assign(ChatWindowHeader, {

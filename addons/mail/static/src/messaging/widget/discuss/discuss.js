@@ -176,11 +176,11 @@ const DiscussWidget = AbstractAction.extend({
      * @private
      */
     _updateControlPanel() {
-        const activeThreadLocalId = this.component.storeProps.activeThreadLocalId;
+        const activeThreadLocalId = this.component.discuss.activeThreadLocalId;
         const hasMessages = this.component.hasActiveThreadMessages();
         const isMobile = this.component.storeProps.isMobile;
         const activeThread = this.component.storeProps.activeThread;
-        const activeMobileNavbarTabId = this.component.storeProps.activeMobileNavbarTabId;
+        const activeMobileNavbarTabId = this.component.discuss.activeMobileNavbarTabId;
         const checkedMessageLocalIds = this.component.storeProps.checkedMessageLocalIds;
         const uncheckedMessageLocalIds = this.component.storeProps.uncheckedMessageLocalIds;
 
@@ -283,7 +283,7 @@ const DiscussWidget = AbstractAction.extend({
      */
     _onClickInvite() {
         new InvitePartnerDialog(this, {
-            activeThreadLocalId: this.component.storeProps.activeThreadLocalId,
+            activeThreadLocalId: this.component.discuss.activeThreadLocalId,
             messagingEnv: this.env,
         }).open();
     },
@@ -333,7 +333,7 @@ const DiscussWidget = AbstractAction.extend({
         this.env.store.dispatch('setMessagesCheck',
             this.component.storeProps.uncheckedMessageLocalIds,
             this.component.storeProps.activeThread.localId,
-            this.component.storeProps.stringifiedDomain,
+            this.component.discuss.stringifiedDomain,
             {
                 checkValue: true,
             },
@@ -346,7 +346,7 @@ const DiscussWidget = AbstractAction.extend({
         this.env.store.dispatch('setMessagesCheck',
             this.component.storeProps.checkedMessageLocalIds,
             this.component.storeProps.activeThread.localId,
-            this.component.storeProps.stringifiedDomain,
+            this.component.discuss.stringifiedDomain,
             {
                 checkValue: false,
             },

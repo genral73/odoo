@@ -89,6 +89,13 @@ class Composer extends Component {
     //--------------------------------------------------------------------------
 
     /**
+     * @returns {mail.messaging.entity.Composer}
+     */
+    get composer() {
+        return this.storeProps.composer;
+    }
+
+    /**
      * Get the current partner image URL.
      *
      * @return {string}
@@ -110,7 +117,7 @@ class Composer extends Component {
      * @return {boolean}
      */
     get hasFooter() {
-        return this.storeProps.composer.attachmentLocalIds.length > 0 || !this.props.isCompact;
+        return this.composer.attachmentLocalIds.length > 0 || !this.props.isCompact;
     }
 
     /**
@@ -212,7 +219,7 @@ class Composer extends Component {
      * @private
      */
     async _onClickFullComposer() {
-        const attachmentIds = this.storeProps.composer.attachmentLocalIds
+        const attachmentIds = this.composer.attachmentLocalIds
             .map(localId => this.env.store.state.attachments[localId].res_id);
 
         const context = {
@@ -259,8 +266,8 @@ class Composer extends Component {
      */
     _onClickSend(ev) {
         if (
-            !this.storeProps.composer.textInputContent &&
-            this.storeProps.composer.attachmentLocalIds.length === 0
+            !this.composer.textInputContent &&
+            this.composer.attachmentLocalIds.length === 0
         ) {
             return;
         }
@@ -337,13 +344,14 @@ class Composer extends Component {
         ev.stopPropagation();
         // TODO SEB this is the same code as _onClickSend
         if (
-            !this.storeProps.composer.textInputContent &&
-            this.storeProps.composer.attachmentLocalIds.length === 0
+            !this.composer.textInputContent &&
+            this.composer.attachmentLocalIds.length === 0
         ) {
             return;
         }
         this._postMessage();
     }
+
 }
 
 Object.assign(Composer, {

@@ -32,6 +32,17 @@ class ChatterTopbar extends Component {
     }
 
     //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * @returns {mail.messaging.entity.Chatter}
+     */
+    get chatter() {
+        return this.storeProps.chatter;
+    }
+
+    //--------------------------------------------------------------------------
     // Handlers
     //--------------------------------------------------------------------------
 
@@ -40,7 +51,7 @@ class ChatterTopbar extends Component {
      * @param {MouseEvent} ev
      */
     _onClickAttachments(ev) {
-        if (this.storeProps.chatter.isAttachmentBoxVisible) {
+        if (this.chatter.isAttachmentBoxVisible) {
             this.storeDispatch('hideChatterAttachmentBox', this.props.chatterLocalId);
         } else {
             this.storeDispatch('showChatterAttachmentBox', this.props.chatterLocalId);
@@ -68,7 +79,7 @@ class ChatterTopbar extends Component {
      * @param {MouseEvent} ev
      */
     _onClickLogNote(ev) {
-        if (this.storeProps.chatter.isComposerVisible && this.storeProps.chatter.isComposerLog) {
+        if (this.chatter.isComposerVisible && this.chatter.isComposerLog) {
             this.storeDispatch('hideChatterComposer', this.props.chatterLocalId);
         } else {
             this.storeDispatch('showChatterLogNote', this.props.chatterLocalId);
@@ -88,14 +99,15 @@ class ChatterTopbar extends Component {
             views: [[false, 'form']],
             target: 'new',
             context: {
-                default_res_id: this.storeProps.chatter.threadId,
-                default_res_model: this.storeProps.chatter.threadModel,
+                default_res_id: this.chatter.threadId,
+                default_res_model: this.chatter.threadModel,
             },
             res_id: false,
         };
         return this.env.do_action(action, {
             on_close: () => {
-                // A bit "extreme", could be improved : normally only an activity is created (no update nor delete)
+                // A bit "extreme", could be improved:
+                // normally only an activity is created (no update nor delete)
                 this.storeDispatch('refreshChatterActivities', this.props.chatterLocalId);
             }
         });
@@ -106,7 +118,7 @@ class ChatterTopbar extends Component {
      * @param {MouseEvent} ev
      */
     _onClickSendMessage(ev) {
-        if (this.storeProps.chatter.isComposerVisible && !this.storeProps.chatter.isComposerLog) {
+        if (this.storeProps.chatter.isComposerVisible && !this.chatter.isComposerLog) {
             this.storeDispatch('hideChatterComposer', this.props.chatterLocalId);
         } else {
             this.storeDispatch('showChatterSendMessage', this.props.chatterLocalId);

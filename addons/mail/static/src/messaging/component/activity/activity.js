@@ -45,10 +45,17 @@ class Activity extends Component {
     //--------------------------------------------------------------------------
 
     /**
+     * @returns {mail.messaging.entity.Activity}
+     */
+    get activity() {
+        return this.storeProps.activity;
+    }
+
+    /**
      * @return {string}
      */
     get assignedUserText() {
-        return _.str.sprintf(this.env._t("for %s"), this.storeProps.activity.userDisplayName);
+        return _.str.sprintf(this.env._t("for %s"), this.activity.userDisplayName);
     }
 
     /**
@@ -56,7 +63,7 @@ class Activity extends Component {
      */
     get delayLabel() {
         const today = moment().startOf('day');
-        const momentDeadlineDate = moment(auto_str_to_date(this.storeProps.activity.dateDeadline));
+        const momentDeadlineDate = moment(auto_str_to_date(this.activity.dateDeadline));
         // true means no rounding
         const diff = momentDeadlineDate.diff(today, 'days', true);
         if (diff === 0) {
@@ -76,7 +83,7 @@ class Activity extends Component {
      * @return {string}
      */
     get formattedCreateDatetime() {
-        const momentCreateDate = moment(auto_str_to_date(this.storeProps.activity.dateCreate));
+        const momentCreateDate = moment(auto_str_to_date(this.activity.dateCreate));
         const datetimeFormat = getLangDatetimeFormat();
         return momentCreateDate.format(datetimeFormat);
     }
@@ -85,7 +92,7 @@ class Activity extends Component {
      * @return {string}
      */
     get formattedDeadlineDate() {
-        const momentDeadlineDate = moment(auto_str_to_date(this.storeProps.activity.dateDeadline));
+        const momentDeadlineDate = moment(auto_str_to_date(this.activity.dateDeadline));
         const datetimeFormat = getLangDateFormat();
         return momentDeadlineDate.format(datetimeFormat);
     }
@@ -94,7 +101,7 @@ class Activity extends Component {
      * @return {string}
      */
     get summary() {
-        return _.str.sprintf(this.env._t("“%s”"), this.storeProps.activity.summary);
+        return _.str.sprintf(this.env._t("“%s”"), this.activity.summary);
     }
 
     //--------------------------------------------------------------------------
@@ -144,10 +151,10 @@ class Activity extends Component {
             views: [[false, 'form']],
             target: 'new',
             context: {
-                default_res_id: this.storeProps.activity.resId,
-                default_res_model: this.storeProps.activity.model,
+                default_res_id: this.activity.resId,
+                default_res_model: this.activity.model,
             },
-            res_id: this.storeProps.activity.id,
+            res_id: this.activity.id,
         };
         return this.env.do_action(action, {
             on_close: () => {

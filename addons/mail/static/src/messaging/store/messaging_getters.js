@@ -24,6 +24,59 @@ const getters = {
     /**
      * @param {Object} param0
      * @param {Object} param0.getters
+     * @return {mail.store.model.Thread[]} ordered list of pinned chats
+     */
+    allOrderedAndPinnedChats({ getters }) {
+        return getters.chatList().filter(chat => chat.isPinned);
+    },
+    /**
+     * TODO FIXME move this into im_livechat when we have entities
+     *
+     * @param {Object} param0
+     * @param {Object} param0.getters
+     * @return {Object} filtered livechats that are pinned
+     */
+    allOrderedAndPinnedLivechats({ getters }) {
+        return getters.livechatList().filter(livechat => livechat.isPinned);
+    },
+    /**
+     * @param {Object} param0
+     * @param {Object} param0.getters
+     * @return {mail.store.model.Thread[]} ordered list of pinned mailboxes
+     */
+    allOrderedAndPinnedMailboxes({ getters }) {
+        return getters.mailboxList().filter(mailbox => mailbox.isPinned);
+    },
+    /**
+     * @param {Object} param0
+     * @param {Object} param0.getters
+     * @return {mail.store.model.Thread[]} ordered list of pinned channels
+     */
+    allOrderedAndPinnedMultiUserChannels({ getters }) {
+        return getters.channelList().filter(channel => channel.isPinned);
+    },
+    /**
+     * @param {Object} param0
+     * @param {Object} param0.state
+     * @return {integer}
+     */
+    allPinnedChannelAmount({ getters }) {
+        const allOrderedAndPinnedMultiUserChannelsAmount =
+            getters.allOrderedAndPinnedMultiUserChannels().length;
+        const allOrderedAndPinnedChats =
+            getters.allOrderedAndPinnedChats().length;
+        // TODO FIXME move this into im_livechat when we have entities
+        const allOrderedAndPinnedLivechatsAmount =
+            getters.allOrderedAndPinnedLivechats().length;
+        return (
+            allOrderedAndPinnedMultiUserChannelsAmount +
+            allOrderedAndPinnedChats +
+            allOrderedAndPinnedLivechatsAmount
+        );
+    },
+    /**
+     * @param {Object} param0
+     * @param {Object} param0.getters
      * @param {Object} param0.state
      * @param {string} attachmentLocalId
      * @return {string|undefined}
@@ -493,14 +546,6 @@ const getters = {
     /**
      * @param {Object} param0
      * @param {Object} param0.getters
-     * @return {mail.store.model.Thread[]} ordered list of pinned channels
-     */
-    pinnedChannelList({ getters }) {
-        return getters.channelList().filter(channel => channel.isPinned);
-    },
-    /**
-     * @param {Object} param0
-     * @param {Object} param0.getters
      * @return {Object} filtered channels that are pinned
      */
     pinnedChannels({ getters }) {
@@ -508,14 +553,6 @@ const getters = {
         return filterObject(channels, channel =>
             channel.isPinned
         );
-    },
-    /**
-     * @param {Object} param0
-     * @param {Object} param0.getters
-     * @return {mail.store.model.Thread[]} ordered list of pinned chats
-     */
-    pinnedChatList({ getters }) {
-        return getters.chatList().filter(chat => chat.isPinned);
     },
     /**
      * @param {Object} param0
@@ -529,24 +566,6 @@ const getters = {
         );
     },
     /**
-     * TODO FIXME move this into im_livechat when we have entities
-     *
-     * @param {Object} param0
-     * @param {Object} param0.getters
-     * @return {Object} filtered livechats that are pinned
-     */
-    pinnedLivechatList({ getters }) {
-        return getters.livechatList().filter(livechat => livechat.isPinned);
-    },
-    /**
-     * @param {Object} param0
-     * @param {Object} param0.getters
-     * @return {mail.store.model.Thread[]} ordered list of pinned mailboxes
-     */
-    pinnedMailboxList({ getters }) {
-        return getters.mailboxList().filter(mailbox => mailbox.isPinned);
-    },
-    /**
      * @param {Object} param0
      * @param {Object} param0.getters
      * @return {Object} filtered mailboxes that are pinned
@@ -556,18 +575,6 @@ const getters = {
         return filterObject(mailboxes, mailBox =>
             mailBox.isPinned
         );
-    },
-    /**
-     * @param {Object} param0
-     * @param {Object} param0.state
-     * @return {integer}
-     */
-    pinnedMailChannelAmount({ getters }) {
-        const pinnedChannelAmount = getters.pinnedChannelList().length;
-        const pinnedChatAmount = getters.pinnedChatList().length;
-        // TODO FIXME move this into im_livechat when we have entities
-        const pinnedLivechatAmount = getters.pinnedLivechatList().length;
-        return pinnedChannelAmount + pinnedChatAmount + pinnedLivechatAmount;
     },
     /**
      * @param {Object} param0

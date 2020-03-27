@@ -88,7 +88,7 @@ class ChatWindow extends Component {
      */
     focus() {
         this.state.isFocused = true;
-        if (!this.storeProps.thread) {
+        if (!this.thread) {
             this._inputRef.comp.focus();
         } else {
             this._threadRef.comp.focus();
@@ -101,8 +101,8 @@ class ChatWindow extends Component {
      * @return {boolean}
      */
     isFolded() {
-        if (this.storeProps.thread) {
-            return this.storeProps.thread.state === 'folded';
+        if (this.thread) {
+            return this.thread.state === 'folded';
         }
         return this.state.isFolded;
     }
@@ -121,6 +121,13 @@ class ChatWindow extends Component {
             this.props.chatWindowLocalId,
             this._threadRef.comp.getScrollTop()
         );
+    }
+
+    /**
+     * @returns {mail.messaging.entity.Thread|undefined}
+     */
+    get thread() {
+        return this.storeProps.thread;
     }
 
     //--------------------------------------------------------------------------
@@ -229,7 +236,7 @@ class ChatWindow extends Component {
         if (this.storeProps.isMobile) {
             return;
         }
-        if (!this.storeProps.thread) {
+        if (!this.thread) {
             this.state.isFolded = !this.state.isFolded;
         } else {
             this.storeDispatch('toggleFoldThread', this.props.chatWindowLocalId);
@@ -254,7 +261,7 @@ class ChatWindow extends Component {
      */
     _onFocusout() {
         this.state.isFocused = false;
-        if (!this.storeProps.thread) {
+        if (!this.thread) {
             this._inputRef.comp.focusout();
         } else {
             this._threadRef.comp.focusout();

@@ -18,7 +18,7 @@ patch(components.DiscussSidebarItem, 'im_livechat.messaging.component.DiscussSid
      */
     hasUnpin(...args) {
         const res = this._super(...args);
-        return res || this.storeProps.thread.channel_type === 'livechat';
+        return res || this.thread.channel_type === 'livechat';
     }
 
 });

@@ -87,7 +87,7 @@ class Message extends Component {
     }
 
     mounted() {
-        this.state.timeElapsed = timeFromNow(this.storeProps.message.date);
+        this.state.timeElapsed = timeFromNow(this.message.date);
         this._insertReadMoreLess($(this._contentRef.el));
     }
 
@@ -113,7 +113,7 @@ class Message extends Component {
             // we should probably use the correspondig attachment id + access token
             // or create a dedicated route to get message image, checking the access right of the message
             return `/web/image/res.partner/${this.storeProps.author.id}/image_128`;
-        } else if (this.storeProps.message.message_type === 'email') {
+        } else if (this.message.message_type === 'email') {
             return '/mail/static/src/img/email_icon.png';
         }
         return '/mail/static/src/img/smiley/avatar.jpg';
@@ -125,7 +125,7 @@ class Message extends Component {
      * @return {string}
      */
     get datetime() {
-        return this.storeProps.message.date.format(getLangDatetimeFormat());
+        return this.message.date.format(getLangDatetimeFormat());
     }
 
     /**
@@ -137,7 +137,7 @@ class Message extends Component {
         if (this.storeProps.author) {
             return this.storeGetters.partnerName(this.storeProps.author.localId);
         }
-        return this.storeProps.message.email_from || this.env._t("Anonymous");
+        return this.message.email_from || this.env._t("Anonymous");
     }
 
     /**
@@ -178,10 +178,10 @@ class Message extends Component {
      * @return {string[]}
      */
     get imageAttachmentLocalIds() {
-        if (!this.storeProps.message.attachmentLocalIds) {
+        if (!this.message.attachmentLocalIds) {
             return [];
         }
-        return this.storeProps.message.attachmentLocalIds.filter(attachmentLocalId =>
+        return this.message.attachmentLocalIds.filter(attachmentLocalId =>
             this.storeGetters.attachmentFileType(attachmentLocalId) === 'image'
         );
     }
@@ -192,17 +192,24 @@ class Message extends Component {
      * @return {boolean}
      */
     get isStarred() {
-        return this.storeProps.message.threadLocalIds.includes('mail.box_starred');
+        return this.message.threadLocalIds.includes('mail.box_starred');
+    }
+
+    /**
+     * @returns {mail.messaging.entity.Message}
+     */
+    get message() {
+        return this.storeProps.message;
     }
 
     /**
      * @return {string[]}
      */
     get nonImageAttachmentLocalIds() {
-        if (!this.storeProps.message.attachmentLocalIds) {
+        if (!this.message.attachmentLocalIds) {
             return [];
         }
-        return this.storeProps.message.attachmentLocalIds.filter(attachmentLocalId =>
+        return this.message.attachmentLocalIds.filter(attachmentLocalId =>
             this.storeGetters.attachmentFileType(attachmentLocalId) !== 'image'
         );
     }
@@ -213,7 +220,7 @@ class Message extends Component {
      * @return {string}
      */
     get shortTime() {
-        return this.storeProps.message.date.format('hh:mm');
+        return this.message.date.format('hh:mm');
     }
 
     /**
@@ -222,7 +229,7 @@ class Message extends Component {
     get timeElapsed() {
         clearInterval(this._intervalId);
         this._intervalId = setInterval(() => {
-            this.state.timeElapsed = timeFromNow(this.storeProps.message.date);
+            this.state.timeElapsed = timeFromNow(this.message.date);
         }, 60 * 1000);
         return this.state.timeElapsed;
     }
@@ -231,7 +238,7 @@ class Message extends Component {
      * @return {Object}
      */
     get trackingValues() {
-        return this.storeProps.message.tracking_value_ids.map(trackingValue => {
+        return this.message.tracking_value_ids.map(trackingValue => {
             const value = Object.assign({}, trackingValue);
             value.changed_field = _.str.sprintf(this.env._t("%s:"), value.changed_field);
             if (value.field_type === 'datetime') {
@@ -566,7 +573,7 @@ class Message extends Component {
      */
     _onChangeCheckbox() {
         this.env.store.dispatch('setMessagesCheck',
-            [this.storeProps.message.localId],
+            [this.message.localId],
             this.storeProps.thread.localId,
             this.props.threadStringifiedDomain,
             {

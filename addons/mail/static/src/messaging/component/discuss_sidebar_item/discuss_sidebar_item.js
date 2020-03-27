@@ -48,7 +48,7 @@ class DiscussSidebarItem extends Component {
      * @returns {boolean}
      */
     hasUnpin() {
-        return this.storeProps.thread.channel_type === 'chat';
+        return this.thread.channel_type === 'chat';
     }
     /**
      * Get the counter of this discuss item, which is based on the thread type.
@@ -56,14 +56,21 @@ class DiscussSidebarItem extends Component {
      * @return {integer}
      */
     get counter() {
-        if (this.storeProps.thread._model === 'mail.box') {
-            return this.storeProps.thread.counter;
-        } else if (this.storeProps.thread.channel_type === 'channel') {
-            return this.storeProps.thread.message_needaction_counter;
-        } else if (this.storeProps.thread.channel_type === 'chat') {
-            return this.storeProps.thread.message_unread_counter;
+        if (this.thread._model === 'mail.box') {
+            return this.thread.counter;
+        } else if (this.thread.channel_type === 'channel') {
+            return this.thread.message_needaction_counter;
+        } else if (this.thread.channel_type === 'chat') {
+            return this.thread.message_unread_counter;
         }
         return 0;
+    }
+
+    /**
+     * @returns {mail.messaging.entity.Thread}
+     */
+    get thread() {
+        return this.storeProps.thread;
     }
 
     //--------------------------------------------------------------------------
@@ -134,7 +141,7 @@ class DiscussSidebarItem extends Component {
      */
     async _onClickLeave(ev) {
         ev.stopPropagation();
-        if (this.storeProps.thread.create_uid === this.env.session.uid) {
+        if (this.thread.create_uid === this.env.session.uid) {
             await this._askAdminConfirmation();
         }
         this.storeDispatch('unsubscribeFromChannel', this.props.threadLocalId);
@@ -157,8 +164,8 @@ class DiscussSidebarItem extends Component {
         ev.stopPropagation();
         return this.env.do_action({
             type: 'ir.actions.act_window',
-            res_model: this.storeProps.thread._model,
-            res_id: this.storeProps.thread.id,
+            res_model: this.thread._model,
+            res_id: this.thread.id,
             views: [[false, 'form']],
             target: 'current'
         });
@@ -170,7 +177,7 @@ class DiscussSidebarItem extends Component {
      */
     _onClickUnpin(ev) {
         ev.stopPropagation();
-        return this.storeDispatch('unsubscribeFromChannel', this.storeProps.thread.localId);
+        return this.storeDispatch('unsubscribeFromChannel', this.thread.localId);
     }
 
     /**

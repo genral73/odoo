@@ -16,11 +16,12 @@ class DiscussMobileMailboxSelection extends Component {
         this.storeGetters = useGetters();
         this.storeProps = useStore(() => {
             return {
-                pinnedMailboxList: this.storeGetters.pinnedMailboxList(),
+                allOrderedAndPinnedMailboxes:
+                    this.storeGetters.allOrderedAndPinnedMailboxes(),
             };
         }, {
             compareDepth: {
-                pinnedMailboxList: 1,
+                allOrderedAndPinnedMailboxes: 1,
             },
         });
     }
