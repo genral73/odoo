@@ -4669,7 +4669,7 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
     );
 
     // test select buttons
-    document.querySelector('.o_widget_Discuss_controlPanelButtonUnselectAll').click();.click();
+    document.querySelector('.o_widget_Discuss_controlPanelButtonUnselectAll').click();
     await afterNextRender();
     assert.notOk(
         document.querySelector('.o_Message_checkbox').checked,
@@ -4710,12 +4710,11 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
     // Don't test moderation actions visibility, since it is similar to moderation box.
 
     // 3. test discard button
-    discardAll.click();
+    document.querySelector('.o_widget_Discuss_controlPanelButtonModeration.o-discard').click();
     await afterNextRender();
-    const discardDialogSelector = '.o_ModerationDiscardDialog';
     assert.containsOnce(
         document.body,
-        discardDialogSelector,
+        '.o_ModerationDiscardDialog',
         "discard dialog should be open"
     );
     // the dialog will be tested separately
@@ -4747,7 +4746,7 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
     );
 
     // 5. test accept button
-    acceptAll.click();
+    document.querySelector('.o_widget_Discuss_controlPanelButtonModeration.o-accept').click();
     await afterNextRender();
     assert.containsOnce(
         document.body,
