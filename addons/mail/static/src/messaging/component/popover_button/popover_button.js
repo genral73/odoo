@@ -112,6 +112,7 @@ class PopoverButton extends Component {
         }
         this._hidePopover();
     }
+
 }
 
 Object.assign(PopoverButton, {

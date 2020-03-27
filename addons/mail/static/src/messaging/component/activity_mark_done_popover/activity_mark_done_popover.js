@@ -73,6 +73,7 @@ class ActivityMarkDonePopover extends Component {
         };
         this.env.do_action(action, { on_close });
     }
+
 }
 
 Object.assign(ActivityMarkDonePopover, {

@@ -430,9 +430,9 @@ QUnit.test('simplest layout with hover details and filename and extension', asyn
         showFilename: true
     });
     assert.strictEqual(
-        document.querySelectorAll(
-            `.o_Attachment_details:not(.o_Attachment_imageOverlayDetails)`
-        ).length,
+        document.querySelectorAll(`
+            .o_Attachment_details:not(.o_Attachment_imageOverlayDetails)
+        `).length,
         0,
         "attachment should not have a details part directly"
     );

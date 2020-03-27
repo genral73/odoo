@@ -406,9 +406,9 @@ QUnit.test('sidebar: add channel', async function (assert) {
         `).title,
         "Add or join a channel");
 
-    document.querySelector(
-        `.o_DiscussSidebar_groupChannel .o_DiscussSidebar_groupHeaderItemAdd`
-    ).click();
+    document.querySelector(`
+        .o_DiscussSidebar_groupChannel .o_DiscussSidebar_groupHeaderItemAdd
+    `).click();
     await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`.o_DiscussSidebar_groupChannel .o_DiscussSidebar_itemNew`).length,
@@ -436,8 +436,8 @@ QUnit.test('sidebar: basic channel rendering', async function (assert) {
         "should have one channel item");
     let channel = document.querySelector(`
         .o_DiscussSidebar_groupChannel
-        .o_DiscussSidebar_item`
-    );
+        .o_DiscussSidebar_item
+    `);
     assert.strictEqual(
         channel.dataset.threadLocalId,
         "mail.channel_20",
@@ -1725,9 +1725,9 @@ QUnit.test('load more messages from channel', async function (assert) {
         "should have load more link"
     );
 
-    document.querySelector(
-        `.o_Discuss_thread .o_ThreadViewer_messageList .o_MessageList_loadMore`
-    ).click();
+    document.querySelector(`
+        .o_Discuss_thread .o_ThreadViewer_messageList .o_MessageList_loadMore
+    `).click();
     await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`
@@ -2129,8 +2129,8 @@ QUnit.test('restore thread scroll position', async function (assert) {
     await afterNextRender();
     const messageList = document.querySelector(`
         .o_Discuss_thread
-        .o_ThreadViewer_messageList`
-    );
+        .o_ThreadViewer_messageList
+    `);
     assert.strictEqual(
         messageList.scrollTop + messageList.clientHeight,
         messageList.scrollHeight,
@@ -2536,9 +2536,9 @@ QUnit.test('sidebar quick search', async function (assert) {
         "should have quick search in sidebar"
     );
 
-    const quickSearch = document.querySelector(
-        `.o_Discuss_sidebar input.o_DiscussSidebar_quickSearch`
-    );
+    const quickSearch = document.querySelector(`
+        .o_Discuss_sidebar input.o_DiscussSidebar_quickSearch
+    `);
     quickSearch.value = "1";
     const kevt1 = new window.KeyboardEvent('input');
     quickSearch.dispatchEvent(kevt1);
@@ -3100,9 +3100,9 @@ QUnit.test('composer state: attachments save and restore', async function (asser
             return this._super(...arguments);
         },
     });
-    const channels = document.querySelectorAll(
-        `.o_DiscussSidebar_groupChannel .o_DiscussSidebar_item`
-    );
+    const channels = document.querySelectorAll(`
+        .o_DiscussSidebar_groupChannel .o_DiscussSidebar_item
+    `);
     // Add attachment in a message for #general
     inputFiles(
         document.querySelector('.o_FileUploader_input'),

@@ -127,6 +127,7 @@ class Attachment extends Component {
         ev.stopPropagation();
         this.storeDispatch('unlinkAttachment', this.props.attachmentLocalId);
     }
+
 }
 
 Object.assign(Attachment, {

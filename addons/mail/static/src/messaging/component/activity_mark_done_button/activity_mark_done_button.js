@@ -63,6 +63,7 @@ class ActivityMarkDoneButton extends components.PopoverButtonWithComponent {
     _onDiscardClicked(ev) {
         this._hidePopover();
     }
+
 }
 
 Object.assign(ActivityMarkDoneButton, {

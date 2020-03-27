@@ -67,6 +67,7 @@ class NotificationList extends Component {
             notifications,
         };
     }
+
     /**
      * @private
      * @param {Object} state
@@ -87,6 +88,7 @@ class NotificationList extends Component {
             throw new Error(`Unsupported filter ${props.filter}`);
         }
     }
+
 }
 
 Object.assign(NotificationList, {

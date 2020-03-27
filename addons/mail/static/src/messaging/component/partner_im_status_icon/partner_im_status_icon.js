@@ -33,6 +33,7 @@ class PartnerImStatusIcon extends Component {
     get partner() {
         return this.storeProps.partner;
     }
+
 }
 
 Object.assign(PartnerImStatusIcon, {

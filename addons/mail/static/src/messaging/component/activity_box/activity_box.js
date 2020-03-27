@@ -68,6 +68,7 @@ class ActivityBox extends Component {
             this.storeDispatch('showChatterActivityBox', this.props.chatterLocalId);
         }
     }
+
 }
 
 Object.assign(ActivityBox, {
