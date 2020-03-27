@@ -123,13 +123,9 @@
             <field name="arch" type="xml">
                 <search string="Timesheet">
                     <field name="date"/>
-                    <field name="employee_id"/>
-                    <field name="department_id"/>
                     <field name="project_id"/>
                     <field name="task_id"/>
                     <field name="name"/>
-                    <filter name="mine" string="My Timesheets" domain="[('user_id', '=', uid)]"/>
-                    <separator/>
                     <filter name="month" string="Date" date="date"/>
                     <group expand="0" string="Group By">
                         <filter string="Project" name="groupby_project" domain="[]" context="{'group_by': 'project_id'}"/>
