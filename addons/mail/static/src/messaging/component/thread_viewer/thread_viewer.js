@@ -190,8 +190,8 @@ Object.assign(ThreadViewer, {
     },
     props: {
         composerAttachmentsDetailsMode: {
-            // TODO FIXME add validation
-            type: String, //['auto', 'card', 'hover', 'none']
+            type: String,
+            validate: prop => ['auto', 'card', 'hover', 'none'].includes(prop)
         },
         domain: Array,
         hasComposer: Boolean,
@@ -221,8 +221,8 @@ Object.assign(ThreadViewer, {
             optional: true
         },
         order: {
-            // TODO FIXME add validation
-            type: String, // ['asc', 'desc']
+            type: String,
+            validate: prop => ['asc', 'desc'].includes(prop)
         },
         selectedMessageLocalId: {
             type: String,

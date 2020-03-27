@@ -66,7 +66,7 @@ const DiscussWidget = AbstractAction.extend({
      */
     async willStart() {
         await this._super(...arguments);
-        this.env = this.call('messaging', 'getMessagingEnv');
+        this.env = this.call('messaging', 'getEnv');
     },
     /**
      * @override {web.AbstractAction}
@@ -124,7 +124,7 @@ const DiscussWidget = AbstractAction.extend({
             'o-update-control-panel',
             this._updateControlPanelEventListener
         );
-        return this.component.mount(this.$el[0]);
+        return this.component.mount(this.el);
     },
     /**
      * @override {web.AbstractAction}
@@ -192,37 +192,53 @@ const DiscussWidget = AbstractAction.extend({
         }
         // Mark All Read
         if (activeThreadLocalId === 'mail.box_inbox') {
-            this.$buttons.find('.o_widget_Discuss_controlPanelButtonMarkAllRead').removeClass('o_hidden')
+            this.$buttons
+                .find('.o_widget_Discuss_controlPanelButtonMarkAllRead')
+                .removeClass('o_hidden')
                 .prop('disabled', !hasMessages);
         }
         if (
             activeThreadLocalId !== 'mail.box_inbox' ||
             activeMobileNavbarTabId !== 'mailbox'
         ) {
-            this.$buttons.find('.o_widget_Discuss_controlPanelButtonMarkAllRead').addClass('o_hidden');
+            this.$buttons
+                .find('.o_widget_Discuss_controlPanelButtonMarkAllRead')
+                .addClass('o_hidden');
         }
         // Unstar All
         if (activeThreadLocalId === 'mail.box_starred') {
-            this.$buttons.find('.o_unstar_all').removeClass('o_hidden')
+            this.$buttons
+                .find('.o_unstar_all')
+                .removeClass('o_hidden')
                 .prop('disabled', !hasMessages);
         }
         if (
             activeThreadLocalId !== 'mail.box_starred' ||
             activeMobileNavbarTabId !== 'mailbox'
         ) {
-            this.$buttons.find('.o_unstar_all').addClass('o_hidden');
+            this.$buttons
+                .find('.o_unstar_all')
+                .addClass('o_hidden');
         }
         // Mobile: Add channel
         if (isMobile && activeMobileNavbarTabId === 'channel') {
-            this.$buttons.find('.o_mobile_new_channel').removeClass('o_hidden');
+            this.$buttons
+                .find('.o_mobile_new_channel')
+                .removeClass('o_hidden');
         } else {
-            this.$buttons.find('.o_mobile_new_channel').addClass('o_hidden');
+            this.$buttons
+                .find('.o_mobile_new_channel')
+                .addClass('o_hidden');
         }
         // Mobile: Add message
         if (isMobile && activeMobileNavbarTabId === 'chat') {
-            this.$buttons.find('.o_mobile_new_message').removeClass('o_hidden');
+            this.$buttons
+                .find('.o_mobile_new_message')
+                .removeClass('o_hidden');
         } else {
-            this.$buttons.find('.o_mobile_new_message').addClass('o_hidden');
+            this.$buttons
+                .find('.o_mobile_new_message')
+                .addClass('o_hidden');
         }
         if (isMobile) {
             this._setTitle(this.env._t("Discuss"));
@@ -244,7 +260,10 @@ const DiscussWidget = AbstractAction.extend({
         // Select All & Unselect All
         const $selectAll = this.$buttons.find('.o_widget_Discuss_controlPanelButtonSelectAll');
         const $unselectAll = this.$buttons.find('.o_widget_Discuss_controlPanelButtonUnselectAll');
-        if (checkedMessageLocalIds.length > 0 || uncheckedMessageLocalIds.length > 0) {
+        if (
+            checkedMessageLocalIds.length > 0 ||
+            uncheckedMessageLocalIds.length > 0
+        ) {
             $selectAll.removeClass('o_hidden');
             $selectAll.toggleClass('disabled', uncheckedMessageLocalIds.length === 0);
             $unselectAll.removeClass('o_hidden');

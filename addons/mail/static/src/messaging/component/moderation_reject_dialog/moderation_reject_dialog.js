@@ -34,6 +34,17 @@ class ModerationRejectDialog extends Component {
     }
 
     //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * @returns {mail.messaging.entity.Message[]}
+     */
+    get messages() {
+        return this.props.messages.map(localId => this.env.store.state.messages[localId]);
+    }
+
+    //--------------------------------------------------------------------------
     // Handlers
     //--------------------------------------------------------------------------
 
@@ -53,7 +64,7 @@ class ModerationRejectDialog extends Component {
             comment: this.state.comment,
         };
         this.storeDispatch('moderateMessages',
-            this.storeProps.messages.map(message => message.localId),
+            this.messages.map(message => message.localId),
             'reject',
             kwargs
         );

@@ -23,6 +23,41 @@ const getters = {
     },
     /**
      * @param {Object} param0
+     * @param {Object} param0.state
+     * @returns {mail.store.model.Thread[]} filtered threads that are mail.channels
+     */
+    allOrderedAndPinnedChannels({ getters }) {
+        const mailChannels = getters.mailChannels();
+        return Object
+            .values(mailChannels)
+            .sort((mailChannel1, mailChannel2) => {
+                if (
+                    mailChannel1.message_unread_counter &&
+                    !mailChannel2.message_unread_counter
+                ) {
+                    return -1;
+                }
+                if (
+                    mailChannel2.message_unread_counter &&
+                    !mailChannel1.message_unread_counter
+                ) {
+                    return 1;
+                }
+                // TODO FIXME they are sorted by date of last message on master (for messaging menu)
+                if (
+                    mailChannel1.message_unread_counter &&
+                    mailChannel2.message_unread_counter &&
+                    mailChannel1.message_unread_counter !== mailChannel2.message_unread_counter
+                ) {
+                    return mailChannel1.message_unread_counter > mailChannel2.message_unread_counter ? -1 : 1;
+                }
+                const mailChannel1Name = getters.threadName(mailChannel1.localId);
+                const mailChannel2Name = getters.threadName(mailChannel2.localId);
+                return mailChannel1Name < mailChannel2Name ? -1 : 1;
+            });
+    },
+    /**
+     * @param {Object} param0
      * @param {Object} param0.getters
      * @returns {mail.store.model.Thread[]} ordered list of pinned chats
      */
@@ -430,41 +465,6 @@ const getters = {
         return filterObject(state.threads, thread =>
             thread._model === 'mail.box'
         );
-    },
-    /**
-     * @param {Object} param0
-     * @param {Object} param0.state
-     * @returns {mail.store.model.Thread[]} filtered threads that are mail.channels
-     */
-    mailChannelList({ getters }) {
-        const mailChannels = getters.mailChannels();
-        return Object
-            .values(mailChannels)
-            .sort((mailChannel1, mailChannel2) => {
-                if (
-                    mailChannel1.message_unread_counter &&
-                    !mailChannel2.message_unread_counter
-                ) {
-                    return -1;
-                }
-                if (
-                    mailChannel2.message_unread_counter &&
-                    !mailChannel1.message_unread_counter
-                ) {
-                    return 1;
-                }
-                // TODO FIXME they are sorted by date of last message on master (for messaging menu)
-                if (
-                    mailChannel1.message_unread_counter &&
-                    mailChannel2.message_unread_counter &&
-                    mailChannel1.message_unread_counter !== mailChannel2.message_unread_counter
-                ) {
-                    return mailChannel1.message_unread_counter > mailChannel2.message_unread_counter ? -1 : 1;
-                }
-                const mailChannel1Name = getters.threadName(mailChannel1.localId);
-                const mailChannel2Name = getters.threadName(mailChannel2.localId);
-                return mailChannel1Name < mailChannel2Name ? -1 : 1;
-            });
     },
     /**
      * @param {Object} param0

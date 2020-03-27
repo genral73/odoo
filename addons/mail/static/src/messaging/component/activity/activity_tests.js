@@ -27,7 +27,9 @@ QUnit.module('Activity', {
         this.createActivityComponent = async function (activityLocalId) {
             const ActivityComponent = components.Activity;
             ActivityComponent.env = this.env;
-            this.component = new ActivityComponent(null, { activityLocalId });
+            this.component = new ActivityComponent(null, {
+                activityLocalId,
+            });
             await this.component.mount(this.widget.el);
         };
         this.start = async params => {
@@ -808,9 +810,17 @@ QUnit.test('activity click on cancel', async function (assert) {
         constructor(...args) {
             super(... args);
             this.storeProps = useStore((state, props) => {
-                const activity = state.activities && state.activities[props.activityLocalId];
-                return { activity };
+                return {
+                    activity: state.activities && state.activities[props.activityLocalId],
+                };
             });
+        }
+
+        /**
+         * @returns {mail.messaging.entity.Activity}
+         */
+        get activity() {
+            return this.storeProps.activity;
         }
     }
     ParentComponent.env = this.env;
@@ -820,8 +830,8 @@ QUnit.test('activity click on cancel', async function (assert) {
         template: xml`
             <div>
                 <p>parent</p>
-                <t t-if="storeProps.activity">
-                    <Activity activityLocalId="props.activityLocalId"/>
+                <t t-if="activity">
+                    <Activity activityLocalId="activity.localId"/>
                 </t>
             </div>
         `,

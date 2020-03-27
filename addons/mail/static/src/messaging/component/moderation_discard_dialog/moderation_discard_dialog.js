@@ -37,13 +37,20 @@ class ModerationDiscardDialog extends Component {
      * @returns {string}
      */
     getText() {
-        if (this.storeProps.messages.length === 1) {
+        if (this.messages.length === 1) {
             return this.env._t("You are going to discard 1 message.");
         }
         return _.str.sprintf(
             this.env._t("You are going to discard %s messages."),
-            this.storeProps.messages.length
+            this.messages.length
         );
+    }
+
+    /**
+     * @returns {mail.messaging.entity.Message[]}
+     */
+    get messages() {
+        return this.props.messages.map(localId => this.env.store.state.messages[localId]);
     }
 
     //--------------------------------------------------------------------------
@@ -62,10 +69,11 @@ class ModerationDiscardDialog extends Component {
     _onClickDiscard() {
         this._dialogRef.comp._close();
         this.storeDispatch('moderateMessages',
-            this.storeProps.messages.map(message => message.localId),
+            this.messages.map(message => message.localId),
             'discard'
         );
     }
+
 }
 
 Object.assign(ModerationDiscardDialog, {

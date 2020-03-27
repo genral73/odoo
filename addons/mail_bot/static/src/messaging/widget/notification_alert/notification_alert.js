@@ -14,7 +14,7 @@ var NotificationAlert = Widget.extend({
     */
    init: function () {
       this._super.apply(this, arguments);
-      const env = this.call('messaging', 'getMessagingEnv');
+      const env = this.call('messaging', 'getEnv');
       const hasRequest = env.store.state.mailbotHasRequest;
       this.isNotificationBlocked = window.Notification && window.Notification.permission !== "granted" && !hasRequest;
    },

@@ -43,8 +43,9 @@ QUnit.test("compare keys, no depth, primitives", async function (assert) {
         constructor() {
             super(...arguments);
             this.storeProps = useStore((state, props) => {
+                const obj = state.obj;
                 return {
-                    res: state.obj.use1 ? state.obj.subObj1 : state.obj.subObj2,
+                    res: obj.use1 ? obj.subObj1 : obj.subObj2,
                 };
             }, {
                 onUpdate: () => {
@@ -110,8 +111,9 @@ QUnit.test("compare keys, depth 1, proxy", async function (assert) {
         constructor() {
             super(...arguments);
             this.storeProps = useStore((state, props) => {
+                const obj = state.obj;
                 return {
-                    array: [state.obj.use1 ? state.obj.subObj1 : state.obj.subObj2],
+                    array: [obj.use1 ? obj.subObj1 : obj.subObj2],
                 };
             }, {
                 compareDepth: {

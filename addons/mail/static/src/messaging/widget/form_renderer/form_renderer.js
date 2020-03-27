@@ -10,10 +10,13 @@ const FormRenderer = require('web.FormRenderer');
 const { EventBus } = owl.core;
 
 /**
- * Include the FormRenderer to instanciate the chatter area containing (a
+ * Include the FormRenderer to instantiate the chatter area containing (a
  * subset of) the mail widgets (mail_thread, mail_followers and mail_activity).
  */
 FormRenderer.include({
+    /**
+     * @override
+     */
     async on_attach_callback() {
         this._super(...arguments);
         // Useful when (re)loading view
@@ -30,6 +33,9 @@ FormRenderer.include({
             await this._mountChatterComponent();
         }
     },
+    /**
+     * @override
+     */
     on_detach_callback() {
         this._super(...arguments);
         // When the view is detached, we totally delete chatter state from store
@@ -44,7 +50,7 @@ FormRenderer.include({
      */
     init(parent, state, params) {
         this._super(...arguments);
-        this.env = this.call('messaging', 'getMessagingEnv');
+        this.env = this.call('messaging', 'getEnv');
         this.mailFields = params.mailFields;
         this._chatterBus = new EventBus();
         this._chatterComponent = undefined;
@@ -142,10 +148,6 @@ FormRenderer.include({
     /**
      * Mount the chatter
      *
-     * FIXME {xdu} could be better to mount in "replace" mode but the mount is
-     * failing with that mode.
-     * (just use { position: 'self' } as second parameter of mount)
-     *
      * @private
      */
     async _mountChatterComponent() {
@@ -161,7 +163,11 @@ FormRenderer.include({
      * @override
      */
     _renderNode(node) {
-        if (!this._isFromFormViewDialog && node.tag === 'div' && node.attrs.class === 'oe_chatter') {
+        if (
+            !this._isFromFormViewDialog &&
+            node.tag === 'div' &&
+            node.attrs.class === 'oe_chatter'
+        ) {
             const $el = $('<div class="o_FormRenderer_chatterContainer"/>');
             this._chatterContainerTarget = $el[0];
             return $el;

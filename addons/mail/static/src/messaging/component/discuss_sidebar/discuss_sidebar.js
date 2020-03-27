@@ -17,7 +17,7 @@ class DiscussSidebar extends Component {
      */
     constructor(...args) {
         super(...args);
-        this.state = useState({ quickSearchValue: "" });
+        this.state = useState({ sidebarQuickSearchValue: "" });
         this.storeGetters = useGetters();
         this.storeProps = useStore((...args) => this._useStoreSelector(...args), {
             compareDepth: () => this._useStoreCompareDepth(),
@@ -26,7 +26,7 @@ class DiscussSidebar extends Component {
          * Reference of the quick search input. Useful to filter channels and
          * chats based on this input content.
          */
-        this._quickSearchRef = useRef('quickSearch');
+        this._quickSearchInputRef = useRef('quickSearchInput');
     }
 
     //--------------------------------------------------------------------------
@@ -41,10 +41,10 @@ class DiscussSidebar extends Component {
     get quickSearchPinnedAndOrderedChats() {
         const allOrderedAndPinnedChats =
             this.storeProps.allOrderedAndPinnedChats;
-        if (!this.state.quickSearchValue) {
+        if (!this.state.sidebarQuickSearchValue) {
             return allOrderedAndPinnedChats;
         }
-        const qsVal = this.state.quickSearchValue.toLowerCase();
+        const qsVal = this.state.sidebarQuickSearchValue.toLowerCase();
         return allOrderedAndPinnedChats.filter(chat => {
             const nameVal = this.storeGetters.threadName(chat.localId).toLowerCase();
             return nameVal.includes(qsVal);
@@ -59,10 +59,10 @@ class DiscussSidebar extends Component {
     get quickSearchOrderedAndPinnedMultiUserChannels() {
         const allOrderedAndPinnedMultiUserChannels =
             this.storeProps.allOrderedAndPinnedMultiUserChannels;
-        if (!this.state.quickSearchValue) {
+        if (!this.state.sidebarQuickSearchValue) {
             return allOrderedAndPinnedMultiUserChannels;
         }
-        const qsVal = this.state.quickSearchValue.toLowerCase();
+        const qsVal = this.state.sidebarQuickSearchValue.toLowerCase();
         return allOrderedAndPinnedMultiUserChannels.filter(channel => {
             const nameVal = this.storeGetters.threadName(channel.localId).toLowerCase();
             return nameVal.includes(qsVal);
@@ -174,7 +174,7 @@ class DiscussSidebar extends Component {
      */
     _onInputQuickSearch(ev) {
         ev.stopPropagation();
-        this.state.quickSearchValue = this._quickSearchRef.el.value;
+        this.state.sidebarQuickSearchValue = this._quickSearchInputRef.el.value;
     }
 
 }

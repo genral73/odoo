@@ -31,6 +31,18 @@ class NotificationList extends Component {
     }
 
     //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * @returns {Object[]}
+     */
+    get notifications() {
+        const { notifications } = this.storeProps;
+        return notifications;
+    }
+
+    //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
 
@@ -42,7 +54,7 @@ class NotificationList extends Component {
      */
     async _loadPreviews() {
         this.storeDispatch('loadThreadPreviews',
-            this.storeProps.notifications
+            this.notifications
                 .filter(notification => notification.threadLocalId)
                 .map(notification => notification.threadLocalId)
         );
@@ -76,14 +88,14 @@ class NotificationList extends Component {
      */
     _useStoreSelectorThreads(state, props) {
         if (props.filter === 'mailbox') {
-            return this.storeGetters.mailboxList();
+            return this.storeGetters.allOrderedAndPinnedMailboxes();
         } else if (props.filter === 'channel') {
-            return this.storeGetters.channelList();
+            return this.storeGetters.allOrderedAndPinnedMultiUserChannels();
         } else if (props.filter === 'chat') {
-            return this.storeGetters.chatList();
+            return this.storeGetters.allOrderedAndPinnedChats();
         } else if (props.filter === 'all') {
             // "All" filter is for channels and chats
-            return this.storeGetters.mailChannelList();
+            return this.storeGetters.allOrderedAndPinnedChannels();
         } else {
             throw new Error(`Unsupported filter ${props.filter}`);
         }

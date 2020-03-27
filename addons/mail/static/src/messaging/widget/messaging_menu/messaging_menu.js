@@ -25,7 +25,7 @@ const MessagingMenu = Widget.extend({
      */
     async willStart() {
         this._super(...arguments);
-        this.env = this.call('messaging', 'getMessagingEnv');
+        this.env = this.call('messaging', 'getEnv');
     },
     /**
      * @override

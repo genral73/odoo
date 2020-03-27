@@ -30,6 +30,17 @@ class ModerationBanDialog extends Component {
     }
 
     //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * @returns {mail.messaging.entity.Message[]}
+     */
+    get messages() {
+        return this.props.messages.map(localId => this.env.store.state.messages[localId]);
+    }
+
+    //--------------------------------------------------------------------------
     // Handlers
     //--------------------------------------------------------------------------
 
@@ -49,6 +60,7 @@ class ModerationBanDialog extends Component {
     _onClickCancel() {
         this._dialogRef.comp._close();
     }
+
 }
 
 Object.assign(ModerationBanDialog, {

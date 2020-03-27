@@ -599,11 +599,7 @@ QUnit.test('filtered previews', async function (assert) {
         "should have preview of channel"
     );
 
-    document.querySelector(`
-        .o_MessagingMenu_tabButton[data-tab-id="${
-            'chat'
-        }"]
-    `).click();
+    document.querySelector('.o_MessagingMenu_tabButton[data-tab-id="chat"]').click();
     await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`.o_MessagingMenu_dropdownMenu .o_ThreadPreview`).length,
@@ -631,11 +627,7 @@ QUnit.test('filtered previews', async function (assert) {
         "should not have preview of channel"
     );
 
-    document.querySelector(`
-        .o_MessagingMenu_tabButton[data-tab-id="${
-            'channel'
-        }"]
-    `).click();
+    document.querySelector('.o_MessagingMenu_tabButton[data-tab-id="channel"]').click();
     await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`
@@ -666,11 +658,7 @@ QUnit.test('filtered previews', async function (assert) {
         "should have preview of channel"
     );
 
-    document.querySelector(`
-        .o_MessagingMenu_tabButton[data-tab-id="${
-            'all'
-        }"]
-    `).click();
+    document.querySelector('.o_MessagingMenu_tabButton[data-tab-id="all"]').click();
     await afterNextRender();
     assert.strictEqual(
         document.querySelectorAll(`.o_MessagingMenu_dropdownMenu .o_ThreadPreview`).length,

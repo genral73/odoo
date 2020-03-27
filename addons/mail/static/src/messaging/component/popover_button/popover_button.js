@@ -6,7 +6,7 @@ const { Component, useState } = owl;
 class PopoverButton extends Component {
 
     /**
-     * @param {...any} args
+     * @override
      */
     constructor(...args) {
         super(...args);
@@ -29,7 +29,7 @@ class PopoverButton extends Component {
         this._onClickCaptureGlobal = this._onClickCaptureGlobal.bind(this);
     }
 
-    async mounted() {
+    mounted() {
         const self = this;
         const popoverParams = {
             boundary: this.props.boundary,

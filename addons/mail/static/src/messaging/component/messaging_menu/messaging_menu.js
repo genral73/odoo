@@ -262,6 +262,7 @@ class MessagingMenu extends Component {
             this.storeDispatch('closeMessagingMenu');
         }
     }
+
 }
 
 Object.assign(MessagingMenu, {

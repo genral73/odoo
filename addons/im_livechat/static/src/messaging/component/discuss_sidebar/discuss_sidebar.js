@@ -19,10 +19,10 @@ patch(components.DiscussSidebar, 'im_livechat.messaging.component.DiscussSidebar
      * @returns {mail.store.model.Thread[]}
      */
     quickSearchOrderedAndPinnedLivechatList() {
-        if (!this.state.quickSearchValue) {
+        if (!this.state.sidebarQuickSearchValue) {
             return this.storeProps.allOrderedAndPinnedLivechats;
         }
-        const qsVal = this.state.quickSearchValue.toLowerCase();
+        const qsVal = this.state.sidebarQuickSearchValue.toLowerCase();
         return this.storeProps.allOrderedAndPinnedLivechats.filter(livechat => {
             const nameVal = this.storeGetters.threadName(livechat.localId).toLowerCase();
             return nameVal.includes(qsVal);

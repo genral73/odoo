@@ -48,19 +48,6 @@ class ThreadPreview extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * Get inline content of the last message of this conversation.
-     *
-     * @returns {string}
-     */
-    get inlineLastMessageBody() {
-        if (!this.storeProps.lastMessage) {
-            return '';
-        }
-        return mailUtils.parseAndTransform(
-            this.storeGetters.messagePrettyBody(this.storeProps.lastMessage.localId),
-            mailUtils.inline);
-    }
-    /**
      * Get the image route of the thread.
      *
      * @returns {string}
@@ -72,6 +59,20 @@ class ThreadPreview extends Component {
             return `/web/image/res.partner/${directPartner.id}/image_128`;
         }
         return `/web/image/mail.channel/${this.thread.id}/image_128`;
+    }
+
+    /**
+     * Get inline content of the last message of this conversation.
+     *
+     * @returns {string}
+     */
+    get inlineLastMessageBody() {
+        if (!this.storeProps.lastMessage) {
+            return '';
+        }
+        return mailUtils.parseAndTransform(
+            this.storeGetters.messagePrettyBody(this.storeProps.lastMessage.localId),
+            mailUtils.inline);
     }
 
     /**
@@ -115,6 +116,7 @@ class ThreadPreview extends Component {
         ev.stopPropagation();
         this.storeDispatch('markThreadAsSeen', this.props.threadLocalId);
     }
+
 }
 
 Object.assign(ThreadPreview, {

@@ -68,6 +68,7 @@ class PopoverButtonWithComponent extends components.PopoverButton {
         this._popoverComponent.__owl__.isMounted = true;
         return this._popoverComponent.el;
     }
+
 }
 
 return PopoverButtonWithComponent;

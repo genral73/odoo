@@ -110,7 +110,6 @@ QUnit.test('change icon on change partner im_status', async function (assert) {
     assert.expect(4);
 
     await this.start();
-
     const partnerLocalId = this.env.store.dispatch('_createPartner', {
         id: 7,
         name: "Demo User",

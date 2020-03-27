@@ -34,8 +34,8 @@ const MessagingService = AbstractService.extend({
         /**
          * Environment of the messaging store (messaging env. without store)
          */
-        let messagingStoreEnv = Object.create(initialEnv);
-        Object.assign(messagingStoreEnv, {
+        let env = Object.create(initialEnv);
+        Object.assign(env, {
             disableAnimation: false,
             call: (...args) => this.call(...args),
             do_action: (...args) => this.do_action(...args),
@@ -50,7 +50,7 @@ const MessagingService = AbstractService.extend({
          */
         const store = new Store({
             actions,
-            env: messagingStoreEnv,
+            env,
             getters,
             state: initializeState(),
         });
@@ -58,12 +58,11 @@ const MessagingService = AbstractService.extend({
         /**
          * Environment of messaging components (messaging env. with store)
          */
-        let messagingEnv = Object.create(messagingStoreEnv);
-        Object.assign(messagingEnv, { store });
-        onMessagingEnvCreated(messagingEnv);
+        Object.assign(env, { store });
+        onMessagingEnvCreated(env);
         store.dispatch('initMessaging');
 
-        this.messagingEnv = messagingEnv;
+        this.env = env;
     },
 
     //--------------------------------------------------------------------------
@@ -73,8 +72,8 @@ const MessagingService = AbstractService.extend({
     /**
      * @returns {Object}
      */
-    getMessagingEnv() {
-        return this.messagingEnv;
+    getEnv() {
+        return this.env;
     },
 });
 

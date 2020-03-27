@@ -3,10 +3,6 @@ odoo.define('mail.messaging.testUtils', function (require) {
 
 const BusService = require('bus.BusService');
 
-const components = {
-    ComposerTextInput: require('mail.messaging.component.ComposerTextInput'),
-};
-
 const ChatWindowService = require('mail.messaging.service.ChatWindow');
 const DialogService = require('mail.messaging.service.Dialog');
 const MessagingService = require('mail.messaging.service.Messaging');
@@ -23,8 +19,8 @@ const {
     makeTestPromise,
     mock: {
         addMockEnvironment,
-        patch,
-        unpatch,
+        patch: legacyPatch,
+        unpatch: legacyUnpatch,
     },
 } = require('web.test_utils');
 const Widget = require('web.Widget');
@@ -587,12 +583,12 @@ async function start(param0) {
     const selector = debug ? 'body' : '#qunit-fixture';
     if (hasView) {
         widget = await createView(kwargs);
-        patch(widget, {
+        legacyPatch(widget, {
             destroy() {
                 this._super(...arguments);
                 destroyCallbacks.forEach(callback => callback({ widget }));
-                unpatch(services.messaging);
-                unpatch(widget);
+                legacyUnpatch(services.messaging);
+                legacyUnpatch(widget);
             }
         });
     } else {
@@ -606,7 +602,7 @@ async function start(param0) {
                 delete widget.destroy;
                 destroyCallbacks.forEach(callback => callback({ widget }));
                 parent.destroy();
-                unpatch(services.messaging);
+                legacyUnpatch(services.messaging);
             },
         });
     }
@@ -614,7 +610,7 @@ async function start(param0) {
     if (hasChatWindow || hasDiscuss || hasMessagingMenu) {
         await afterNextRender();
     }
-    const env = widget.call('messaging', 'getMessagingEnv');
+    const env = widget.call('messaging', 'getEnv');
     const result = { env, widget };
     returnCallbacks.forEach(callback => callback(result));
     return result;
@@ -695,12 +691,17 @@ function pasteFiles(el, files) {
     el.dispatchEvent(ev);
 }
 
+/**
+ * @param {mail.messaging.service.Messaging} messaging_service
+ * @param {Object} [param1={}]
+ * @param {Object} [param1.session={}]
+ */
 function patchMessagingService(messaging_service, session = {}) {
     const _t = s => s;
     _t.database = {
         parameters: { direction: 'ltr' },
     };
-    patch(messaging_service, {
+    legacyPatch(messaging_service, {
         registry: {
             initialEnv: makeTestEnvironment({
                 _t,

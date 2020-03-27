@@ -16,7 +16,7 @@ const ChatWindowService = AbstractService.extend({
     start() {
         this._super(...arguments);
         this._webClientReady = false;
-        this.env = this.call('messaging', 'getMessagingEnv');
+        this.env = this.call('messaging', 'getEnv');
         this._listenHomeMenu();
     },
     /**

@@ -245,9 +245,7 @@ class MessageList extends Component {
         if (!this.props.hasSquashCloseMessages) {
             return false;
         }
-        const prevDate = prevMessage.date;
-        const date = message.date;
-        if (Math.abs(date.diff(prevDate)) > 60000) {
+        if (Math.abs(message.date.diff(prevMessage.date)) > 60000) {
             // more than 1 min. elasped
             return false;
         }
@@ -466,6 +464,7 @@ class MessageList extends Component {
         }
         this._checkThreadMarkAsRead();
     }
+
 }
 
 Object.assign(MessageList, {

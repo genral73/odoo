@@ -16,7 +16,7 @@
             </div>
             <hr class="o_DiscussSidebar_separator"/>
             <t t-if="storeProps.allPinnedChannelAmount > 19">
-                <input class="o_DiscussSidebar_quickSearch" t-on-input="_onInputQuickSearch" placeholder="Quick search..." t-ref="quickSearch"/>
+                <input class="o_DiscussSidebar_quickSearch" t-on-input="_onInputQuickSearch" placeholder="Quick search..." t-ref="quickSearchInput"/>
             </t>
             <div class="o_DiscussSidebar_group o_DiscussSidebar_groupChannel">
                 <div class="o_DiscussSidebar_groupHeader">
