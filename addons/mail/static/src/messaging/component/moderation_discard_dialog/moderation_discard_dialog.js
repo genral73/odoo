@@ -50,7 +50,7 @@ class ModerationDiscardDialog extends Component {
      * @returns {mail.messaging.entity.Message[]}
      */
     get messages() {
-        return this.props.messages.map(localId => this.env.store.state.messages[localId]);
+        return this.storeProps.messages;
     }
 
     //--------------------------------------------------------------------------
