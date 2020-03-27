@@ -14,7 +14,7 @@
     % set colors = {'needsAction': 'grey', 'accepted': 'green', 'tentative': '#FFFF00',  'declined': 'red'}
     <p>
         Hello ${object.common_name},<br/><br/>
-        ${object.partner_id.name} scheduled following meetings with you.
+        ${object.event_id.user_id.name} scheduled the following meetings with you.
     </p>
     <div style="text-align: center; margin: 16px 0px 16px 0px;">
         <a href="/calendar/meeting/accept?db=${'dbname' in ctx and ctx['dbname'] or ''}&amp;token=${object.access_token}&amp;action=${'action_id' in ctx and ctx['action_id'] or ''}&amp;id=${object.event_id.id}" 
@@ -46,6 +46,9 @@
         <td style="padding-top: 5px;">
             <p><strong>Details of the event</strong></p>
             <ul>
+                <li>Appointment Type: ${object.event_id.location}
+                    (<a target="_blank" href="http://maps.google.com/maps?oi=map&amp;q=${object.event_id.location}">View Map</a>)
+                </li>
                 % if object.event_id.location:
                     <li>Location: ${object.event_id.location}
                         (<a target="_blank" href="http://maps.google.com/maps?oi=map&amp;q=${object.event_id.location}">View Map</a>)
