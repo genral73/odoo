@@ -1044,9 +1044,8 @@ return AbstractRenderer.extend({
             return;
         }
 
-        // const data = activeElement[0]._chart.config.data;
-        const domain = this.config.data.datasets[activeElement[0]._datasetIndex].domain[activeElement[0]._index];
-        const label = this.config.data.labels[activeElement[0]._index];
+        const domain = this.chart.data.datasets[activeElement[0]._datasetIndex].domain[activeElement[0]._index];
+        const label = this.chart.data.labels[activeElement[0]._index];
         const context = Object.assign({}, this.state.context);
         Object.keys(context).forEach(x => {
             if (x === 'group_by' || x.startsWith('search_default_')) {
@@ -1056,7 +1055,7 @@ return AbstractRenderer.extend({
 
         this.do_action({
             type: 'ir.actions.act_window',
-            name: label.length > 0 ? label[0] : this.title,
+            name: label.length ? label[0] : this.title,
             res_model: this.modelName,
             views: [[false, 'list'], [false, 'form']],
             view_mode: 'list',
