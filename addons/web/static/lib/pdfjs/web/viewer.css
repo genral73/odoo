@@ -1469,10 +1469,12 @@ html[dir="rtl"] .secondaryToolbarButton > span {
   content: url(images/secondaryToolbarButton-lastPage.png);
 }
 
+.toolbarButton.rotateCcw::before,
 .secondaryToolbarButton.rotateCcw::before {
   content: url(images/secondaryToolbarButton-rotateCcw.png);
 }
 
+.toolbarButton.rotateCw::before,
 .secondaryToolbarButton.rotateCw::before {
   content: url(images/secondaryToolbarButton-rotateCw.png);
 }
@@ -2245,10 +2247,12 @@ html[dir='rtl'] #documentPropertiesOverlay .row > * {
     content: url(images/secondaryToolbarButton-lastPage@2x.png);
   }
 
+  .toolbarButton.rotateCcw::before,
   .secondaryToolbarButton.rotateCcw::before {
     content: url(images/secondaryToolbarButton-rotateCcw@2x.png);
   }
 
+  .toolbarButton.rotateCw::before,
   .secondaryToolbarButton.rotateCw::before {
     content: url(images/secondaryToolbarButton-rotateCw@2x.png);
   }
