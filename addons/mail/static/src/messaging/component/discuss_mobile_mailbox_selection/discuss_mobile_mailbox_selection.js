@@ -41,6 +41,7 @@ class DiscussMobileMailboxSelection extends Component {
             threadLocalId: ev.currentTarget.dataset.mailboxLocalId,
         });
     }
+
 }
 
 Object.assign(DiscussMobileMailboxSelection, {

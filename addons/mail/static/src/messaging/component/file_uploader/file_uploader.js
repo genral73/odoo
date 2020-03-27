@@ -56,7 +56,8 @@ class FileUploader extends Component {
      * @return {string}
      */
      _createAttachment(fileData) {
-        return this.storeDispatch('createAttachment', Object.assign({},
+        return this.storeDispatch('createAttachment', Object.assign(
+            {},
             fileData,
             this.props.newAttachmentExtraData
         ));
@@ -182,6 +183,7 @@ class FileUploader extends Component {
     async _onChangeAttachment(ev) {
         await this.uploadFiles(ev.target.files);
     }
+
 }
 
 Object.assign(FileUploader, {

@@ -193,6 +193,7 @@ class DiscussSidebarItem extends Component {
             this.props.threadLocalId,
             ev.detail.newName);
     }
+
 }
 
 Object.assign(DiscussSidebarItem, {

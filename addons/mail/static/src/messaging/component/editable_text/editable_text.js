@@ -62,6 +62,7 @@ class EditableText extends Component {
             this.trigger('o-cancel');
         }
     }
+
 }
 
 Object.assign(EditableText, {

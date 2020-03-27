@@ -97,6 +97,7 @@ class DropZone extends Component {
      * The drop effect cursor works only when set on dragover.
      *
      * @private
+     * @param {DragEvent} ev
      */
     _onDragover(ev) {
         ev.preventDefault();

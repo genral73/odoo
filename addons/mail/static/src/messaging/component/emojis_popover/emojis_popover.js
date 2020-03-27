@@ -28,6 +28,7 @@ class EmojisPopover extends Component {
             unicode: ev.currentTarget.dataset.unicode,
         });
     }
+
 }
 
 Object.assign(EmojisPopover, {

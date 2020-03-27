@@ -81,6 +81,7 @@ class DiscussSidebar extends Component {
             allPinnedChannelAmount: 1,
         };
     }
+
     /**
      * @private
      * @param {Object} state
@@ -174,6 +175,7 @@ class DiscussSidebar extends Component {
         ev.stopPropagation();
         this.state.quickSearchValue = this._quickSearchRef.el.value;
     }
+
 }
 
 Object.assign(DiscussSidebar, {

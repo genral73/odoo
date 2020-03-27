@@ -4495,7 +4495,7 @@ QUnit.test('auto-focus composer on opening thread', async function (assert) {
 });
 
 QUnit.test('moderation: moderated channel with pending moderation message', async function (assert) {
-    assert.expect(38);
+    assert.expect(37);
 
     Object.assign(this.data.initMessaging, {
         channel_slots: {
@@ -4523,12 +4523,14 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
 
     await this.start();
 
-    const moderationBox = document.querySelector(`
-        .o_DiscussSidebar_item[data-thread-local-id="${
-            'mail.box_moderation'
-        }"]
-    `);
-    assert.ok(moderationBox, "should display the moderation box");
+    assert.ok(
+        document.querySelector(`
+            .o_DiscussSidebar_item[data-thread-local-id="${
+                'mail.box_moderation'
+            }"]
+        `),
+        "should display the moderation box"
+    );
 
     const mailboxCounter = document.querySelector('.o_DiscussSidebarItem_counter.badge');
     assert.ok(
@@ -4542,7 +4544,11 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
     );
 
     // 1. go to moderation mailbox
-    moderationBox.click();
+    document.querySelector(`
+        .o_DiscussSidebar_item[data-thread-local-id="${
+            'mail.box_moderation'
+        }"]
+    `).click();
     await afterNextRender();
     // check message
     assert.containsOnce(
@@ -4550,30 +4556,28 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
         '.o_Message',
         "should be only one message in moderation box"
     );
-    const message = document.querySelector('.o_Message');
     assert.strictEqual(
-        message.querySelector('.o_Message_content').textContent,
+        document.querySelector('.o_Message_content').textContent,
         "test",
         "this message pending moderation should have the correct content"
     );
     assert.containsOnce(
-        message,
+        document.body,
         '.o_Message_originThreadLink',
         "thee message should have one origin"
     );
     assert.strictEqual(
-        message.querySelector('.o_Message_originThreadLink').textContent,
+        document.querySelector('.o_Message_originThreadLink').textContent,
         "#general",
         "the message pending moderation should have correct origin as its linked document"
     );
     assert.containsOnce(
-        message,
+        document.body,
         '.o_Message_checkbox',
         "there should be a moderation checkbox next to the message"
     );
-    const moderationCheckbox = message.querySelector('.o_Message_checkbox');
     assert.notOk(
-        moderationCheckbox.checked,
+        document.querySelector('.o_Message_checkbox').checked,
         "the moderation checkbox should be unchecked by default"
     );
     // check select all (enabled) / unselect all (disabled) buttons
@@ -4582,9 +4586,8 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
         '.o_widget_Discuss_controlPanelButtonSelectAll',
         "there should be a 'Select All' button in the control panel"
     );
-    const selectAll = document.querySelector('.o_widget_Discuss_controlPanelButtonSelectAll');
     assert.doesNotHaveClass(
-        selectAll,
+        document.querySelector('.o_widget_Discuss_controlPanelButtonSelectAll'),
         'disabled',
         "the 'Select All' button should not be disabled"
     );
@@ -4593,105 +4596,99 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
         '.o_widget_Discuss_controlPanelButtonUnselectAll',
         "there should be a 'Unselect All' button in the control panel"
     );
-    const unselectAll = document.querySelector('.o_widget_Discuss_controlPanelButtonUnselectAll');
     assert.hasClass(
-        unselectAll,
+        document.querySelector('.o_widget_Discuss_controlPanelButtonUnselectAll'),
         'disabled',
         "the 'Unselect All' button should be disabled"
     );
     // check moderate all buttons (invisible)
-    const moderateAllSelector = '.o_widget_Discuss_controlPanelButtonModeration';
     assert.containsN(
         document.body,
-        moderateAllSelector,
+        '.o_widget_Discuss_controlPanelButtonModeration',
         3,
         "there should be 3 buttons to moderate selected messages in the control panel"
     );
     assert.containsOnce(
         document.body,
-        moderateAllSelector + '.o-accept',
+        '.o_widget_Discuss_controlPanelButtonModeration.o-accept',
         "there should one moderate button to accept messages pending moderation"
     );
-    const acceptAll = document.querySelector(moderateAllSelector + '.o-accept');
     assert.isNotVisible(
-        acceptAll,
+        document.querySelector('.o_widget_Discuss_controlPanelButtonModeration.o-accept'),
         'the moderate button "Accept" should be invisible by default'
     );
     assert.containsOnce(
         document.body,
-        moderateAllSelector + '.o-reject',
+        '.o_widget_Discuss_controlPanelButtonModeration.o-reject',
         "there should one moderate button to reject messages pending moderation"
     );
-    const rejectAll = document.querySelector(moderateAllSelector + '.o-reject');
     assert.isNotVisible(
-        rejectAll,
+        '.o_widget_Discuss_controlPanelButtonModeration.o-reject',
         'the moderate button "Reject" should be invisible by default'
     );
     assert.containsOnce(
         document.body,
-        moderateAllSelector + '.o-discard',
+        '.o_widget_Discuss_controlPanelButtonModeration.o-discard',
         "there should one moderate button to discard messages pending moderation"
     );
-    const discardAll = document.querySelector(moderateAllSelector + '.o-discard');
     assert.isNotVisible(
-        discardAll,
-        'the moderate button "Discard" should be invisible by default')
-;
+        '.o_widget_Discuss_controlPanelButtonModeration.o-discard',
+        "the moderate button 'Discard' should be invisible by default"
+    );
 
     // click on message moderation checkbox
-    moderationCheckbox.click();
+    document.querySelector('.o_Message_checkbox').click();
     await afterNextRender();
     assert.ok(
-        moderationCheckbox.checked,
+        document.querySelector('.o_Message_checkbox').checked,
         "the moderation checkbox should become checked after click"
     );
     // check select all (disabled) / unselect all buttons (enabled)
     assert.hasClass(
-        selectAll,
+        document.querySelector('.o_widget_Discuss_controlPanelButtonSelectAll'),
         'disabled',
         "the 'Select All' button should be disabled"
     );
-    assert.doesNotHaveClass(unselectAll, 'disabled',
+    assert.doesNotHaveClass(
+        document.querySelector('.o_widget_Discuss_controlPanelButtonUnselectAll'),
+        'disabled',
         "the 'Unselect All' button should not be disabled"
     );
     // check moderate all buttons updated (visible)
     assert.isVisible(
-        acceptAll,
-        'the moderate button "Accept" should be visible'
+        document.querySelector('.o_widget_Discuss_controlPanelButtonModeration.o-accept'),
+        "the moderate button 'Accept' should be visible"
     );
     assert.isVisible(
-        rejectAll,
-        'the moderate button "Reject" should be visible'
+        document.querySelector('.o_widget_Discuss_controlPanelButtonModeration.o-reject'),
+        "the moderate button 'Reject' should be visible"
     );
     assert.isVisible(
-        discardAll,
-        'the moderate button "Discard" should be visible'
+        document.querySelector('.o_widget_Discuss_controlPanelButtonModeration.o-discard'),
+        "the moderate button 'Discard' should be visible"
     );
 
     // test select buttons
-    unselectAll.click();
+    document.querySelector('.o_widget_Discuss_controlPanelButtonUnselectAll').click();.click();
     await afterNextRender();
     assert.notOk(
-        moderationCheckbox.checked,
+        document.querySelector('.o_Message_checkbox').checked,
         "the moderation checkbox should become unchecked after click"
     );
 
-    selectAll.click();
+    document.querySelector('.o_widget_Discuss_controlPanelButtonSelectAll').click();
     await afterNextRender();
     assert.ok(
-        moderationCheckbox.checked,
+        document.querySelector('.o_Message_checkbox').checked,
         "the moderation checkbox should become checked again after click"
     );
 
     // 2. go to channel 'general'
-    const generalChannel = document.querySelector(`
+    document.querySelector(`
         .o_DiscussSidebar_item[data-thread-local-id="${
             'mail.channel_20'
         }"]
-    `);
-    assert.ok(generalChannel, "should display the general channel");
-
-    generalChannel.click();
+    `).click();
     await afterNextRender();
     // check correct message
     assert.containsOnce(
@@ -4699,18 +4696,16 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
         '.o_Message',
         "should be only one message in general channel"
     );
-    const messageGeneral = document.querySelector('.o_Message');
     assert.containsOnce(
-        message,
+        document.body,
         '.o_Message_checkbox',
         "there should be a moderation checkbox next to the message"
     );
-    const moderationCheckboxGeneral = messageGeneral.querySelector('.o_Message_checkbox');
     assert.notOk(
-        moderationCheckboxGeneral.checked,
+        document.querySelector('.o_Message_checkbox').checked,
         "the moderation checkbox should not be checked here"
     );
-    moderationCheckboxGeneral.click();
+    document.querySelector('.o_Message_checkbox').click();
     await afterNextRender();
     // Don't test moderation actions visibility, since it is similar to moderation box.
 
@@ -4724,29 +4719,30 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
         "discard dialog should be open"
     );
     // the dialog will be tested separately
-    document.querySelector(discardDialogSelector + ' .o-cancel').click();
+    document.querySelector('.o_ModerationDiscardDialog .o-cancel').click();
     await afterNextRender();
     assert.containsNone(
         document.body,
-        discardDialogSelector,
+        '.o_ModerationDiscardDialog',
         "discard dialog should be closed"
     );
 
     // 4. test reject button
-    rejectAll.click();
+    document.querySelector(`
+        .o_widget_Discuss_controlPanelButtonModeration.o-reject
+    `).click();
     await afterNextRender();
-    const rejectDialogSelector = '.o_ModerationRejectDialog';
     assert.containsOnce(
         document.body,
-        rejectDialogSelector,
+        '.o_ModerationRejectDialog',
         "reject dialog should be open"
     );
     // the dialog will be tested separately
-    document.querySelector(rejectDialogSelector + ' .o-cancel').click();
+    document.querySelector('.o_ModerationRejectDialog .o-cancel').click();
     await afterNextRender();
     assert.containsNone(
         document.body,
-        rejectDialogSelector,
+        '.o_ModerationRejectDialog',
         "reject dialog should be closed"
     );
 
@@ -4758,9 +4754,8 @@ QUnit.test('moderation: moderated channel with pending moderation message', asyn
         '.o_Message',
         "should still be only one message in general channel"
     );
-    const acceptedMessage = document.querySelector('.o_Message');
     assert.containsNone(
-        acceptedMessage,
+        document.body,
         '.o_Message_checkbox',
         "there should not be a moderation checkbox next to the message"
     );
@@ -4793,16 +4788,28 @@ QUnit.test('moderation: accept pending moderation message', async function (asse
     }];
 
     await this.start({
-        mockRPC(route, args) {
+        async mockRPC(route, args) {
             if (args.method === 'moderate') {
                 assert.step('moderate');
                 const messageIDs = args.args[0];
                 const decision = args.args[1];
-                assert.strictEqual(messageIDs.length, 1, "should moderate one message");
-                assert.strictEqual(messageIDs[0], 100, "should moderate message with ID 100");
-                assert.strictEqual(decision, 'accept', "should accept the message");
+                assert.strictEqual(
+                    messageIDs.length,
+                    1,
+                    "should moderate one message"
+                );
+                assert.strictEqual(
+                    messageIDs[0],
+                    100,
+                    "should moderate message with ID 100"
+                );
+                assert.strictEqual(
+                    decision,
+                    'accept',
+                    "should accept the message"
+                );
             }
-            return this._super.apply(this, arguments);
+            return this._super(...arguments);
         },
     });
 
@@ -4884,21 +4891,39 @@ QUnit.test('moderation: reject pending moderation message (reject with explanati
     }];
 
     await this.start({
-        mockRPC(route, args) {
+        async mockRPC(route, args) {
             if (args.method === 'moderate') {
                 assert.step('moderate');
                 const messageIDs = args.args[0];
                 const decision = args.args[1];
                 const kwargs = args.kwargs;
-                assert.strictEqual(messageIDs.length, 1, "should moderate one message");
-                assert.strictEqual(messageIDs[0], 100, "should moderate message with ID 100");
-                assert.strictEqual(decision, 'reject', "should reject the message");
-                assert.strictEqual(kwargs.title, "Message Rejected",
-                    "should have correct reject message title");
-                assert.strictEqual(kwargs.comment, "Your message was rejected by moderator.",
-                    "should have correct reject message body / comment");
+                assert.strictEqual(
+                    messageIDs.length,
+                    1,
+                    "should moderate one message"
+                );
+                assert.strictEqual(
+                    messageIDs[0],
+                    100,
+                    "should moderate message with ID 100"
+                );
+                assert.strictEqual(
+                    decision,
+                    'reject',
+                    "should reject the message"
+                );
+                assert.strictEqual(
+                    kwargs.title,
+                    "Message Rejected",
+                    "should have correct reject message title"
+                );
+                assert.strictEqual(
+                    kwargs.comment,
+                    "Your message was rejected by moderator.",
+                    "should have correct reject message body / comment"
+                );
             }
-            return this._super.apply(this, arguments);
+            return this._super(...arguments);
         },
     });
 
@@ -4936,7 +4961,7 @@ QUnit.test('moderation: reject pending moderation message (reject with explanati
         "dialog should have correct title"
     );
 
-    const messageTitle = dialog.querySelector('.o_ModerationRejectDialog_title');
+    const messageTitle = dialog.querySelector(':scope .o_ModerationRejectDialog_title');
     assert.ok(messageTitle, "should have a title for rejecting");
     assert.hasAttrValue(
         messageTitle,
@@ -4950,7 +4975,7 @@ QUnit.test('moderation: reject pending moderation message (reject with explanati
         "title for reject reason should have correct default value"
     );
 
-    const messageComment = dialog.querySelector('.o_ModerationRejectDialog_comment');
+    const messageComment = dialog.querySelector(':scope .o_ModerationRejectDialog_comment');
     assert.ok(messageComment, "should have a comment for rejecting");
     assert.hasAttrValue(
         messageComment,
@@ -4965,8 +4990,14 @@ QUnit.test('moderation: reject pending moderation message (reject with explanati
     );
 
     const confirmReject = dialog.querySelector('.o-reject');
-    assert.ok(confirmReject, 'should have reject button');
-    assert.strictEqual(confirmReject.textContent, "Reject");
+    assert.ok(
+        confirmReject,
+        "should have reject button"
+    );
+    assert.strictEqual(
+        confirmReject.textContent,
+        "Reject"
+    );
 
     confirmReject.click();
     await afterNextRender();
@@ -4983,7 +5014,10 @@ QUnit.test('moderation: reject pending moderation message (reject with explanati
             'mail.channel_20'
         }"]
     `);
-    assert.ok(channel, 'should display the general channel');
+    assert.ok(
+        channel,
+        'should display the general channel'
+    );
 
     channel.click();
     await afterNextRender();
@@ -5021,7 +5055,7 @@ QUnit.test('moderation: discard pending moderation message (reject without expla
     }];
 
     await this.start({
-        mockRPC(route, args) {
+        async mockRPC(route, args) {
             if (args.method === 'moderate') {
                 assert.step('moderate');
                 const messageIDs = args.args[0];
@@ -5030,7 +5064,7 @@ QUnit.test('moderation: discard pending moderation message (reject without expla
                 assert.strictEqual(messageIDs[0], 100, "should moderate message with ID 100");
                 assert.strictEqual(decision, 'discard', "should discard the message");
             }
-            return this._super.apply(this, arguments);
+            return this._super(...arguments);
         },
     });
 
@@ -5040,7 +5074,10 @@ QUnit.test('moderation: discard pending moderation message (reject without expla
             'mail.box_moderation'
         }"]
     `);
-    assert.ok(moderationBox, "should display the moderation box");
+    assert.ok(
+        moderationBox,
+        "should display the moderation box"
+    );
 
     moderationBox.click();
     await afterNextRender();
@@ -5049,10 +5086,18 @@ QUnit.test('moderation: discard pending moderation message (reject without expla
             'mail.message_100'
         }"]
     `);
-    assert.ok(pendingMessage, "should display the message to moderate");
+    assert.ok(
+        pendingMessage,
+        "should display the message to moderate"
+    );
 
-    const discardButton = pendingMessage.querySelector(':scope .o_Message_moderationAction.o-discard');
-    assert.ok(discardButton, "should display the discard button");
+    const discardButton = pendingMessage.querySelector(`
+        :scope .o_Message_moderationAction.o-discard
+    `);
+    assert.ok(
+        discardButton,
+        "should display the discard button"
+    );
 
     discardButton.click();
     await afterNextRender();
@@ -5075,8 +5120,14 @@ QUnit.test('moderation: discard pending moderation message (reject without expla
     );
 
     const confirmDiscard = dialog.querySelector(':scope .o-discard');
-    assert.ok(confirmDiscard, 'should have discard button');
-    assert.strictEqual(confirmDiscard.textContent, "Discard");
+    assert.ok(
+        confirmDiscard,
+        "should have discard button"
+    );
+    assert.strictEqual(
+        confirmDiscard.textContent,
+        "Discard"
+    );
 
     confirmDiscard.click();
     await afterNextRender();
@@ -5093,7 +5144,10 @@ QUnit.test('moderation: discard pending moderation message (reject without expla
             'mail.channel_20'
         }"]
     `);
-    assert.ok(channel, 'should display the general channel');
+    assert.ok(
+        channel,
+        "should display the general channel"
+    );
 
     channel.click();
     await afterNextRender();
@@ -5154,7 +5208,7 @@ QUnit.test('moderation: send message in moderated channel', async function (asse
             'mail.channel_20'
         }"]
     `);
-    assert.ok(channel, 'should display the general channel');
+    assert.ok(channel, "should display the general channel");
 
     channel.click();
     await afterNextRender();
@@ -5222,7 +5276,10 @@ QUnit.test('moderation: sent message accepted in moderated channel', async funct
             'mail.channel_20'
         }"]
     `);
-    assert.ok(channel, 'should display the general channel');
+    assert.ok(
+        channel,
+        "should display the general channel"
+    );
 
     channel.click();
     await afterNextRender();
@@ -5262,7 +5319,10 @@ QUnit.test('moderation: sent message accepted in moderated channel', async funct
             'mail.message_100'
         }"]
     `);
-    assert.ok(message, "should still display the message");
+    assert.ok(
+        message,
+        "should still display the message"
+    );
     assert.containsNone(
         message,
         '.o_Message_moderationPending',
@@ -5304,7 +5364,10 @@ QUnit.test('moderation: sent message rejected in moderated channel', async funct
             'mail.channel_20'
         }"]
     `);
-    assert.ok(channel, 'should display the general channel');
+    assert.ok(
+        channel,
+        "should display the general channel"
+    );
 
     channel.click();
     await afterNextRender();
