@@ -29,8 +29,13 @@ class IrAttachment(models.Model):
             if attachment.mimetype not in ['image/gif', 'image/jpe', 'image/jpeg', 'image/jpg', 'image/gif', 'image/png', 'image/svg+xml']:
                 attachment.image_src = False
             else:
-                attachment.image_src = attachment.url or '/web/image/%s/%s' % (
+                # Adding unique to url as cachebuster, currently doesn't leverage Max-age headers.
+                attachment.image_src = '%s?unique=%s' % (
+                    attachment.url,
+                    attachment.checksum,
+                ) if attachment.url else '/web/image/%s-%s/%s' % (
                     attachment.id,
+                    attachment.checksum[0:8],
                     url_quote(attachment.name or ''),
                 )
 
