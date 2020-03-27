@@ -17,10 +17,10 @@ QUnit.module('NotificationList', {
         utilsBeforeEach(this);
 
         /**
-         * @param {string} threadLocalId
-         * @param {Object} [otherProps]
+         * @param {Object} param0
+         * @param {string} [param0.filter='all']
          */
-        this.createNotificationListComponent = async ({filter = 'all'}) => {
+        this.createNotificationListComponent = async ({ filter = 'all' }) => {
             NotificationList.env = this.env;
             this.notificationList = new NotificationList(null, { filter });
             await this.notificationList.mount(this.widget.el);
@@ -49,7 +49,8 @@ QUnit.module('NotificationList', {
 });
 
 QUnit.test('base rendering', async function (assert) {
-    assert.expect(9);
+    assert.expect(3);
+
     Object.assign(this.data.initMessaging, {
         channel_slots: {
             channel_channel: [{
@@ -66,10 +67,8 @@ QUnit.test('base rendering', async function (assert) {
         },
     });
     await this.start({
-        debug:true,
         async mockRPC(route, args) {
             if (args.method === 'channel_fetch_preview') {
-                // Just return a single message
                 return [
                     {
                         id: 100,
@@ -104,29 +103,86 @@ QUnit.test('base rendering', async function (assert) {
             return this._super(...arguments);
         }
     });
-    await this.createNotificationListComponent({filter: 'all'});
+    await this.createNotificationListComponent({ filter: 'all' });
     assert.containsN(document.body, '.o_ThreadPreview', 2,
-            "there should be two thread previews");
-    let threadPreviewsInDOM = document.querySelectorAll('.o_ThreadPreview');
+        "there should be two thread previews");
+    const threadPreviewElList = document.querySelectorAll('.o_ThreadPreview');
     assert.strictEqual(
-        threadPreviewsInDOM[0].querySelector('.o_ThreadPreview_name').textContent,
+        threadPreviewElList[0].querySelector(':scope .o_ThreadPreview_name').textContent,
         'Channel 2020',
         "First channel in the list should be the channel of 2020 (more recent)"
     );
     assert.strictEqual(
-        threadPreviewsInDOM[1].querySelector('.o_ThreadPreview_name').textContent,
+        threadPreviewElList[1].querySelector(':scope .o_ThreadPreview_name').textContent,
         'Channel 2019',
         "First channel in the list should be the channel of 2019 (least recent)"
     );
+});
 
-    // simulate receiving a new message : should change the order
-    // as new message has been received in "Channel 2019"
-    // (even if older than last message of "Channel 2020")
+QUnit.test('reordering on new message received', async function (assert) {
+    assert.expect(4);
+
+    Object.assign(this.data.initMessaging, {
+        channel_slots: {
+            channel_channel: [{
+                channel_type: "channel",
+                id: 100,
+                name: "Channel 2019",
+                message_unread_counter: 0,
+            }, {
+                channel_type: "channel",
+                id: 200,
+                name: "Channel 2020",
+                message_unread_counter: 0,
+            }],
+        },
+    });
+    await this.start({
+        async mockRPC(route, args) {
+            if (args.method === 'channel_fetch_preview') {
+                return [
+                    {
+                        id: 100,
+                        last_message: {
+                            author_id: [100, `Author A`],
+                            body: `<p>Message A</p>`,
+                            channel_ids: [100],
+                            date: `2019-01-01 00:00:00`,
+                            id: 42,
+                            message_type: 'comment',
+                            model: 'mail.channel',
+                            record_name: 'Channel 2019',
+                            res_id: 100,
+                        },
+                    },
+                    {
+                        id: 200,
+                        last_message: {
+                            author_id: [200, `Author B`],
+                            body: `<p>Message B</p>`,
+                            channel_ids: [200],
+                            date: `2020-01-01 00:00:00`,
+                            id: 43,
+                            message_type: 'comment',
+                            model: 'mail.channel',
+                            record_name: 'Channel 2020',
+                            res_id: 200,
+                        },
+                    }
+                ];
+            }
+            return this._super(...arguments);
+        }
+    });
+    await this.createNotificationListComponent({ filter: 'all' });
+    assert.containsN(document.body, '.o_ThreadPreview', 2,
+        "there should be two thread previews");
+
     let messageData = {
         author_id: [7, "Demo User"],
         body: "<p>New message !</p>",
         channel_ids: [100],
-        date: "2019-03-23 10:00:00",
+        date: "2020-03-23 10:00:00",
         id: 44,
         message_type: 'comment',
         model: 'mail.channel',
@@ -138,52 +194,21 @@ QUnit.test('base rendering', async function (assert) {
     ]);
     await afterNextRender();
     assert.containsN(document.body, '.o_ThreadPreview', 2,
-            "there should still be two thread previews");
-    threadPreviewsInDOM = document.querySelectorAll('.o_ThreadPreview');
+        "there should still be two thread previews");
+    const threadPreviewElList = document.querySelectorAll('.o_ThreadPreview');
     assert.strictEqual(
-        threadPreviewsInDOM[0].querySelector('.o_ThreadPreview_name').textContent,
+        threadPreviewElList[0].querySelector(':scope .o_ThreadPreview_name').textContent,
         'Channel 2019',
         "First channel in the list should now be 'Channel 2019'"
     );
     assert.strictEqual(
-        threadPreviewsInDOM[1].querySelector('.o_ThreadPreview_name').textContent,
+        threadPreviewElList[1].querySelector(':scope .o_ThreadPreview_name').textContent,
         'Channel 2020',
         "First channel in the list should now be 'Channel 2020'"
-    );
-
-    // simulate receiving a new message again : should change the order again
-    // now the message in "Channel 2020" is more recent than the one in
-    // "Channel 2019"
-    messageData = {
-        author_id: [7, "Demo User"],
-        body: "<p>New message in 2020 !</p>",
-        channel_ids: [200],
-        date: "2020-03-23 10:00:00",
-        id: 45,
-        message_type: 'comment',
-        model: 'mail.channel',
-        record_name: 'Channel 2020',
-        res_id: 200,
-    };
-    this.widget.call('bus_service', 'trigger', 'notification', [
-        [['my-db', 'mail.channel', 200], messageData]
-    ]);
-    await afterNextRender();
-    assert.containsN(document.body, '.o_ThreadPreview', 2,
-            "there should still be two thread previews");
-    threadPreviewsInDOM = document.querySelectorAll('.o_ThreadPreview');
-    assert.strictEqual(
-        threadPreviewsInDOM[0].querySelector('.o_ThreadPreview_name').textContent,
-        'Channel 2020',
-        "First channel in the list should now be 'Channel 2020'"
-    );
-    assert.strictEqual(
-        threadPreviewsInDOM[1].querySelector('.o_ThreadPreview_name').textContent,
-        'Channel 2019',
-        "First channel in the list should now be 'Channel 2019'"
     );
 });
 
 });
 });
+
 });

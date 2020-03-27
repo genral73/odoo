@@ -54,9 +54,15 @@ class NotificationList extends Component {
         const threads = this._useStoreThreads(state, props);
         const notifications = threads
             .sort((threadA, threadB) => {
-                if (threadA.message_unread_counter > 0 && threadB.message_unread_counter === 0) {
+                if (
+                    threadA.message_unread_counter > 0
+                    && threadB.message_unread_counter === 0
+                ) {
                     return -1;
-                } else if (threadA.message_unread_counter === 0 && threadB.message_unread_counter > 0) {
+                } else if (
+                    threadA.message_unread_counter === 0
+                    && threadB.message_unread_counter > 0
+                ) {
                     return 1;
                 }
                 const messageLocalIdsA = threadA.messageLocalIds;
@@ -73,11 +79,11 @@ class NotificationList extends Component {
                 return 0;
             })
             .map(thread => {
-            return {
-                threadLocalId: thread.localId,
-                type: 'thread',
-                uniqueId: thread.localId,
-            };
+                return {
+                    threadLocalId: thread.localId,
+                    type: 'thread',
+                    uniqueId: thread.localId,
+                };
         });
         return {
             isMobile: state.isMobile,
