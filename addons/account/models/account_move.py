@@ -1463,7 +1463,7 @@ class AccountMove(models.Model):
         self_sudo.statement_line_id._synchronize_from_moves(changed_fields)
 
     # -------------------------------------------------------------------------
-    # CONSTRAINS METHODS
+    # CONSTRAINT METHODS
     # -------------------------------------------------------------------------
 
     @api.constrains('name', 'journal_id', 'state')

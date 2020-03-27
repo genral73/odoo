@@ -450,7 +450,7 @@ class AccountPayment(models.Model):
             pay.reconciled_statements_count = len(statement_ids)
 
     # -------------------------------------------------------------------------
-    # CONSTRAINS METHODS
+    # CONSTRAINT METHODS
     # -------------------------------------------------------------------------
 
     @api.constrains('payment_method_id')

@@ -1492,7 +1492,8 @@ class AccountJournal(models.Model):
         if not accounts:
             return 0.0
 
-        domain = (domain or []) + [('account_id', 'in', tuple(accounts.ids))] + [
+        domain = (domain or []) + [
+            ('account_id', 'in', tuple(accounts.ids)),
             ('display_type', 'not in', ('line_section', 'line_note')),
             ('move_id.state', '!=', 'cancel'),
         ]

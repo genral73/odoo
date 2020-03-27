@@ -257,7 +257,7 @@ class AccountBankStatement(models.Model):
     previous_statement_id = fields.Many2one('account.bank.statement', help='technical field to compute starting balance correctly', compute='_get_previous_statement', store=True)
     is_valid_balance_start = fields.Boolean(string="Is Valid Balance Start", store=True,
         compute="_compute_is_valid_balance_start",
-        help="technical field to display a warning message in case starting balance is different than previous ending balance")
+        help="Technical field to display a warning message in case starting balance is different than previous ending balance")
 
     def write(self, values):
         res = super(AccountBankStatement, self).write(values)
@@ -293,7 +293,7 @@ class AccountBankStatement(models.Model):
             next_statements_to_recompute.modified(['previous_statement_id'])
         return res
 
-    @api.depends('line_ids.move_id.line_ids.matched_debit_ids', 'line_ids.move_id.line_ids.matched_credit_ids')
+    @api.depends('line_ids.is_reconciled')
     def _compute_all_lines_reconciled(self):
         for statement in self:
             statement.all_lines_reconciled = all(st_line.is_reconciled for st_line in statement.line_ids)
@@ -305,7 +305,10 @@ class AccountBankStatement(models.Model):
             st_line.journal_id = self.journal_id
             st_line.currency_id = self.journal_id.currency_id or self.company_id.currency_id
 
-    def _balance_check(self):
+    def _check_balance_end_real_same_as_computed(self):
+        ''' Check the balance_end_real (encoded manually by the user) is equals to the balance_end (computed by odoo).
+        In case of a cash statement, the different is set automatically to a profit/loss account.
+        '''
         for stmt in self:
             if not stmt.currency_id.is_zero(stmt.difference):
                 if stmt.journal_type == 'cash':
@@ -348,7 +351,7 @@ class AccountBankStatement(models.Model):
         return super(AccountBankStatement, self).unlink()
 
     # -------------------------------------------------------------------------
-    # CONSTRAINS METHODS
+    # CONSTRAINT METHODS
     # -------------------------------------------------------------------------
 
     @api.constrains('journal_id')
@@ -391,7 +394,7 @@ class AccountBankStatement(models.Model):
         if any(statement.state != 'open' for statement in self):
             raise UserError(_("Only new statements can be posted."))
 
-        self._balance_check()
+        self._check_balance_end_real_same_as_computed()
 
         for statement in self:
             if not statement.name:
@@ -492,9 +495,10 @@ class AccountBankStatementLine(models.Model):
     _order = "statement_id desc, date, sequence, id desc"
     _check_company_auto = True
 
-    # TODO: Fields having the same name in both tables are confusing (partner_id & state). We don't change it because:
+    # FIXME: Fields having the same name in both tables are confusing (partner_id & state). We don't change it because:
     # - It's a mess to track/fix.
     # - Some fields here could be simplify when the onchanges will be gone in account.move.
+    # Should be improved in the future.
 
     # == Business fields ==
     move_id = fields.Many2one(
@@ -815,7 +819,7 @@ class AccountBankStatementLine(models.Model):
                 st_line.is_reconciled = True
 
     # -------------------------------------------------------------------------
-    # CONSTRAINS METHODS
+    # CONSTRAINT METHODS
     # -------------------------------------------------------------------------
 
     @api.constrains('amount', 'amount_currency', 'currency_id', 'foreign_currency_id', 'journal_id')
