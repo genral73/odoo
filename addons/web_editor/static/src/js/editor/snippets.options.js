@@ -1078,7 +1078,7 @@ const ColorpickerUserValueWidget = SelectUserValueWidget.extend({
         this.colorPreviewEl.classList.remove(...this.colorPalette.getColorNames().map(c => 'bg-' + c));
         this.colorPreviewEl.style.removeProperty('background-color');
 
-        if (this._value) {
+        if (this._value && !(this.$target.css('background-color')=='rgba(0, 0, 0, 0)')) {
             if (ColorpickerDialog.isCSSColor(this._value)) {
                 this.colorPreviewEl.style.backgroundColor = this._value;
             } else {
