@@ -24,7 +24,7 @@ class IrModelAccess(models.Model):
             csv_ids[data['res_id']].append("%s.%s" % (data['module'], data['name']))
         for access in self:
             access.csv_id = csv_ids.get(access.id, [''])[0]
-            access.module_name, access.data_name = access.csv_id.split(".") if access.csv_id else '',''
+            access.module_name, access.data_name = access.csv_id.split(".") if access.csv_id else ('','')
 
     def _is_loaded_after(self, rule):
         """Check if self is loaded after rule because of modules deps"""

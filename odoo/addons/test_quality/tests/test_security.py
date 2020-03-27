@@ -112,7 +112,8 @@ class TestIrModelAccess(TransactionCase):
                     implying_rule = rule._is_implied_by(public_rules - rule)
                     if implying_rule:
                         mapping[rule.module_name][rule.csv_id] = MSG % implying_rule.csv_id
-                        main_public_rules -= rule
+                    else:
+                        main_public_rules += rule
 
             # Catch rules useless because implied by public rule
             # OR implied by the rule of an implied group
