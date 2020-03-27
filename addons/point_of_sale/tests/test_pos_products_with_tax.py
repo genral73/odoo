@@ -101,7 +101,7 @@ class TestPoSProductsWithTax(TestPoSCommon):
         for t1, t2 in zip(sorted(manually_calculated_taxes), sorted(tax_lines.mapped('balance'))):
             self.assertAlmostEqual(t1, t2, msg='Taxes should be correctly combined.')
 
-        base_amounts = (355.45, 518.18)
+        base_amounts = (-355.45, -518.18)
         self.assertAlmostEqual(sum(base_amounts), sum(tax_lines.mapped('tax_base_amount')))
 
         self.assertTrue(receivable_line_cash.full_reconcile_id, 'Cash receivable line should be fully-reconciled.')
@@ -207,7 +207,7 @@ class TestPoSProductsWithTax(TestPoSCommon):
         for t1, t2 in zip(sorted(manually_calculated_taxes), sorted(tax_lines.mapped('balance'))):
             self.assertAlmostEqual(t1, t2, msg='Taxes should be correctly combined.')
 
-        base_amounts = (97.27, 445.46)  # computation does not include invoiced order.
+        base_amounts = (-97.27, -445.46)  # computation does not include invoiced order.
         self.assertAlmostEqual(sum(base_amounts), sum(tax_lines.mapped('tax_base_amount')))
 
     def test_return_order(self):

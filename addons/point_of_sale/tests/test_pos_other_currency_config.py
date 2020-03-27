@@ -288,4 +288,4 @@ class TestPoSOtherCurrencyConfig(TestPoSCommon):
         tax_line = session_account_move.line_ids.filtered(lambda line: line.account_id == self.tax_received_account)
         self.assertAlmostEqual(tax_line.balance, -3.44)
         self.assertAlmostEqual(tax_line.amount_currency, -1.72)
-        self.assertAlmostEqual(tax_line.tax_base_amount, 49, msg="Value should be in company's currency.")
+        self.assertAlmostEqual(tax_line.tax_base_amount, -49, msg="Value should be in company's currency.")
