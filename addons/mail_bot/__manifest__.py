@@ -8,17 +8,13 @@
     'summary': 'Add OdooBot in discussions',
     'description': "",
     'website': 'https://www.odoo.com/page/discuss',
-    'depends': ['mail'],
+    'depends': ['mail', 'mail_bot_hr'],
     'installable': True,
     'application': False,
     'auto_install': True,
     'data': [
         'views/assets.xml',
-        'views/res_users_views.xml',
         'data/mailbot_data.xml',
-    ],
-    'demo': [
-        'data/mailbot_demo.xml',
     ],
     'qweb': [
         'views/discuss.xml',

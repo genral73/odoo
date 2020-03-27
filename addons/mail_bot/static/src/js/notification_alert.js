@@ -1,26 +1,21 @@
-odoo.define('mail.NotificationAlert', function (require) {
+odoo.define('mail_bot.NotificationAlert', function (require) {
 "use strict";
 
-var Widget = require('web.Widget');
-var widgetRegistry = require('web.widget_registry');
+var NotificationAlert = require('mail_bot_hr.NotificationAlert');
 
 // -----------------------------------------------------------------------------
 // Display Notification alert on user preferences form view
 // -----------------------------------------------------------------------------
-var NotificationAlert = Widget.extend({
-   template: 'mail.NotificationAlert',
-   /**
-    * @override
-    */
-   init: function () {
-      this._super.apply(this, arguments);
-      var hasRequest = this.call('mailbot_service', 'isRequestingForNativeNotifications');
-      this.isNotificationBlocked = window.Notification && window.Notification.permission !== "granted" && !hasRequest;
-   },
+NotificationAlert.include({
+    /**
+     * @override
+     */
+    init: function () {
+        this._super.apply(this, arguments);
+        var hasRequest = this.call('mailbot_service', 'isRequestingForNativeNotifications');
+        this.isNotificationBlocked = window.Notification && window.Notification.permission !== "granted" && !hasRequest;
+    },
 });
 
-widgetRegistry.add('notification_alert', NotificationAlert);
-
 return NotificationAlert;
-
 });

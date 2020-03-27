@@ -20,7 +20,7 @@
         'mail',
         'resource',
         'web',
-        'mail_bot',
+        'mail_bot_hr'
     ],
     'data': [
         'security/hr_security.xml',
