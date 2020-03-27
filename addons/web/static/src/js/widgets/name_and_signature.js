@@ -251,6 +251,7 @@ var NameAndSignature = Widget.extend({
             .jSignature({
                 'decor-color': '#D1D0CE',
                 'background-color': '#FFF',
+                'show-stroke': true,
                 'color': this.fontColor,
                 'lineWidth': 2,
                 'width': width,
@@ -293,6 +294,7 @@ var NameAndSignature = Widget.extend({
         this.$loadButton.toggleClass('active', this.signMode === 'load');
 
         this.$signatureField.jSignature(this.signMode === 'draw' ? 'enable' : 'disable');
+        this.$signatureField.jSignature("updateSetting", 'show-stroke', true);
         this.$signatureField.jSignature('reset');
 
         if (this.signMode === 'auto') {
@@ -569,6 +571,7 @@ var NameAndSignature = Widget.extend({
      */
     _onClickSignDrawClear: function (ev) {
         ev.preventDefault();
+        this.$signatureField.jSignature("updateSetting", 'show-stroke', true);
         this.$signatureField.jSignature('reset');
     },
     /**
