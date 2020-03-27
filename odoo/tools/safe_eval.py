@@ -154,7 +154,7 @@ def assert_valid_codeobj(allowed_codes, code_obj, expr):
 
     # set operations are almost twice as fast as a manual iteration + condition 
     # when loading /web according to line_profiler
-    code_codes = {i.opcode for i in dis.get_instructions(codeobj)}
+    code_codes = {i.opcode for i in dis.get_instructions(code_obj)}
     if not allowed_codes >= code_codes:
         raise ValueError("forbidden opcode(s) in %r: %s" % (expr, ', '.join(opname[x] for x in (code_codes - allowed_codes))))
 
