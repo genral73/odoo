@@ -43,6 +43,19 @@
         </field>
     </record>
 
+
+    <record id="mailing_sms_list_view_tree" model="ir.ui.view">
+        <field name="name">Mailing list sms kanban view</field>
+        <field name="model">mailing.list</field>
+        <field name="inherit_id" ref="mass_mailing.mailing_list_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='contact_valid_email_count']" position="after">
+                <field name="contact_valid_sms_count"/>
+                <field name="contact_valid_count"/>
+            </xpath>
+        </field>
+    </record>
+
     <!-- SMS Marketing / Contacts Lists / Contacts Lists -->
     <record id="mass_mailing_sms.mailing_list_menu_sms" model="ir.ui.menu">
         <field name="action" ref="mailing_list_action_sms"/>

@@ -39,10 +39,10 @@ class MassMailingList(models.Model):
         compute='_compute_statistic', string='Blacklisted email'
     )
 
-    contact_count = fields.Integer(compute='_compute_statistic', string='Total contacts')
-    contact_valid_count = fields.Integer(compute='_compute_statistic', string='Total valid contacts')
-    contact_valid_email_count = fields.Integer(compute='_compute_statistic', string='Number of Valid email contacts')
-    mailing_list_count = fields.Integer(compute='_compute_statistic', string='Valid contacts')
+    contact_count = fields.Integer(compute='_compute_statistic', string='Total Contacts')
+    contact_valid_count = fields.Integer(compute='_compute_statistic', string='Total Valid Contacts')
+    contact_valid_email_count = fields.Integer(compute='_compute_statistic', string='Valid Email Contacts')
+    mailing_list_count = fields.Integer(compute='_compute_statistic', string='Valid Contacts')
 
     contact_message_bounce_percentage = fields.Float(
         compute='_compute_statistic',

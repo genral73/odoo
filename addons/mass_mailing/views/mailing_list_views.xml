@@ -46,7 +46,8 @@
                                 type="object" icon="fa-user" class="oe_stat_button">
                             <field name="contact_valid_count" string="Recipients" widget="statinfo"/>
                         </button>
-                        <button icon="fa-exchange" class="oe_stat_button">
+                        <button name="action_view_message_bounce_contacts"
+                                type="object" icon="fa-exchange" class="oe_stat_button">
                             <field name="contact_message_bounce_percentage_str" string="bouncing" widget="statinfo"/>
                         </button>
                         <button name="action_view_opt_out_contacts"

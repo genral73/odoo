@@ -9,9 +9,9 @@ class MailingList(models.Model):
 
     contact_ids_valid_sms = fields.Many2many(
         'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
-        compute='_compute_statistic', string='Valid sms'
+        compute='_compute_statistic', string='Valid sms contacts'
     )
-    contact_valid_sms_count = fields.Integer(compute='_compute_statistic', string='Number of Valid contacts')
+    contact_valid_sms_count = fields.Integer(compute='_compute_statistic', string='Valid Sms Contacts')
 
 
     @api.depends('contact_ids')
