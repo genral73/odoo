@@ -885,16 +885,16 @@ class expression(object):
                 leaf.add_join_context(comodel, path[0], 'id', path[0])
                 push(create_substitution_leaf(leaf, (path[1], operator, right), comodel))
 
-            elif len(path) > 1 and field.store and field.type == 'one2many' and field.auto_join:
+            elif len(path) > 1 and field.store and field.type == 'one2many':# and field.auto_join:
                 # res_partner.id = res_partner__bank_ids.partner_id
-                leaf.add_join_context(comodel, 'id', field.inverse_name, path[0])
                 domain = field.get_domain_list(model)
-                push(create_substitution_leaf(leaf, (path[1], operator, right), comodel))
                 if domain:
                     domain = normalize_domain(domain)
-                    for elem in reversed(domain):
-                        push(create_substitution_leaf(leaf, elem, comodel))
-                    push(create_substitution_leaf(leaf, AND_OPERATOR, comodel))
+                tables, cond, params = comodel.with_context(**field.context)\
+                    ._where_calc([('.'.join(path[1:]), operator, right)] + domain).get_sql()
+                push(create_substitution_leaf(leaf, ('id', 'inselect', ("SELECT {} FROM {} WHERE {}".format(
+                    field.inverse_name, tables, cond
+                ), params)), internal=True))
 
             elif len(path) > 1 and field.store and field.auto_join:
                 raise NotImplementedError('auto_join attribute not supported on field %s' % field)
