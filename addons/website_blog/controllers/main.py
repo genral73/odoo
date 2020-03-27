@@ -88,8 +88,14 @@ class WebsiteBlog(http.Controller):
         else:
             domain += [("post_date", "<=", fields.Datetime.now())]
 
-        use_cover = request.website.viewref('website_blog.opt_blog_cover_post').active
-        fullwidth_cover = request.website.viewref('website_blog.opt_blog_cover_post_fullwidth_design').active
+        use_cover, fullwidth_cover, opt_blog_cards_design, opt_blog_list_view, opt_blog_readable, opt_blog_sidebar_show = request.website.viewsref([
+            'website_blog.opt_blog_cover_post',
+            'website_blog.opt_blog_cover_post_fullwidth_design',
+            'website_blog.opt_blog_cards_design',
+            'website_blog.opt_blog_list_view',
+            'website_blog.opt_blog_readable',
+            'website_blog.opt_blog_sidebar_show',
+        ]).mapped('active')
 
         # if blog, we show blog title, if use_cover and not fullwidth_cover we need pager + latest always
         offset = (page - 1) * self._blog_post_per_page
@@ -132,6 +138,11 @@ class WebsiteBlog(http.Controller):
             'state_info': state and {"state": state, "published": published_count, "unpublished": unpublished_count},
             'blogs': blogs,
             'blog': blog,
+            # customize options
+            'opt_blog_cards_design': opt_blog_cards_design,
+            'opt_blog_list_view': opt_blog_list_view,
+            'opt_blog_readable': opt_blog_readable,
+            'opt_blog_sidebar_show': opt_blog_sidebar_show,
         }
 
     @http.route([

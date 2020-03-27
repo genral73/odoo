@@ -50,12 +50,6 @@ list of filtered posts (by date or tag).
             <meta t-if="len(active_tag_ids) > 0" name="robots" t-attf-content="#{len(active_tag_ids) > 1 and 'noindex,'} nofollow"/>
         </t>
 
-        <!-- Check for active options: the stored value may be used in sub-templates too  -->
-        <t t-set="opt_blog_cards_design" t-value="request.website.viewref('website_blog.opt_blog_cards_design').active"/>
-        <t t-set="opt_blog_list_view" t-value="request.website.viewref('website_blog.opt_blog_list_view').active"/>
-        <t t-set="opt_blog_readable" t-value="request.website.viewref('website_blog.opt_blog_readable').active"/>
-        <t t-set="opt_blog_sidebar_show" t-value="request.website.viewref('website_blog.opt_blog_sidebar_show').active"/>
-
         <div id="o_wblog_blog_top">
             <!-- Selectively display droppable-areas for 'all blogs' or single-blog pages -->
             <t t-if="not tag and not date_begin">

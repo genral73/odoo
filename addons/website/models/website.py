@@ -651,6 +651,32 @@ class Website(models.Model):
         return request.env.user.id == request.website.user_id.id
 
     @api.model
+    def viewsref(self, keys, raise_if_not_found=True):
+        View = self.env['ir.ui.view']
+        initial_order = {}
+        for key in keys:
+            initial_order[key] = View
+        if 'website_id' in self._context:
+            domain = [('key', 'in', keys)] + self.env['website'].website_domain(self._context.get('website_id'))
+            order = 'website_id'
+        else:
+            domain = [('key', 'in', keys)]
+            order = View._order
+        views = View.with_context(active_test=False).search(domain, order=order)
+        views = views.filter_duplicate()
+
+        if raise_if_not_found and len(keys) != len(views):
+            # TODO: which view?
+            raise ValueError('No record found for unique ID %s. It may have been deleted.' % ('TODO'))
+        # TODO: ensure order is the same as given
+        res = View
+        for view in views:
+            initial_order[view.key] = view
+        for v in initial_order:
+            res += initial_order[v]
+        return res
+
+    @api.model
     def viewref(self, view_id, raise_if_not_found=True):
         ''' Given an xml_id or a view_id, return the corresponding view record.
             In case of website context, return the most specific one.
