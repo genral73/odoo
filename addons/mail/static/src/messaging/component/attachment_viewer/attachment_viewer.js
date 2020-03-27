@@ -295,7 +295,11 @@ class AttachmentViewer extends Component {
         if (this.state.scale === MIN_SCALE) {
             return;
         }
-        this.state.scale = Math.max(MIN_SCALE, this.state.scale - (scroll ? SCROLL_ZOOM_STEP : ZOOM_STEP));
+        const unflooredAdaptedScale = (
+            this.state.scale -
+            (scroll ? SCROLL_ZOOM_STEP : ZOOM_STEP)
+        );
+        this.state.scale = Math.max(MIN_SCALE, unflooredAdaptedScale);
         this._updateZoomerStyle();
     }
 

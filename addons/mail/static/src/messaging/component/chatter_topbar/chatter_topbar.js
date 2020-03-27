@@ -105,9 +105,9 @@ class ChatterTopbar extends Component {
             res_id: false,
         };
         return this.env.do_action(action, {
+            // A bit "extreme", could be improved:
+            // normally only an activity is created (no update nor delete)
             on_close: () => {
-                // A bit "extreme", could be improved:
-                // normally only an activity is created (no update nor delete)
                 this.storeDispatch('refreshChatterActivities', this.props.chatterLocalId);
             }
         });

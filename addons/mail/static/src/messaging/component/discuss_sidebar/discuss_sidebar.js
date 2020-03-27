@@ -39,11 +39,13 @@ class DiscussSidebar extends Component {
      * @returns {mail.store.model.Thread[]}
      */
     get quickSearchPinnedAndOrderedChats() {
+        const allOrderedAndPinnedChats =
+            this.storeProps.allOrderedAndPinnedChats;
         if (!this.state.quickSearchValue) {
-            return this.storeProps.allOrderedAndPinnedChats;
+            return allOrderedAndPinnedChats;
         }
         const qsVal = this.state.quickSearchValue.toLowerCase();
-        return this.storeProps.allOrderedAndPinnedChats.filter(chat => {
+        return allOrderedAndPinnedChats.filter(chat => {
             const nameVal = this.storeGetters.threadName(chat.localId).toLowerCase();
             return nameVal.includes(qsVal);
         });
@@ -55,11 +57,13 @@ class DiscussSidebar extends Component {
      * @returns {mail.store.model.Thread[]}
      */
     get quickSearchOrderedAndPinnedMultiUserChannels() {
+        const allOrderedAndPinnedMultiUserChannels =
+            this.storeProps.allOrderedAndPinnedMultiUserChannels;
         if (!this.state.quickSearchValue) {
-            return this.storeProps.allOrderedAndPinnedMultiUserChannels;
+            return allOrderedAndPinnedMultiUserChannels;
         }
         const qsVal = this.state.quickSearchValue.toLowerCase();
-        return this.storeProps.allOrderedAndPinnedMultiUserChannels.filter(channel => {
+        return allOrderedAndPinnedMultiUserChannels.filter(channel => {
             const nameVal = this.storeGetters.threadName(channel.localId).toLowerCase();
             return nameVal.includes(qsVal);
         });
@@ -90,12 +94,9 @@ class DiscussSidebar extends Component {
      */
     _useStoreSelector(state, props) {
         return {
-            allOrderedAndPinnedChats:
-                this.storeGetters.allOrderedAndPinnedChats(),
-            allOrderedAndPinnedMailboxes:
-                this.storeGetters.allOrderedAndPinnedMailboxes(),
-            allOrderedAndPinnedMultiUserChannels:
-                this.storeGetters.allOrderedAndPinnedMultiUserChannels(),
+            allOrderedAndPinnedChats: this.storeGetters.allOrderedAndPinnedChats(),
+            allOrderedAndPinnedMailboxes: this.storeGetters.allOrderedAndPinnedMailboxes(),
+            allOrderedAndPinnedMultiUserChannels: this.storeGetters.allOrderedAndPinnedMultiUserChannels(),
             allPinnedChannelAmount: this.storeGetters.allPinnedChannelAmount(),
         };
     }

@@ -144,6 +144,7 @@ class ChatWindowHiddenMenu extends Component {
         });
         this.state.isOpen = false;
     }
+
 }
 
 Object.assign(ChatWindowHiddenMenu, {

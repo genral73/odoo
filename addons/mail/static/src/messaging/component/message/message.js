@@ -531,8 +531,9 @@ class Message extends Component {
 
     /**
      * @private
+     * @param {MouseEvent} ev
      */
-    _onClickMarkAsRead() {
+    _onClickMarkAsRead(ev) {
         ev.stopPropagation();
         return this.storeDispatch('markMessagesAsRead', [this.props.messageLocalId]);
     }

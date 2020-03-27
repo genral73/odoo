@@ -291,7 +291,7 @@ QUnit.test('chat window: basic rendering', async function (assert) {
 });
 
 QUnit.test('chat window: fold', async function (assert) {
-    assert.expect(15);
+    assert.expect(16);
 
     let foldCall = 0;
     Object.assign(this.data.initMessaging, {
@@ -374,27 +374,15 @@ QUnit.test('chat window: fold', async function (assert) {
     // Fold chat window
     document.querySelector(`.o_ChatWindow_header`).click();
     await afterNextRender();
+    assert.verifySteps(['rpc:channel_fold/folded']);
     // Unfold chat window
     document.querySelector(`.o_ChatWindow_header`).click();
     await afterNextRender();
-    assert.verifySteps(
-        [
-            'rpc:channel_fold/folded',
-            'rpc:channel_fold/open'
-        ],
-        "RPC should be done in this order: , channel_fold (folded), channel_fold (open)"
-    );
+    assert.verifySteps(['rpc:channel_fold/open']);
 });
 
 QUnit.test('chat window: open / close', async function (assert) {
     assert.expect(20);
-
-    async function openThread() {
-        document.querySelector(`.o_MessagingMenu_toggler`).click();
-        await afterNextRender();
-        document.querySelector(`.o_MessagingMenu_dropdownMenu .o_NotificationList_preview`).click();
-        await afterNextRender();
-    }
 
     Object.assign(this.data.initMessaging, {
         channel_slots: {
@@ -481,7 +469,10 @@ QUnit.test('chat window: open / close', async function (assert) {
             return this._super(...arguments);
         },
     });
-    await openThread();
+    document.querySelector(`.o_MessagingMenu_toggler`).click();
+    await afterNextRender();
+    document.querySelector(`.o_MessagingMenu_dropdownMenu .o_NotificationList_preview`).click();
+    await afterNextRender();
     assert.verifySteps(['rpc:channel_minimize']);
 
     // Close chat window
@@ -490,7 +481,10 @@ QUnit.test('chat window: open / close', async function (assert) {
     assert.verifySteps(['rpc:channel_fold/closed']);
 
     // Reopen chat window
-    await openThread();
+    document.querySelector(`.o_MessagingMenu_toggler`).click();
+    await afterNextRender();
+    document.querySelector(`.o_MessagingMenu_dropdownMenu .o_NotificationList_preview`).click();
+    await afterNextRender();
     assert.verifySteps(['rpc:channel_minimize']);
 });
 

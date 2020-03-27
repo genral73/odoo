@@ -54,6 +54,7 @@ QUnit.module('Chatter', {
 
 QUnit.test('base rendering when chatter has no attachment', async function (assert) {
     assert.expect(6);
+
     let amountOfCalls = 0;
     let lastId = 1000;
     await this.start({
@@ -126,7 +127,8 @@ QUnit.test('base rendering when chatter has no attachment', async function (asse
 
 QUnit.test('base rendering when chatter has no record', async function (assert) {
     assert.expect(7);
-    await this.start({});
+
+    await this.start();
     const chatterLocalId = this.env.store.dispatch('createChatter', {
         initialThreadModel: 'res.partner',
     });
