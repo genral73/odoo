@@ -3108,8 +3108,8 @@ const actions = {
                 });
             }
         }
-        const mailChannelList = getters.mailChannelList();
-        for (const mailChannel of mailChannelList) {
+        const allOrderedAndPinnedChannels = getters.allOrderedAndPinnedChannels();
+        for (const mailChannel of allOrderedAndPinnedChannels) {
             mailChannel.message_needaction_counter = 0;
         }
         inbox.counter -= message_ids.length;

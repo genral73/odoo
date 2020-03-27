@@ -95,7 +95,7 @@ class MessagingMenu extends Component {
      * @private
      */
     _useStoreSelector(state, props) {
-        const unreadMailChannelCounter = this.storeGetters.mailChannelList()
+        const unreadMailChannelCounter = this.storeGetters.allOrderedAndPinnedChannels()
             .reduce((acc, mailChannel) => {
                 if (mailChannel.message_unread_counter > 0) {
                     acc++;

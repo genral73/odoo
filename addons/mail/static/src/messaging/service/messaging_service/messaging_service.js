@@ -34,7 +34,7 @@ const MessagingService = AbstractService.extend({
         /**
          * Environment of the messaging store (messaging env. without store)
          */
-        let env = Object.create(initialEnv);
+        const env = Object.create(initialEnv);
         Object.assign(env, {
             disableAnimation: false,
             call: (...args) => this.call(...args),

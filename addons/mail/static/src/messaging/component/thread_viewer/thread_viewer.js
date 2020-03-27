@@ -191,7 +191,7 @@ Object.assign(ThreadViewer, {
     props: {
         composerAttachmentsDetailsMode: {
             type: String,
-            validate: prop => ['auto', 'card', 'hover', 'none'].includes(prop)
+            validate: prop => ['auto', 'card', 'hover', 'none'].includes(prop),
         },
         domain: Array,
         hasComposer: Boolean,
@@ -222,7 +222,7 @@ Object.assign(ThreadViewer, {
         },
         order: {
             type: String,
-            validate: prop => ['asc', 'desc'].includes(prop)
+            validate: prop => ['asc', 'desc'].includes(prop),
         },
         selectedMessageLocalId: {
             type: String,
