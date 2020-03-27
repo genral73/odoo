@@ -15,8 +15,8 @@ const DialogService = AbstractService.extend({
      */
     start() {
         this._super(...arguments);
-        this.env = this.call('messaging', 'getEnv');
         this._webClientReady = false;
+        this.env = this.call('messaging', 'getEnv');
         this._listenHomeMenu();
     },
     /**

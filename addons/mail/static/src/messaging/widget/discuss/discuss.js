@@ -2,7 +2,7 @@ odoo.define('mail.messaging.widget.Discuss', function (require) {
 'use strict';
 
 const components = {
-    DiscussComponent: require('mail.messaging.component.Discuss'),
+    Discuss: require('mail.messaging.component.Discuss'),
 };
 const InvitePartnerDialog = require('mail.messaging.widget.DiscussInvitePartnerDialog');
 
@@ -51,15 +51,12 @@ const DiscussWidget = AbstractAction.extend({
         this.action = action;
         this.actionManager = parent;
         this.controlPanelParams.modelName = 'mail.message';
+        this.discuss = undefined;
         this.options = options;
 
         this.component = undefined;
 
-        this._initActiveThreadLocalId = this.options.active_id ||
-            (this.action.context && this.action.context.active_id) ||
-            (this.action.params && this.action.params.default_active_id) ||
-            'mail.box_inbox';
-        this._lastPushStateActiveThreadLocalId = null;
+        this._lastPushStateActiveThread = null;
     },
     /**
      * @override
@@ -67,6 +64,12 @@ const DiscussWidget = AbstractAction.extend({
     async willStart() {
         await this._super(...arguments);
         this.env = this.call('messaging', 'getEnv');
+        const initActiveId = this.options.active_id ||
+            (this.action.context && this.action.context.active_id) ||
+            (this.action.params && this.action.params.default_active_id) ||
+            'mail.box_inbox';
+        this.discuss = this.env.entities.Discuss.instance;
+        this.discuss.update({ initActiveId });
     },
     /**
      * @override {web.AbstractAction}
@@ -90,18 +93,16 @@ const DiscussWidget = AbstractAction.extend({
             // prevent twice call to on_attach_callback (FIXME)
             return;
         }
-        const DiscussComponentComponent = components.DiscussComponent;
-        DiscussComponentComponent.env = this.env;
-        this.component = new DiscussComponentComponent(null, {
-            initActiveThreadLocalId: this._initActiveThreadLocalId,
-        });
+        const DiscussComponent = components.Discuss;
+        DiscussComponent.env = this.env;
+        this.component = new DiscussComponent(null);
         this._pushStateActionManagerEventListener = ev => {
             ev.stopPropagation();
-            if (this._lastPushStateActiveThreadLocalId === ev.detail.activeThreadLocalId) {
+            if (this._lastPushStateActiveThread === this.discuss.thread) {
                 return;
             }
-            this._pushStateActionManager(ev.detail.activeThreadLocalId);
-            this._lastPushStateActiveThreadLocalId = ev.detail.activeThreadLocalId;
+            this._pushStateActionManager();
+            this._lastPushStateActiveThread = this.discuss.thread;
         };
         this._showRainbowManEventListener = ev => {
             ev.stopPropagation();
@@ -155,12 +156,11 @@ const DiscussWidget = AbstractAction.extend({
 
     /**
      * @private
-     * @param {string} activeThreadLocalId
      */
-    _pushStateActionManager(activeThreadLocalId) {
+    _pushStateActionManager() {
         this.actionManager.do_push_state({
             action: this.action.id,
-            active_id: activeThreadLocalId,
+            active_id: this.discuss.activeId,
         });
     },
     /**
@@ -176,52 +176,48 @@ const DiscussWidget = AbstractAction.extend({
      * @private
      */
     _updateControlPanel() {
-        const activeThreadLocalId = this.component.discuss.activeThreadLocalId;
-        const hasMessages = this.component.hasActiveThreadMessages();
-        const isMobile = this.component.storeProps.isMobile;
-        const activeThread = this.component.storeProps.activeThread;
-        const activeMobileNavbarTabId = this.component.discuss.activeMobileNavbarTabId;
-        const checkedMessageLocalIds = this.component.storeProps.checkedMessageLocalIds;
-        const uncheckedMessageLocalIds = this.component.storeProps.uncheckedMessageLocalIds;
-
         // Invite
-        if (activeThread && activeThread.channel_type === 'channel') {
+        if (
+            this.discuss.thread &&
+            this.discuss.thread.channel_type === 'channel'
+        ) {
             this.$buttons.find('.o_invite').removeClass('o_hidden');
         } else {
             this.$buttons.find('.o_invite').addClass('o_hidden');
         }
         // Mark All Read
-        if (activeThreadLocalId === 'mail.box_inbox') {
+        if (
+            this.discuss.thread &&
+            this.discuss.thread === this.env.entities.Thread.mailboxFromId('inbox')
+        ) {
             this.$buttons
                 .find('.o_widget_Discuss_controlPanelButtonMarkAllRead')
                 .removeClass('o_hidden')
-                .prop('disabled', !hasMessages);
-        }
-        if (
-            activeThreadLocalId !== 'mail.box_inbox' ||
-            activeMobileNavbarTabId !== 'mailbox'
-        ) {
+                .prop('disabled', this.discuss.threadViewer.messages.length === 0);
+        } else {
             this.$buttons
                 .find('.o_widget_Discuss_controlPanelButtonMarkAllRead')
                 .addClass('o_hidden');
         }
         // Unstar All
-        if (activeThreadLocalId === 'mail.box_starred') {
+        if (
+            this.discuss.thread &&
+            this.discuss.thread === this.env.entities.Thread.mailboxFromId('starred')
+        ) {
             this.$buttons
                 .find('.o_unstar_all')
                 .removeClass('o_hidden')
-                .prop('disabled', !hasMessages);
-        }
-        if (
-            activeThreadLocalId !== 'mail.box_starred' ||
-            activeMobileNavbarTabId !== 'mailbox'
-        ) {
+                .prop('disabled', this.discuss.threadViewer.messages.length === 0);
+        } else {
             this.$buttons
                 .find('.o_unstar_all')
                 .addClass('o_hidden');
         }
         // Mobile: Add channel
-        if (isMobile && activeMobileNavbarTabId === 'channel') {
+        if (
+            this.env.entities.Device.instance.isMobile &&
+            this.discuss.activeMobileNavbarTabId === 'channel'
+        ) {
             this.$buttons
                 .find('.o_mobile_new_channel')
                 .removeClass('o_hidden');
@@ -231,7 +227,10 @@ const DiscussWidget = AbstractAction.extend({
                 .addClass('o_hidden');
         }
         // Mobile: Add message
-        if (isMobile && activeMobileNavbarTabId === 'chat') {
+        if (
+            this.env.entities.Device.instance.isMobile &&
+            this.discuss.activeMobileNavbarTabId === 'chat'
+        ) {
             this.$buttons
                 .find('.o_mobile_new_message')
                 .removeClass('o_hidden');
@@ -240,18 +239,17 @@ const DiscussWidget = AbstractAction.extend({
                 .find('.o_mobile_new_message')
                 .addClass('o_hidden');
         }
-        if (isMobile) {
+        if (this.env.entities.Device.instance.isMobile) {
             this._setTitle(this.env._t("Discuss"));
         } else {
             let title;
-            if (activeThread) {
-                const activeThreadName = this.env.store.getters.threadName(activeThreadLocalId);
+            if (this.discuss.thread) {
                 const prefix =
-                    activeThread.channel_type === 'channel' &&
-                    activeThread.public !== 'private'
+                    this.discuss.thread.channel_type === 'channel' &&
+                    this.discuss.thread.public !== 'private'
                     ? '#'
                     : '';
-                title = `${prefix}${activeThreadName}`;
+                title = `${prefix}${this.discuss.thread.displayName}`;
             } else {
                 title = this.env._t("Discuss");
             }
@@ -260,14 +258,15 @@ const DiscussWidget = AbstractAction.extend({
         // Select All & Unselect All
         const $selectAll = this.$buttons.find('.o_widget_Discuss_controlPanelButtonSelectAll');
         const $unselectAll = this.$buttons.find('.o_widget_Discuss_controlPanelButtonUnselectAll');
+
         if (
-            checkedMessageLocalIds.length > 0 ||
-            uncheckedMessageLocalIds.length > 0
+            this.discuss.threadViewer.checkedMessages.length > 0 ||
+            this.discuss.threadViewer.uncheckedMessages.length > 0
         ) {
             $selectAll.removeClass('o_hidden');
-            $selectAll.toggleClass('disabled', uncheckedMessageLocalIds.length === 0);
+            $selectAll.toggleClass('disabled', this.discuss.threadViewer.uncheckedMessages.length === 0);
             $unselectAll.removeClass('o_hidden');
-            $unselectAll.toggleClass('disabled', checkedMessageLocalIds.length === 0);
+            $unselectAll.toggleClass('disabled', this.discuss.threadViewer.checkedMessages.length === 0);
         } else {
             $selectAll.addClass('o_hidden');
             $selectAll.addClass('disabled');
@@ -276,14 +275,17 @@ const DiscussWidget = AbstractAction.extend({
         }
 
         // Moderation Actions
-        const $moderationButtons = this.$buttons.find('.o_widget_Discuss_controlPanelButtonModeration');
-        const nonModerableMessageLocalIds = checkedMessageLocalIds.filter(messageLocalId =>
-            !this.env.store.getters.isMessageModeratedByUser(messageLocalId)
-        );
-        if (checkedMessageLocalIds.length > 0 && nonModerableMessageLocalIds.length === 0) {
-            $moderationButtons.removeClass('o_hidden');
+        if (
+            this.discuss.threadViewer.checkedMessages.length > 0 &&
+            this.discuss.threadViewer.checkedMessages.filter(message => !message.isModeratedByUser).length === 0
+        ) {
+            this.$buttons
+                .find('.o_widget_Discuss_controlPanelButtonModeration')
+                .removeClass('o_hidden');
         } else {
-            $moderationButtons.addClass('o_hidden');
+            this.$buttons
+                .find('.o_widget_Discuss_controlPanelButtonModeration')
+                .addClass('o_hidden');
         }
 
         this.updateControlPanel({
@@ -302,7 +304,7 @@ const DiscussWidget = AbstractAction.extend({
      */
     _onClickInvite() {
         new InvitePartnerDialog(this, {
-            activeThreadLocalId: this.component.discuss.activeThreadLocalId,
+            activeThread: this.discuss.thread,
             messagingEnv: this.env,
         }).open();
     },
@@ -310,26 +312,26 @@ const DiscussWidget = AbstractAction.extend({
      * @private
      */
     _onClickMarkAllAsRead() {
-        this.env.store.dispatch('markAllMessagesAsRead', { domain: this.domain });
+        this.env.entities.Message.markAllAsRead({ domain: this.domain });
     },
     /**
      * @private
      */
     _onClickMobileNewChannel() {
-        this.component.doMobileNewChannel();
+        this.discuss.update({ isAddingChannel: true });
     },
     /**
      * @private
      */
     _onClickMobileNewMessage() {
-        this.component.doMobileNewMessage();
+        this.discuss.update({ isAddingChat: true });
     },
     /**
      * @private
      */
     _onClickModerationAccept() {
-        this.env.store.dispatch('moderateMessages',
-            this.component.storeProps.checkedMessageLocalIds,
+        this.env.entities.Message.moderate(
+            this.discuss.threadViewer.checkedMessages,
             'accept'
         );
     },
@@ -337,45 +339,37 @@ const DiscussWidget = AbstractAction.extend({
      * @private
      */
     _onClickModerationDiscard() {
-        this.component.state.hasModerationDiscardDialog = true;
+        this.discuss.update({ hasModerationDiscardDialog: true });
     },
     /**
      * @private
      */
     _onClickModerationReject() {
-        this.component.state.hasModerationRejectDialog = true;
+        this.discuss.update({ hasModerationRejectDialog: true });
     },
     /**
      * @private
      */
     _onClickSelectAll() {
-        this.env.store.dispatch('setMessagesCheck',
-            this.component.storeProps.uncheckedMessageLocalIds,
-            this.component.storeProps.activeThread.localId,
-            this.component.discuss.stringifiedDomain,
-            {
-                checkValue: true,
-            },
+        this.env.entities.Message.checkAll(
+            this.discuss.thread,
+            this.discuss.threadStringifiedDomain
         );
     },
     /**
      * @private
      */
     _onClickUnselectAll() {
-        this.env.store.dispatch('setMessagesCheck',
-            this.component.storeProps.checkedMessageLocalIds,
-            this.component.storeProps.activeThread.localId,
-            this.component.discuss.stringifiedDomain,
-            {
-                checkValue: false,
-            },
+        this.env.entities.Message.uncheckAll(
+            this.discuss.thread,
+            this.discuss.threadStringifiedDomain
         );
     },
     /**
      * @private
      */
     _onClickUnstarAll() {
-        this.env.store.dispatch('unstarAllMessages');
+        this.env.entities.Message.unstarAll();
     },
     /**
      * @private
@@ -384,7 +378,7 @@ const DiscussWidget = AbstractAction.extend({
      */
     _onSearch(ev) {
         ev.stopPropagation();
-        this.component.updateDomain(ev.data.domain);
+        this.discuss.update({ threadStringifiedDomain: JSON.stringify(ev.data.domain) });
     },
 });
 

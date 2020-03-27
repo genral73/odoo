@@ -18,12 +18,11 @@
                         t-ref="dropzone"
                     />
                 </t>
-                <t t-if="storeProps.attachmentLocalIds.length > 0">
+                <t t-if="thread and thread.allAttachments.length > 0">
                     <AttachmentList
                         class="o_attachmentBox_attachmentList"
-                        areAttachmentsEditable="true"
-                        attachmentLocalIds="storeProps.attachmentLocalIds"
                         areAttachmentsDownloadable="true"
+                        attachments="thread.allAttachments.map(attachment => attachment.localId)"
                         attachmentsDetailsMode="'hover'"
                         attachmentsImageSize="'small'"
                         showAttachmentsFilenames="true"
@@ -34,13 +33,15 @@
                     Add attachments
                 </button>
             </div>
-            <FileUploader
-                attachmentLocalIds="storeProps.attachmentLocalIds"
-                newAttachmentExtraData="newAttachmentExtraData"
-                uploadModel="storeProps.threadModel"
-                uploadId="storeProps.threadId"
-                t-ref="fileUploader"
-            />
+            <t t-if="thread">
+                <FileUploader
+                    attachments="thread.allAttachments.map(attachment => attachment.localId)"
+                    newAttachmentExtraData="newAttachmentExtraData"
+                    uploadModel="thread.model"
+                    uploadId="thread.id"
+                    t-ref="fileUploader"
+                />
+            </t>
         </div>
     </t>
 

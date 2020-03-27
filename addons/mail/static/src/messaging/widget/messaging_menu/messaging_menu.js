@@ -1,9 +1,7 @@
 odoo.define('mail.messaging.widget.MessagingMenu', function (require) {
 'use strict';
 
-const components = {
-    MessagingMenu: require('mail.messaging.component.MessagingMenu'),
-};
+const MessagingMenuComponent = require('mail.messaging.component.MessagingMenu');
 
 const SystrayMenu = require('web.SystrayMenu');
 const Widget = require('web.Widget');
@@ -19,6 +17,7 @@ const MessagingMenu = Widget.extend({
     init() {
         this._super(...arguments);
         this.component = undefined;
+        this._messagingMenu = undefined;
     },
     /**
      * @override
@@ -37,8 +36,8 @@ const MessagingMenu = Widget.extend({
         this._super(...arguments);
     },
     async on_attach_callback() {
-        components.MessagingMenu.env = this.env;
-        this.component = new components.MessagingMenu(null);
+        MessagingMenuComponent.env = this.env;
+        this.component = new MessagingMenuComponent(null);
         await this.component.mount(this.$el[0]);
         // unwrap
         this.el.parentNode.insertBefore(this.component.el, this.el);

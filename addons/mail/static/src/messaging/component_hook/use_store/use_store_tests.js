@@ -8,6 +8,7 @@ const {
 } = require('mail.messaging.testUtils');
 
 const { Component, QWeb, Store } = owl;
+const { useGetters } = owl.hooks;
 const { xml } = owl.tags;
 
 QUnit.module('mail', {}, function () {
@@ -29,6 +30,11 @@ QUnit.test("compare keys, no depth, primitives", async function (assert) {
     assert.expect(8);
     this.store = new Store({
         env: this.env,
+        getters: {
+            get({ state }, key) {
+                return state[key];
+            },
+        },
         state: {
             obj: {
                 subObj1: 'a',
@@ -42,8 +48,9 @@ QUnit.test("compare keys, no depth, primitives", async function (assert) {
     class MyComponent extends Component {
         constructor() {
             super(...arguments);
-            this.storeProps = useStore((state, props) => {
-                const obj = state.obj;
+            this.storeGetters = useGetters();
+            this.storeProps = useStore(props => {
+                const obj = this.storeGetters.get('obj');
                 return {
                     res: obj.use1 ? obj.subObj1 : obj.subObj2,
                 };
@@ -97,6 +104,11 @@ QUnit.test("compare keys, depth 1, proxy", async function (assert) {
     assert.expect(8);
     this.store = new Store({
         env: this.env,
+        getters: {
+            get({ state }, key) {
+                return state[key];
+            },
+        },
         state: {
             obj: {
                 subObj1: { a: 'a' },
@@ -110,8 +122,9 @@ QUnit.test("compare keys, depth 1, proxy", async function (assert) {
     class MyComponent extends Component {
         constructor() {
             super(...arguments);
-            this.storeProps = useStore((state, props) => {
-                const obj = state.obj;
+            this.storeGetters = useGetters();
+            this.storeProps = useStore(props => {
+                const obj = this.storeGetters.get('obj');
                 return {
                     array: [obj.use1 ? obj.subObj1 : obj.subObj2],
                 };
@@ -127,7 +140,6 @@ QUnit.test("compare keys, depth 1, proxy", async function (assert) {
     }
     Object.assign(MyComponent, {
         env: this.env,
-        props: {},
         template: xml`<div t-esc="storeProps.array[0].a"/>`,
     });
 
