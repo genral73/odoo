@@ -24,7 +24,7 @@ class Users(models.Model):
             return partner_id
 
         return [
-            ("active", populate.cartesian([True, False], [0.9, 0.1])),  # it petes
+            ("active", populate.cartesian([True, False], [0.9, 0.1])),
             ("partner_id", populate.compute(partner_id_callable)),
             ("login", populate.constant("user_login_{counter}")),
         ]

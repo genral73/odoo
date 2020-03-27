@@ -22,8 +22,8 @@ class LunchProductCategory(models.Model):
         return [
             ('name', populate.constant('lunch_product_category_{counter}')),
             ('company_id', populate.iterate(
-                [self.env.ref('base.main_company').id] + company_ids,
-                [1] + [2/(len(company_ids) or 1)]*len(company_ids))),
+                [False, self.env.ref('base.main_company').id] + company_ids,
+                [1, 1] + [2/(len(company_ids) or 1)]*len(company_ids))),
         ]
 
 
@@ -32,6 +32,10 @@ class LunchProduct(models.Model):
     _populate_sizes = {'small': 10, 'medium': 150, 'large': 10000}
     #_populate_dependencies = ['lunch.product.category', 'lunch.supplier', 'lunch.topping']
 
+    @property
+    def _populate_dependencies(self):
+        return super(LunchProduct, self)._populate_dependencies + ['lunch.product.category']
+
     def _populate_factories(self):
 
         def get_price(random=None, **kwargs):
@@ -39,14 +43,14 @@ class LunchProduct(models.Model):
 
         category_ids = self.env.registry.populated_models['lunch.product.category']
         category_records = self.env['lunch.product.category'].browse(category_ids)
-        category_by_company = {k: v for k,v in groupby(category_records, key='company_id')}
+        category_by_company = {k: list(v) for k, v in groupby(category_records, key=lambda rec: rec['company_id'].id)}
 
         supplier_ids = self.env.registry.populated_models['lunch.supplier']
-        company_by_supplier = {vals['id']: vals['company_id'] for vals in self.env['lunch.supplier'].browse(supplier_ids).read(['company_id'])}
+        company_by_supplier = {rec.id: rec.company_id.id for rec in self.env['lunch.supplier'].browse(supplier_ids)}
 
         def get_category(random=None, values=None, **kwargs):
             company_id = company_by_supplier[values['supplier_id']]
-            return random.choice(category_by_company[company_id])
+            return random.choice(category_by_company[company_id]).id
 
         return [
             ('active', populate.iterate([True, False], [0.9, 0.1])),
@@ -77,7 +81,10 @@ class LunchSupplier(models.Model):
     _inherit = 'lunch.supplier'
 
     _populate_sizes = {'small': 3, 'medium': 50, 'large': 1500}
-    #_populate_dependencies = ['res.partner', 'res.users', 'lunch.location']
+
+    @property
+    def _populate_dependencies(self):
+        return super(LunchSupplier, self)._populate_dependencies + ['lunch.location']
 
     def _populate_factories(self):
         # TODO recurrency_end_date, tz
@@ -140,7 +147,7 @@ class LunchOrder(models.Model):
 class LunchAlert(models.Model):
     _inherit = 'lunch.alert'
     _populate_sizes = {'small': 10, 'medium': 40, 'large': 150}
-    #_populate_dependencies = ['lunch.location']
+    # populate_dependencies = ['lunch.location']
 
     def _populate_factories(self):
 
