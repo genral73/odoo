@@ -486,14 +486,24 @@ class Survey(models.Model):
 
         # Conditional Questions Management
         triggering_answer_by_question, triggered_questions_by_answer, selected_answers = user_input._get_conditional_values()
-        if survey.has_conditional_questions and survey.questions_layout == 'page_per_question' and triggered_questions_by_answer:
-            potential_next_questions = pages_or_questions[0:current_page_index] if go_back \
-                else pages_or_questions[current_page_index+1:]
-            for question in sorted(potential_next_questions, key=lambda q: q.id, reverse=go_back):
-                triggering_answer = triggering_answer_by_question.get(question)
-                if not triggering_answer or triggering_answer in selected_answers:
-                    # If next question found
-                    return question
+        if survey.has_conditional_questions and triggered_questions_by_answer:
+            if survey.questions_layout == 'page_per_question':
+                potential_next_questions = pages_or_questions[0:current_page_index] if go_back \
+                    else pages_or_questions[current_page_index + 1:]
+                for question in potential_next_questions.sorted(reverse=go_back):
+                    triggering_answer = triggering_answer_by_question.get(question)
+                    if not triggering_answer or triggering_answer in selected_answers:
+                        # If next question found
+                        return question
+            elif survey.questions_layout == 'page_per_section':
+                # If next section contains at least one 'active' question, show this section, else, skip it
+                inactive_questions = user_input._get_inactive_conditional_questions()
+                section_candidates = pages_or_questions[0:current_page_index] if go_back \
+                    else pages_or_questions[current_page_index + 1:]
+                for section in section_candidates.sorted(reverse=go_back):
+                    if any(question not in inactive_questions for question in section.question_ids):
+                        return section
+                return Question
         else:
             return pages_or_questions[current_page_index + (1 if not go_back else -1)]
 
