@@ -253,8 +253,8 @@
                                         <thead>
                                             <tr>
                                                 <th/>
-                                                <th t-if="is_uom_day" class="text-right pr-5">Days Spent</th>
-                                                <th t-else="" class="text-right pr-5">Hours Spent</th>
+                                                <th t-if="is_uom_day" class="text-nowrap text-right pr-5">Days Spent</th>
+                                                <th t-else="" class="text-nowrap text-right pr-5">Hours Spent</th>
                                             </tr>
                                         </thead>
                                         <tbody>
