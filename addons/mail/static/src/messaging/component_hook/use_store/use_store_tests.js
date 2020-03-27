@@ -21,7 +21,7 @@ QUnit.module('useStore', {
     afterEach() {
         this.env = undefined;
         this.store = undefined;
-    }
+    },
 });
 
 

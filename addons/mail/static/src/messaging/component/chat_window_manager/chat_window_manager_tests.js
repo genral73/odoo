@@ -33,7 +33,7 @@ QUnit.module('ChatWindowManager', {
         if (this.widget) {
             this.widget.destroy();
         }
-    }
+    },
 });
 
 QUnit.test('initial mount', async function (assert) {

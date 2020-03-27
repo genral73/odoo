@@ -54,7 +54,7 @@ QUnit.module('ChatterTopbar', {
         }
         delete components.ChatterTopBar.env;
         this.env = undefined;
-    }
+    },
 });
 
 QUnit.test('base rendering', async function (assert) {

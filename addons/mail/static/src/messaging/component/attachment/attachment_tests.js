@@ -46,7 +46,7 @@ QUnit.module('Attachment', {
         }
         this.env = undefined;
         delete components.Attachment.env;
-    }
+    },
 });
 
 QUnit.test('simplest layout', async function (assert) {

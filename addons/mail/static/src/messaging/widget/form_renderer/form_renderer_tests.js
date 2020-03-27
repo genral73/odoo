@@ -59,7 +59,7 @@ QUnit.module('FormRenderer', {
             this.view.destroy();
         }
         utilsAfterEach(this);
-    }
+    },
 });
 
 QUnit.test('basic chatter rendering', async function (assert) {

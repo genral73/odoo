@@ -54,7 +54,7 @@ QUnit.module('Message', {
         }
         this.env = undefined;
         delete components.Message.env;
-    }
+    },
 });
 
 QUnit.test('basic rendering', async function (assert) {

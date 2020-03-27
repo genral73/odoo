@@ -61,7 +61,7 @@ QUnit.module('ThreadViewer', {
         }
         this.env = undefined;
         delete components.ThreadViewer.env;
-    }
+    },
 });
 
 QUnit.test('dragover files on thread with composer', async function (assert) {

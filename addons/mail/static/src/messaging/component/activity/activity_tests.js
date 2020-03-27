@@ -50,7 +50,7 @@ QUnit.module('Activity', {
             this.widget.destroy();
         }
         this.env = undefined;
-    }
+    },
 });
 
 QUnit.test('activity simplest layout', async function (assert) {

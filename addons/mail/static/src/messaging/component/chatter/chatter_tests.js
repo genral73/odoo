@@ -49,7 +49,7 @@ QUnit.module('Chatter', {
         }
         delete components.Chatter.env;
         this.env = undefined;
-    }
+    },
 });
 
 QUnit.test('base rendering when chatter has no attachment', async function (assert) {

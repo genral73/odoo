@@ -42,7 +42,7 @@ QUnit.module('PartnerImStatusIcon', {
         }
         this.env = undefined;
         delete components.PartnerImStatusIcon.env;
-    }
+    },
 });
 
 QUnit.test('initially online', async function (assert) {

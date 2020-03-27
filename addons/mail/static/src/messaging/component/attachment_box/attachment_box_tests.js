@@ -58,7 +58,7 @@ QUnit.module('AttachmentBox', {
         }
         delete components.AttachmentBox.env;
         this.env = undefined;
-    }
+    },
 });
 
 QUnit.test('base empty rendering', async function (assert) {

@@ -58,7 +58,7 @@ QUnit.module('Composer', {
         this.env = undefined;
         delete components.Composer.env;
         await nextAnimationFrame(); // ensures tribute is detached on next frame
-    }
+    },
 });
 
 QUnit.test('composer text input: basic rendering', async function (assert) {

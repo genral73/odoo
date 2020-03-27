@@ -52,7 +52,7 @@ QUnit.module('FileUploader', {
         }
         delete components.FileUploader.env;
         this.env = undefined;
-    }
+    },
 });
 
 QUnit.test('no conflicts between file uploaders', async function (assert) {
