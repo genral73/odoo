@@ -599,7 +599,6 @@ class AccountMove(models.Model):
                 tax_line = create_method({
                     'name': tax.name,
                     'move_id': self.id,
-                    'partner_id': line.partner_id.id,
                     'company_id': line.company_id.id,
                     'company_currency_id': line.company_currency_id.id,
                     'quantity': 1.0,
@@ -664,7 +663,6 @@ class AccountMove(models.Model):
                 'credit': diff_balance < 0.0 and -diff_balance or 0.0,
                 'quantity': 1.0,
                 'amount_currency': diff_amount_currency,
-                'partner_id': self.partner_id.id,
                 'move_id': self.id,
                 'currency_id': self.currency_id if self.currency_id != self.company_id.currency_id else False,
                 'company_id': self.company_id.id,
@@ -849,7 +847,6 @@ class AccountMove(models.Model):
                         'move_id': self.id,
                         'currency_id': self.currency_id.id if self.currency_id != self.company_id.currency_id else False,
                         'account_id': account.id,
-                        'partner_id': self.commercial_partner_id.id,
                         'exclude_from_invoice_tab': True,
                     })
                 new_terms_lines += candidate
@@ -939,7 +936,7 @@ class AccountMove(models.Model):
     def _onchange_dynamic_lines_tax_base_amount(self):
         self.invoice_recompute_dynamic_lines = 'tax_base_amount'
 
-    def post_onchange(self, changed_fields):
+    def post_onchange(self):
         if self.invoice_recompute_dynamic_lines:
             recompute_tax_base_amount = self.invoice_recompute_dynamic_lines == 'tax_base_amount'
             self._recompute_dynamic_lines(recompute_tax_base_amount=recompute_tax_base_amount)
@@ -1567,11 +1564,11 @@ class AccountMove(models.Model):
 
             # Cleanup 'invoice_line_ids' to avoid duplicated lines with 'line_ids'.
             for vals in auto_balance_vals_list:
-                vals.pop('invoice_line_ids')
+                vals['line_ids'] = vals.pop('invoice_line_ids')
 
             self_ctx = self.with_context(check_move_validity=False)
             moves = super(AccountMove, self_ctx).create(auto_balance_vals_list)
-            moves._recompute_dynamic_lines(recompute_all_taxes=True)
+            moves.with_context(blu=True)._recompute_dynamic_lines(recompute_all_taxes=True)
             moves = moves.with_context(check_move_validity=True)
             moves._check_balanced()
             created_moves += moves
@@ -1605,7 +1602,7 @@ class AccountMove(models.Model):
                 move.journal_id.sequence_override_regex = False
 
         if 'invoice_line_ids' in vals:
-            vals.pop('invoice_line_ids')
+            vals['line_ids'] = vals.pop('invoice_line_ids')
 
             self_ctx = self.with_context(check_move_validity=False)
             res = super(AccountMove, self_ctx).write(vals)
@@ -2453,14 +2450,12 @@ class AccountMoveLine(models.Model):
     price_subtotal = fields.Monetary(
         string='Subtotal',
         store=True,
-        compute='_compute_price_subtotal_price_total',
+        compute='_compute_price_subtotal',
         inverse='_inverse_price_subtotal',
         currency_field='always_set_currency_id')
     price_total = fields.Monetary(
         string='Total',
-        store=True,
-        readonly=False, # Must be readonly=False because computed with price_subtotal that have an inverse method.
-        compute='_compute_price_subtotal_price_total',
+        readonly=True,
         currency_field='always_set_currency_id')
     reconciled = fields.Boolean(compute='_amount_residual', store=True)
     blocked = fields.Boolean(string='No Follow-up', default=False,
@@ -2887,7 +2882,7 @@ class AccountMoveLine(models.Model):
             else:
                 line.name = line.name
 
-    def _get_price_subtotal_price_total(self):
+    def _get_price_subtotal(self):
         self.ensure_one()
 
         move = self.move_id
@@ -2904,27 +2899,20 @@ class AccountMoveLine(models.Model):
                 partner=self.partner_id,
                 is_refund=move.move_type in ('out_refund', 'in_refund'),
             )
-            return {
-                'price_subtotal': currency.round(taxes_res['total_excluded']),
-                'price_total': currency.round(taxes_res['total_included']),
-            }
+            return currency.round(taxes_res['total_excluded'])
         else:
-            price_subtotal = currency.round(self.quantity * price_unit_wo_discount)
-            return {
-                'price_subtotal': price_subtotal,
-                'price_total': price_subtotal,
-            }
+            return currency.round(self.quantity * price_unit_wo_discount)
 
     @api.depends('price_unit', 'quantity', 'discount', 'tax_ids')
-    def _compute_price_subtotal_price_total(self):
+    def _compute_price_subtotal(self):
         for line in self:
-            line.update(line._get_price_subtotal_price_total())
+            line.price_subtotal = line._get_price_subtotal()
 
     def _inverse_price_subtotal(self):
         for line in self:
             move = line.move_id
             currency = line.currency_id or line.move_id.journal_id.company_id.currency_id
-            old_price_subtotal = line._get_price_subtotal_price_total()['price_subtotal']
+            old_price_subtotal = line._get_price_subtotal()
 
             if move.is_outbound(include_receipts=True):
                 sign = 1
@@ -2994,6 +2982,11 @@ class AccountMoveLine(models.Model):
     def _compute_balance(self):
         for line in self:
             line.balance = line.debit - line.credit
+
+            # Outside the 'onchanges' mode, setting 'debit' or 'credit' will compute the balance but not trigger the
+            # inverse.
+            if self == self._origin:
+                line._inverse_balance()
 
     def _inverse_balance(self):
         for line in self:

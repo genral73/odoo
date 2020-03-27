@@ -1740,7 +1740,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                     'product_id': self.product_line_vals_2['product_id'],
                     'tax_ids': [(6, 0, self.product_line_vals_2['tax_ids'])],
                 }),
-            ]
+            ],
         })
 
         self.assertInvoiceValues(move, [
@@ -1788,13 +1788,19 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
     #         'currency_id': self.currency_data['currency'].id,
     #         'invoice_payment_term_id': self.pay_terms_a.id,
     #         'invoice_line_ids': [
-    #             (0, None, self.product_line_vals_1),
-    #         ]
+    #             (0, None, {
+    #                 'product_id': self.product_line_vals_1['product_id'],
+    #                 'tax_ids': [(6, 0, self.product_line_vals_1['tax_ids'])],
+    #             }),
+    #         ],
     #     })
     #     move.write({
     #         'invoice_line_ids': [
-    #             (0, None, self.product_line_vals_2),
-    #         ]
+    #             (0, None, {
+    #                 'product_id': self.product_line_vals_2['product_id'],
+    #                 'tax_ids': [(6, 0, self.product_line_vals_2['tax_ids'])],
+    #             }),
+    #         ],
     #     })
     #
     #     self.assertInvoiceValues(move, [
@@ -1832,7 +1838,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
     #         **self.move_vals,
     #         'currency_id': self.currency_data['currency'].id,
     #     })
-    #
+
     # def test_out_invoice_write_2(self):
     #     ''' Ensure to not messing the invoice when writing a bad account type. '''
     #     move = self.env['account.move'].create({
