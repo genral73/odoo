@@ -42,12 +42,12 @@
                                 type="object" icon="fa-envelope-o" class="oe_stat_button">
                             <field name="mailing_list_count" string="bouncing" widget="statinfo"/>
                         </button>
-                        <button name="action_view_valid_email_contacts"
+                        <button name="action_view_valid_contacts"
                                 type="object" icon="fa-user" class="oe_stat_button">
-                            <field name="contact_valid_email_count" string="Recipients" widget="statinfo"/>
+                            <field name="contact_valid_count" string="Recipients" widget="statinfo"/>
                         </button>
                         <button icon="fa-exchange" class="oe_stat_button">
-                            <field name="contact_bounce_sum" string="bouncing" widget="statinfo"/>
+                            <field name="contact_message_bounce_percentage_str" string="bouncing" widget="statinfo"/>
                         </button>
                         <button name="action_view_opt_out_contacts"
                                 type="object" icon="fa-bell-slash" class="oe_stat_button">
@@ -116,7 +116,7 @@
                 <field name="name"/>
                 <field name="contact_count"/>
                 <field name="contact_valid_email_count"/>
-                <field name="contact_bounce_sum"/>
+                <field name="contact_message_bounce_percentage"/>
                 <field name="contact_blacklist_percentage"/>
                 <field name="contact_opt_out_percentage"/>
                 <field name="mailing_list_count"/>
@@ -136,7 +136,7 @@
                                                 <t t-esc="record.contact_count.value"/> Contacts</button>
                                             </div>
                                             <div class="kanban-right-content col">
-                                                <div class="row">
+                                                <div t-if="record.contact_valid_email_count.value > 0" class="row">
                                                     <div class="col-12 my-0 text-info">
                                                         <div class="row">
                                                             <small>
@@ -173,6 +173,8 @@
                                 </div>
                             </div>
                             <div class="o_mailing_list_kanban_boxes">
+                                <t t-set="message_bounce_status"
+                                   t-value="record.contact_message_bounce_percentage.value > 8.0 ? 'text-danger': record.contact_message_bounce_percentage.value > 3.0 ? 'text-warning' : 'text-black'" />
                                 <t t-set="opt_out_status"
                                    t-value="record.contact_opt_out_percentage.value > 0.5 ? 'text-danger': record.contact_opt_out_percentage.value > 0.2 ? 'text-warning' : 'text-black'" />
                                 <t t-set="blacklist_status"
@@ -182,10 +184,10 @@
                                         <i class="fa fa-envelope-o" role="img" aria-label="Mail" title="mail"/>
                                         <t t-esc="record.mailing_list_count.value"/>
                                     </a>
-                                    <span t-attf-class="mr-3 text-black" >
+                                    <a t-attf-class="mr-3 {{message_bounce_status}}" role="button" type="object" name="action_view_message_bounce_contacts" >
                                         <i class="fa fa-exchange" role="img" aria-label="Bounce" title="bounce"/>
-                                        <t t-esc="record.contact_bounce_sum.value"/>
-                                    </span>
+                                        <t t-esc="record.contact_message_bounce_percentage.value"/>
+                                    </a>
                                     <a t-attf-class="mr-3 {{opt_out_status}}" role="button" type="object" name="action_view_opt_out_contacts">
                                         <i class="fa fa-bell-slash" role="img" aria-label="Opt-out" title="Opt out"/>
                                         <t t-esc="record.contact_opt_out_percentage.value"/>%

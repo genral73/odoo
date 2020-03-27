@@ -112,6 +112,31 @@
             <field name="email">kristen77@coleman-walker.com</field>
             <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
         </record>
+        <record id="mass_mail_1_contact_21" model="mailing.contact">
+            <field name="name">Leen street</field>
+            <field name="email">leen77@odoo.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_22" model="mailing.contact">
+            <field name="name">Pierro</field>
+            <field name="email">lelou@odoo.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_23" model="mailing.contact">
+            <field name="name">coincoin</field>
+            <field name="email">canard@odoo.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_24" model="mailing.contact">
+            <field name="name">louni</field>
+            <field name="email">toons@odoo.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
+        <record id="mass_mail_1_contact_25" model="mailing.contact">
+            <field name="name">marie</field>
+            <field name="email">marie@odoo.com</field>
+            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mass_mail_list_1')])]"/>
+        </record>
         
         <!-- Create Opt-out Records -->
         <record id="mass_mail_contact_rel_1_1" model="mailing.contact.subscription">

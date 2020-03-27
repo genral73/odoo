@@ -23,13 +23,13 @@
         <field name="arch" type="xml">
             <xpath expr="//div[hasclass('kanban-right-content')]" position="inside">
                 <field name="contact_valid_sms_count" invisible="1"/>
-                <div class="row">
+                <div t-if="record.contact_valid_sms_count.value > 0" class="row">
                     <div class="col-12 my-0 text-info">
                         <div class="row">
                             <small>
                                 <a class="col-auto my-0"
                                    type="object"
-                                   name="action_view_valid_email_contacts">
+                                   name="action_view_valid_sms_contacts">
                                     Valid sms recipients
                                 </a>
                             </small>

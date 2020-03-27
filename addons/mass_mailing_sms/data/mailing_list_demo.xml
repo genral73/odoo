@@ -1,32 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo><data noupdate="0">
-    <record id="mailing_list_sms_0" model="mailing.list">
-        <field name="name">Interested in Tree Promotions</field>
-    </record>
+<odoo>
+    <data noupdate="0">
+        <record id="mailing_list_sms_0" model="mailing.list">
+            <field name="name">Interested in Tree Promotions</field>
+        </record>
 
-    <record id="mailing_contact_0_0" model="mailing.contact">
-        <field name="name">Hubert Farnsworth</field>
-        <field name="mobile">+32456001100</field>
-        <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_0'))]"/>
-    </record>
-    <record id="mailing_contact_0_1" model="mailing.contact">
-        <field name="name">Philip Fry</field>
-        <field name="mobile">+32456001111</field>
-        <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_0'))]"/>
-    </record>
-    <record id="mailing_contact_0_2" model="mailing.contact">
-        <field name="name">Turanga Leela</field>
-        <field name="mobile">+32456001122</field>
-        <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_0'))]"/>
-    </record>
-    <record id="mailing_contact_0_3" model="mailing.contact">
-        <field name="name">John Zoidberg</field>
-        <field name="mobile">+32456001133</field>
-        <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_0'))]"/>
-    </record>
-    <record id="mailing_contact_0_4" model="mailing.contact">
-        <field name="name">Zapp Brannigan</field>
-        <field name="mobile">dummy</field>
-        <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_0'))]"/>
-    </record>
-</data></odoo>
+        <record id="mailing_contact_0_0" model="mailing.contact">
+            <field name="name">Hubert Farnsworth</field>
+            <field name="mobile">+32456001100</field>
+            <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_0'))]"/>
+        </record>
+        <record id="mailing_contact_0_1" model="mailing.contact">
+            <field name="name">Philip Fry</field>
+            <field name="mobile">+32456001111</field>
+            <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_0'))]"/>
+        </record>
+        <record id="mailing_contact_0_2" model="mailing.contact">
+            <field name="name">Turanga Leela</field>
+            <field name="mobile">+32456001122</field>
+            <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_0'))]"/>
+        </record>
+        <record id="mailing_contact_0_3" model="mailing.contact">
+            <field name="name">John Zoidberg</field>
+            <field name="mobile">+32456001133</field>
+            <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_0'))]"/>
+        </record>
+        <record id="mailing_contact_0_4" model="mailing.contact">
+            <field name="name">Zapp Brannigan</field>
+            <field name="mobile">dummy</field>
+            <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_0'))]"/>
+        </record>
+
+        <record id="mailing_list_sms_1" model="mailing.list">
+            <field name="name">Mailinig list with sms and email</field>
+        </record>
+
+        <record id="mailing_contact_1_0" model="mailing.contact">
+            <field name="name">Shannon Smith</field>
+            <field name="mobile">+32456001100</field>
+            <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_1'))]"/>
+        </record>
+        <record id="mailing_contact_1_1" model="mailing.contact">
+            <field name="name">Victoria Coleman</field>
+            <field name="mobile">+32456001111</field>
+            <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_1'))]"/>
+        </record>
+        <record id="mailing_contact_1_2" model="mailing.contact">
+            <field name="name">Chris Irwin</field>
+            <field name="mobile">+32456001122</field>
+            <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_1'))]"/>
+        </record>
+        <record id="mailing_contact_1_3" model="mailing.contact">
+            <field name="name">John Zoidberg</field>
+            <field name="email">benjamin89@meadows.org</field>
+            <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_1'))]"/>
+        </record>
+        <record id="mailing_contact_1_4" model="mailing.contact">
+            <field name="name">Zapp Brannigan</field>
+            <field name="email">montgomerymelvin@skinner-warren.org</field>
+            <field name="mobile">?32456201122</field>
+            <field name="list_ids" eval="[(4, ref('mass_mailing_sms.mailing_list_sms_1'))]"/>
+        </record>
+
+    </data>
+</odoo>

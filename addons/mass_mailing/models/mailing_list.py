@@ -18,37 +18,42 @@ class MassMailingList(models.Model):
         string='Contact Lists')
 
     mailing_list_ids = fields.Many2many('mailing.mailing', 'mail_mass_mailing_list_rel', string='Mailing Lists')
-
     contact_ids_valid_email = fields.Many2many(
         'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
         compute='_compute_statistic', string='Valid email'
     )
-
+    contact_ids_valid = fields.Many2many(
+        'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
+        compute='_compute_statistic', string='Valid email'
+    )
+    contact_ids_message_bounce = fields.Many2many(
+        'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
+        compute='_compute_statistic', string='Message bounced'
+    )
     contact_ids_opt_out = fields.Many2many(
         'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
-        compute='_compute_statistic', string='opt out'
+        compute='_compute_statistic', string='Opt out'
     )
-
     contact_ids_blacklisted = fields.Many2many(
         'mailing.contact', 'mailing_contact_list_rel', 'list_id', 'contact_id',
-        compute='_compute_statistic', string='blacklisted email'
+        compute='_compute_statistic', string='Blacklisted email'
     )
-
 
     contact_count = fields.Integer(compute='_compute_statistic', string='Total contacts')
-    contact_valid_count = fields.Integer(compute='_compute_statistic', string='Number of Valid contacts')
-    contact_valid_email_count = fields.Integer(compute='_compute_statistic', string='Number of Valid contacts')
+    contact_valid_count = fields.Integer(compute='_compute_statistic', string='Total valid contacts')
+    contact_valid_email_count = fields.Integer(compute='_compute_statistic', string='Number of Valid email contacts')
+    mailing_list_count = fields.Integer(compute='_compute_statistic', string='Valid contacts')
+
+    contact_message_bounce_percentage = fields.Float(
+        compute='_compute_statistic',
+        string='Number of email that have at least one bounced message'
+    )
+    
     contact_blacklist_percentage = fields.Float(compute='_compute_statistic', string='Percentage black listed contact')
     contact_opt_out_percentage = fields.Float(compute='_compute_statistic', string='Percentage opt out contact')
+    contact_message_bounce_percentage_str = fields.Char(compute='_compute_statistic')
     contact_blacklist_percentage_str = fields.Char(compute='_compute_statistic')
     contact_opt_out_percentage_str = fields.Char(compute='_compute_statistic')
-
-
-    contact_bounce_sum = fields.Float(
-        compute='_compute_statistic', string='Sum of all bounced contact message'
-    )
-
-    mailing_list_count = fields.Integer(compute='_compute_statistic', string='Valid contacts')
 
     subscription_ids = fields.One2many(
         'mailing.contact.subscription', 'list_id', string='Subscription Information'
@@ -67,16 +72,20 @@ class MassMailingList(models.Model):
             contact_ids = mailing_list.contact_ids.with_context({'default_list_ids': [mailing_list.id]})
             mailing_list.contact_ids_opt_out = contact_ids.filtered('opt_out')
             mailing_list.contact_ids_blacklisted = contact_ids.filtered('is_blacklisted')
+            mailing_list.contact_ids_message_bounce = contact_ids.filtered('message_bounce')
             mailing_list.contact_ids_valid_email = contact_ids.filtered(
                 lambda contact: contact.email and not contact.is_blacklisted and not contact.opt_out
             )
+            mailing_list.contact_ids_valid = mailing_list.contact_ids_valid_email
 
-            mailing_list.contact_ids_bounce_contact = contact_ids.filtered('message_bounce')
             mailing_list.contact_count = len(contact_ids)
             mailing_list.contact_valid_email_count = len(mailing_list.contact_ids_valid_email)
+            mailing_list.contact_valid_count = len(mailing_list.contact_ids_valid)
             mailing_list.mailing_list_count = len(mailing_list.mailing_list_ids)
 
-            mailing_list.contact_bounce_sum = sum(mailing_list.contact_ids_bounce_contact.mapped('message_bounce'))
+            mailing_list.contact_message_bounce_percentage = fields.float_round(
+                len(mailing_list.contact_ids_message_bounce) / mailing_list.contact_count * 100, 2
+            ) if mailing_list.contact_count > 0 else 0
             mailing_list.contact_blacklist_percentage = fields.float_round(
                 len(mailing_list.contact_ids_blacklisted) / mailing_list.contact_count * 100, 2
             ) if mailing_list.contact_count > 0 else 0
@@ -84,10 +93,10 @@ class MassMailingList(models.Model):
                 len(mailing_list.contact_ids_opt_out) / mailing_list.contact_count * 100, 2
             ) if mailing_list.contact_count > 0 else 0
 
+            mailing_list.contact_message_bounce_percentage_str = str(mailing_list.contact_message_bounce_percentage) + '%'
             mailing_list.contact_opt_out_percentage_str = str(mailing_list.contact_opt_out_percentage) + '%'
             mailing_list.contact_blacklist_percentage_str = str(mailing_list.contact_blacklist_percentage) + '%'
-            
-            
+
 
     def write(self, vals):
         # Prevent archiving used mailing list
@@ -116,6 +125,16 @@ class MassMailingList(models.Model):
         action = self.env.ref('mass_mailing.action_view_mass_mailing_contacts').read()[0]
         action['domain'] = [('list_ids', 'in', self.ids)]
         context = dict(self.env.context, search_default_filter_valid_email_recipient=1, default_list_ids=self.ids)
+        action['context'] = context
+        return action
+
+    def action_view_valid_contacts(self):
+        return self.action_view_valid_email_contacts()
+
+    def action_view_message_bounce_contacts(self):
+        action = self.env.ref('mass_mailing.action_view_mass_mailing_contacts').read()[0]
+        action['domain'] = [('list_ids', 'in', self.ids), ('message_bounce', '>', 0)]
+        context = dict(self.env.context, default_list_ids=self.ids)
         action['context'] = context
         return action
 
