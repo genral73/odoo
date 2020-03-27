@@ -1818,12 +1818,14 @@ class AccountPartialReconcile(models.Model):
                 base_line,
                 debit=rounded_amt > 0 and rounded_amt or 0.0,
                 credit=rounded_amt < 0 and abs(rounded_amt) or 0.0,
-                amount_currency=amount_currency))
+                amount_currency=amount_currency,
+                journal_id=new_move.journal_id.id))
             aml_obj.create(dict(
                 base_line,
                 credit=rounded_amt > 0 and rounded_amt or 0.0,
                 debit=rounded_amt < 0 and abs(rounded_amt) or 0.0,
                 amount_currency=-amount_currency,
+                journal_id=new_move.journal_id.id,
                 tax_ids=[]))
 
     def create_tax_cash_basis_entry(self, percentage_before_rec):
@@ -1866,6 +1868,7 @@ class AccountPartialReconcile(models.Model):
                                 'currency_id': line.currency_id.id,
                                 'move_id': newly_created_move.id,
                                 'partner_id': line.partner_id.id,
+                                'journal_id': newly_created_move.journal_id.id,
                             })
                             # Group by cash basis account and tax
                             self.env['account.move.line'].with_context(check_move_validity=False).create({
@@ -1882,6 +1885,7 @@ class AccountPartialReconcile(models.Model):
                                 'currency_id': line.currency_id.id,
                                 'move_id': newly_created_move.id,
                                 'partner_id': line.partner_id.id,
+                                'journal_id': newly_created_move.journal_id.id,
                             })
                             if line.account_id.reconcile:
                                 #setting the account to allow reconciliation will help to fix rounding errors
