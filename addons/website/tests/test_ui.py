@@ -5,6 +5,8 @@ import odoo
 import odoo.tests
 import logging
 
+from odoo.tools.misc import mute_logger
+
 @odoo.tests.tagged('-at_install', 'post_install')
 class TestUiCustomizeTheme(odoo.tests.HttpCase):
     def test_01_attachment_website_unlink(self):
@@ -96,6 +98,8 @@ class TestUiTranslate(odoo.tests.HttpCase):
 
     def test_admin_tour_rte_translator(self):
 
+        with mute_logger('odoo.addons.base.models.ir_translation'):
+            self.env["base.language.install"].create({'lang': 'fr_BE', 'overwrite': True}).lang_install()
         self.start_tour("/", 'rte_translator', login='admin', timeout=120)
 
 @odoo.tests.common.tagged('post_install', '-at_install')
